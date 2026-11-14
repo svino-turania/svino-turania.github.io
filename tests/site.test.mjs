@@ -16,7 +16,7 @@ const MAP_ORIGIN = 'https://www.google.com';
 const PHOTO_SIZES = '(min-width: 46rem) 39.5rem, calc(100vw - 4.5rem)';
 
 const CANTINA_PARAGRAPH =
-  'Per la seconda edizione si entra nelle cantine del borgo: si assaggia il vino di Turania e da una cantina si passa alla successiva. Vi aspettiamo.';
+  "Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva, con il bicchiere in mano. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio. Questa pagina sarà aggiornata con tutte le novità dell'evento. Il programma e gli aggiornamenti arriveranno qui presto. Vi aspettiamo.";
 
 const PHOTO_ALT =
   "Strada acciottolata di un borgo italiano, con case in pietra e intonaco chiaro, balconi, persiane e una torre con orologio sullo sfondo; in primo piano, su una botte di legno, un grappolo d'uva nera, una bottiglia di vino scuro e un calice di vino rosso.";
