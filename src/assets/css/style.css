@@ -301,6 +301,21 @@ a:focus-visible {
   outline-offset: 3px;
 }
 
+.locandina-download {
+  margin: 2rem 0;
+  font-size: 1.125rem;
+}
+
+.locandina-download a {
+  color: var(--gold-light);
+  font-weight: 700;
+  text-underline-offset: 0.2em;
+}
+
+.locandina-download a:hover {
+  color: var(--cream-light);
+}
+
 .colophon {
   padding-block: clamp(1rem, 2.5vw, 1.5rem);
   color: var(--gold-light);

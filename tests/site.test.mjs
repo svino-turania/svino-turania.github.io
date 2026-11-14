@@ -11,7 +11,7 @@ import {
 } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, extname, join, resolve } from 'node:path';
 import { parseHTML } from 'linkedom';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -21,6 +21,13 @@ const MAP_ORIGIN = 'https://www.openstreetmap.org';
 
 const CANTINA_PARAGRAPH =
   'Per la seconda edizione si entra nelle cantine del borgo: si assaggia il vino di Turania e da una cantina si passa alla successiva. Vi aspettiamo.';
+
+const IMAGE_TYPE_BY_EXTENSION = new Map([
+  ['.jpg', 'image/jpeg'],
+  ['.jpeg', 'image/jpeg'],
+  ['.png', 'image/png'],
+  ['.webp', 'image/webp'],
+]);
 
 function normalize(value) {
   return value.replace(/\s+/g, ' ').trim();
@@ -53,11 +60,130 @@ function builtStylesheet() {
   return readFileSync(file, 'utf8');
 }
 
+function readJpegFrame(bytes) {
+  let offset = 2;
+  while (offset + 9 < bytes.length) {
+    if (bytes[offset] !== 0xff) {
+      offset += 1;
+      continue;
+    }
+    const marker = bytes[offset + 1];
+    if (marker === 0xd8 || marker === 0xd9) {
+      offset += 2;
+      continue;
+    }
+    if (marker === 0xda) {
+      break;
+    }
+    if (marker >= 0xd0 && marker <= 0xd7) {
+      offset += 2;
+      continue;
+    }
+    const length = bytes.readUInt16BE(offset + 2);
+    const isFrameHeader =
+      marker >= 0xc0 &&
+      marker <= 0xcf &&
+      ![0xc4, 0xc8, 0xcc].includes(marker);
+    if (isFrameHeader) {
+      return {
+        height: bytes.readUInt16BE(offset + 5),
+        width: bytes.readUInt16BE(offset + 7),
+        components: bytes[offset + 9],
+      };
+    }
+    offset += 2 + length;
+  }
+  return null;
+}
+
+function readImage(bytes, mime) {
+  if (mime === 'image/jpeg') {
+    assert.deepEqual(
+      [...bytes.subarray(0, 3)],
+      [0xff, 0xd8, 0xff],
+      'il file scaricabile non ha l’intestazione di un JPEG',
+    );
+    const frame = readJpegFrame(bytes);
+    assert.ok(frame, 'il JPEG scaricabile non è un’immagine leggibile');
+    return frame;
+  }
+
+  if (mime === 'image/png') {
+    assert.deepEqual(
+      [...bytes.subarray(0, 8)],
+      [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+      'il file scaricabile non ha l’intestazione di un PNG',
+    );
+    return {
+      width: bytes.readUInt32BE(16),
+      height: bytes.readUInt32BE(20),
+      components: null,
+    };
+  }
+
+  if (mime === 'image/webp') {
+    assert.equal(
+      bytes.subarray(0, 4).toString('ascii'),
+      'RIFF',
+      'il file scaricabile non ha l’intestazione di un WebP',
+    );
+    assert.equal(
+      bytes.subarray(8, 12).toString('ascii'),
+      'WEBP',
+      'il file scaricabile non è un WebP',
+    );
+    return { width: null, height: null, components: null };
+  }
+
+  assert.fail(`tipo di immagine non verificabile: ${mime}`);
+}
+
 function loadSite() {
   const file = join(SITE, 'index.html');
   assert.ok(existsSync(file), 'la build non ha prodotto _site/index.html');
   const { document } = parseHTML(readFileSync(file, 'utf8'));
   return document;
+}
+
+function metaContent(document, attribute, key) {
+  const meta = document.querySelector(`meta[${attribute}="${key}"]`);
+  assert.ok(meta, `manca il meta ${attribute}="${key}"`);
+  return normalize(meta.getAttribute('content') ?? '');
+}
+
+function jpegDimensions(buffer) {
+  assert.equal(
+    buffer.readUInt16BE(0),
+    0xffd8,
+    'l’immagine di anteprima non è un JPEG',
+  );
+  let offset = 2;
+  while (offset < buffer.length) {
+    if (buffer[offset] !== 0xff) {
+      offset += 1;
+      continue;
+    }
+    const marker = buffer[offset + 1];
+    if (marker === 0xff) {
+      offset += 1;
+      continue;
+    }
+    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) {
+      offset += 2;
+      continue;
+    }
+    const length = buffer.readUInt16BE(offset + 2);
+    const isStartOfFrame =
+      marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker);
+    if (isStartOfFrame) {
+      return {
+        height: buffer.readUInt16BE(offset + 5),
+        width: buffer.readUInt16BE(offset + 7),
+      };
+    }
+    offset += 2 + length;
+  }
+  assert.fail('dimensioni JPEG non trovate');
 }
 
 test('la pagina costruita riporta i fatti stampati sulla Locandina', () => {
@@ -108,6 +234,75 @@ test('il link alla mappa porta a Turania (RI) e si apre in un nuovo contesto sic
   const rel = (link.getAttribute('rel') ?? '').split(/\s+/);
   assert.ok(rel.includes('noopener'), 'il link alla mappa non ha rel="noopener"');
   assert.ok(rel.includes('noreferrer'), 'il link alla mappa non ha rel="noreferrer"');
+});
+
+test('il download della Locandina è un’immagine dello stesso sito con tipo dichiarato', () => {
+  const document = loadSite();
+  const link = document.querySelector('a[download]');
+
+  assert.ok(link, 'manca il link per scaricare la Locandina');
+  assert.notEqual(
+    link.getAttribute('download'),
+    null,
+    'il link della Locandina non ha l’attributo download',
+  );
+
+  const name = normalize(
+    link.getAttribute('aria-label') ?? link.textContent ?? '',
+  );
+  assert.ok(name.length > 0, 'il link della Locandina non ha testo discernibile');
+  assert.match(name, /Scarica la Locandina/i, 'il link non dice che scarica la Locandina');
+
+  const href = link.getAttribute('href');
+  assert.ok(href, 'il link della Locandina non ha un href');
+  assert.ok(
+    !/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(href),
+    `il download non è un percorso relativo: ${href}`,
+  );
+
+  const url = new URL(href, `${SITE_ORIGIN}/`);
+  assert.equal(url.origin, SITE_ORIGIN, 'il download punta a un altro host');
+
+  const extension = extname(decodeURIComponent(url.pathname)).toLowerCase();
+  const expectedType = IMAGE_TYPE_BY_EXTENSION.get(extension);
+  assert.ok(expectedType, `il download non è un’immagine web: ${extension}`);
+
+  assert.equal(
+    link.getAttribute('type'),
+    expectedType,
+    'il tipo dichiarato dal link non corrisponde all’estensione del file',
+  );
+
+  const file = join(SITE, decodeURIComponent(url.pathname));
+  assert.ok(existsSync(file), `il file scaricabile non esiste nella build: ${url.pathname}`);
+
+  const bytes = readFileSync(file);
+  assert.ok(bytes.length > 0, 'il file scaricabile è vuoto');
+
+  const image = readImage(bytes, expectedType);
+  assert.ok(
+    image.width >= 800 && image.height >= 800,
+    `il download è troppo piccolo per essere leggibile: ${image.width}×${image.height}`,
+  );
+  assert.notEqual(
+    image.components,
+    4,
+    'il download è un’immagine CMYK, non una copia RGB per il web',
+  );
+});
+
+test('la build non distribuisce PDF, file CMYK o master di stampa', () => {
+  const files = readdirSync(SITE, { recursive: true }).map(String);
+
+  for (const name of files) {
+    const base = name.split('/').pop().toLowerCase();
+    assert.ok(!base.endsWith('.pdf'), `la build contiene un PDF: ${name}`);
+    assert.ok(!base.includes('cmyk'), `la build contiene un file CMYK: ${name}`);
+    assert.ok(
+      !/(svino_a3|print[-_]?ready|(?:^|[-_.])master(?:[-_.]|$))/.test(base),
+      `la build contiene un master di stampa: ${name}`,
+    );
+  }
 });
 
 test('modificare un valore in front matter cambia la pagina senza toccare i template', () => {
@@ -184,6 +379,110 @@ test('il documento è italiano, ha un solo titolo principale e link leggibili', 
   }
 });
 
+test('la pagina ha titolo, descrizione e indirizzo canonico in italiano', () => {
+  const document = loadSite();
+  const facts = ['sVino', 'II EDIZIONE', '6 dicembre 2026', 'Turania (RI)'];
+
+  const title = normalize(document.title);
+  for (const fact of facts) {
+    assert.ok(title.includes(fact), `il titolo non nomina "${fact}"`);
+  }
+
+  const description = metaContent(document, 'name', 'description');
+  for (const fact of facts) {
+    assert.ok(
+      description.includes(fact),
+      `la descrizione non nomina "${fact}"`,
+    );
+  }
+
+  const canonical = document.querySelector('link[rel="canonical"]');
+  assert.ok(canonical, 'manca il link canonico');
+  assert.equal(canonical.getAttribute('href'), `${SITE_ORIGIN}/`);
+});
+
+test('la pagina fornisce anteprime Open Graph e Twitter con l’immagine quadrata', () => {
+  const document = loadSite();
+  const title = normalize(document.title);
+  const description = metaContent(document, 'name', 'description');
+  const canonical = document
+    .querySelector('link[rel="canonical"]')
+    .getAttribute('href');
+
+  assert.equal(metaContent(document, 'property', 'og:type'), 'website');
+  assert.equal(metaContent(document, 'property', 'og:site_name'), 'sVino');
+  assert.equal(metaContent(document, 'property', 'og:title'), title);
+  assert.equal(
+    metaContent(document, 'property', 'og:description'),
+    description,
+  );
+  assert.equal(metaContent(document, 'property', 'og:url'), canonical);
+  assert.equal(metaContent(document, 'property', 'og:locale'), 'it_IT');
+
+  const image = metaContent(document, 'property', 'og:image');
+  const imageUrl = new URL(image);
+  assert.equal(
+    imageUrl.origin,
+    SITE_ORIGIN,
+    'l’immagine di anteprima non è servita dallo stesso sito',
+  );
+  assert.equal(imageUrl.protocol, 'https:');
+  assert.equal(imageUrl.search, '');
+  assert.equal(imageUrl.hash, '');
+
+  const imageFile = join(SITE, decodeURIComponent(imageUrl.pathname));
+  assert.ok(
+    existsSync(imageFile),
+    `l’immagine di anteprima non esiste in _site: ${imageUrl.pathname}`,
+  );
+  assert.deepEqual(
+    jpegDimensions(readFileSync(imageFile)),
+    { width: 1080, height: 1080 },
+    'l’anteprima non è quadrata 1080×1080',
+  );
+
+  assert.equal(metaContent(document, 'property', 'og:image:type'), 'image/jpeg');
+  assert.equal(metaContent(document, 'property', 'og:image:width'), '1080');
+  assert.equal(metaContent(document, 'property', 'og:image:height'), '1080');
+  const imageAlt = metaContent(document, 'property', 'og:image:alt');
+  assert.match(imageAlt, /sVino/);
+  assert.match(imageAlt, /Turania \(RI\)/);
+
+  assert.equal(
+    metaContent(document, 'name', 'twitter:card'),
+    'summary_large_image',
+  );
+  assert.equal(metaContent(document, 'name', 'twitter:title'), title);
+  assert.equal(
+    metaContent(document, 'name', 'twitter:description'),
+    description,
+  );
+  assert.equal(metaContent(document, 'name', 'twitter:image'), image);
+});
+
+test('la pagina è indicizzabile e resta in italiano', () => {
+  const document = loadSite();
+
+  assert.equal(document.documentElement.getAttribute('lang'), 'it');
+
+  const html = readFileSync(join(SITE, 'index.html'), 'utf8');
+  assert.doesNotMatch(
+    html,
+    /noindex|nofollow|noarchive/i,
+    'la pagina chiede ai motori di ricerca di non indicizzarla',
+  );
+
+  for (const meta of document.querySelectorAll(
+    'meta[name="robots"], meta[name="googlebot"]',
+  )) {
+    assert.doesNotMatch(
+      meta.getAttribute('content') ?? '',
+      /noindex|none/i,
+      'un meta robots blocca l’indicizzazione',
+    );
+  }
+});
+
 test('le sezioni compaiono nell’ordine della Locandina', () => {
   const document = loadSite();
   const text = normalize(document.body.textContent);
@@ -196,6 +495,7 @@ test('le sezioni compaiono nell’ordine della Locandina', () => {
     'DOVE',
     'A CURA DI',
     'nella mappa',
+    'Scarica la Locandina',
   ];
 
   let previous = -1;
