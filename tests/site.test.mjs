@@ -53,6 +53,27 @@ function rgb(hexColour) {
 }
 
 /*
+ * The circles of the tab icon, as a browser drawing it would: the cream disc
+ * that is its ground and the bordeaux ring that holds it off a light tab bar.
+ */
+function svgCircles(svg) {
+  return [...svg.matchAll(/<circle\b([^>]*)\/>/gi)].map(([, attributes]) => {
+    const attribute = (name) => {
+      const match = attributes.match(new RegExp(`\\b${name}="([^"]+)"`));
+      return match ? match[1].trim() : null;
+    };
+    return {
+      cx: Number(attribute('cx')),
+      cy: Number(attribute('cy')),
+      r: Number(attribute('r')),
+      fill: attribute('fill')?.toLowerCase() ?? null,
+      stroke: attribute('stroke')?.toLowerCase() ?? null,
+      strokeWidth: Number(attribute('stroke-width') ?? 0),
+    };
+  });
+}
+
+/*
  * Read the IHDR of a PNG and the first decoded pixel, as a browser drawing the
  * touch icon would: its size, its colour model and the colour of its corner.
  */
@@ -683,13 +704,19 @@ test('le due icone esistono nel sito e sono l’unico patrimonio iconografico', 
   );
 });
 
-test('l’icona vettoriale è il tracciato della firma su fondo bordeaux', () => {
+test('l’icona vettoriale è la firma in bordeaux su un disco di crema chiara', () => {
   const document = loadSite();
   const href = document.querySelector('link[rel="icon"]').getAttribute('href');
   const { file } = siteFileFor(href);
   const svg = readFileSync(file, 'utf8');
 
-  assert.match(svg, /<svg\b[^>]*\bviewBox="[^"]+"/, 'l’icona SVG non ha un viewBox');
+  const viewBox = svg.match(/<svg\b[^>]*\bviewBox="([^"]+)"/);
+  assert.ok(viewBox, 'l’icona SVG non ha un viewBox');
+  const [x, y, width, height] = viewBox[1].trim().split(/\s+/).map(Number);
+  assert.equal(width, height, 'il viewBox dell’icona non è quadrato');
+  const radius = width / 2;
+  const centre = { x: x + radius, y: y + radius };
+
   const signaturePath = document.querySelector('h1 svg[role="img"] path[d]');
   assert.ok(
     signaturePath,
@@ -710,21 +737,39 @@ test('l’icona vettoriale è il tracciato della firma su fondo bordeaux', () =>
     'l’icona contiene il lockup testuale invece del solo marchio',
   );
 
-  const ground = paletteToken('bordeaux');
-  const mark = paletteToken('cream-light');
-  assert.match(
-    svg,
-    new RegExp(`fill="${ground}"`, 'i'),
-    'l’icona non ha il fondo bordeaux della palette',
+  const ground = paletteToken('cream-light');
+  const mark = paletteToken('bordeaux');
+
+  const circles = svgCircles(svg);
+  const disc = circles.find((circle) => circle.fill === ground);
+  assert.ok(disc, 'l’icona non ha un disco di crema chiara come fondo');
+  assert.ok(
+    Math.abs(disc.cx - centre.x) < 1e-6 && Math.abs(disc.cy - centre.y) < 1e-6,
+    'il disco non è centrato nel viewBox',
   );
-  assert.match(
-    svg,
-    new RegExp(`fill="${mark}"`, 'i'),
-    'il marchio dell’icona non è in crema chiaro',
+  assert.ok(
+    Math.abs(disc.r - radius) < 1e-6,
+    'il disco non riempie il viewBox: l’icona non è circolare',
+  );
+
+  const ring = circles.find((circle) => circle.stroke === mark);
+  assert.ok(ring, 'manca l’anello bordeaux che stacca il disco dai tab chiari');
+  assert.equal(ring.fill, 'none', 'l’anello non è solo un contorno');
+  assert.ok(ring.r > 0 && ring.strokeWidth > 0, 'l’anello non ha spessore');
+  assert.ok(
+    ring.r + ring.strokeWidth / 2 <= radius + 1e-6,
+    'l’anello esce dal viewBox e viene tagliato',
+  );
+
+  const markFill = svg.match(/<path\b[^>]*\bfill="([^"]+)"/i);
+  assert.equal(
+    markFill?.[1]?.toLowerCase(),
+    mark,
+    'il marchio dell’icona non è in bordeaux',
   );
 });
 
-test('l’icona touch è un PNG 180×180 sul fondo bordeaux', () => {
+test('l’icona touch è un PNG 180×180 RGB sul fondo di crema chiara', () => {
   const document = loadSite();
   const href = document
     .querySelector('link[rel="apple-touch-icon"]')
@@ -736,10 +781,15 @@ test('l’icona touch è un PNG 180×180 sul fondo bordeaux', () => {
   assert.equal(frame.width, 180, 'l’icona touch non è larga 180 px');
   assert.equal(frame.height, 180, 'l’icona touch non è alta 180 px');
   assert.equal(frame.bitDepth, 8, 'l’icona touch non è un PNG a 8 bit');
+  assert.equal(
+    frame.colorType,
+    2,
+    'l’icona touch ha un canale alfa: iOS comporrebbe gli angoli sul nero',
+  );
   assert.deepEqual(
     pngTopLeftPixel(bytes),
-    rgb(paletteToken('bordeaux')),
-    'l’angolo dell’icona touch non è sul fondo bordeaux',
+    rgb(paletteToken('cream-light')),
+    'l’angolo dell’icona touch non è di crema chiara',
   );
 });
 

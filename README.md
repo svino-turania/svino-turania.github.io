@@ -303,36 +303,57 @@ the JPEG independently of the master it derives from.
 
 `assets/icons/favicon.svg` and `assets/icons/apple-touch-icon.png` are both
 derived from the signature outline already inlined in `index.html`. They are not
-new artwork: the print's bordeaux `#5c1a24` is the ground and cream-light
-`#f2e8d5` is the mark, the same pairing the signature uses. The page declares
-them, and that ground as `theme-color`, in its `<head>`.
+new artwork. The tab icon inverts the page's pairing: a cream-light `#f2e8d5`
+disc with the signature in bordeaux `#5c1a24`, and a bordeaux ring 0.12 units
+thick drawn inside the disc so the cream does not dissolve into a white or
+light tab bar. The inversion is deliberate and site-only — the print master
+sets the signature cream on bordeaux, and the icon is not a copy of that
+pairing. Do not "correct" it back to match the signature. The page declares the
+icons, and keeps `theme-color` bordeaux, in its `<head>`.
 
 The page SVG's viewBox keeps room below the outline for the `II EDIZIONE`
 lockup. The icon crops to the outline's own bounds instead —
 `x −0.0243333333 … 2.521`, `y −1.313 … 0.1348571429` — so the tab shows the
-mark and not the empty lockup band. The icon's square viewBox is 2.82 units
-wide, which leaves about 5 % of the wider axis as padding and centres the mark
-vertically.
+mark and not the empty lockup band. Those bounds centre on `x 1.2483`,
+`y −0.5891`, the same point the disc is centred on: the square viewBox is 2.82
+units wide and the disc fills it. The mark is scaled 0.86 about that centre,
+which leaves about 9 % of the radius between the signature's ends and the ring.
+
+The touch icon is not the tab icon at another size. iOS masks it itself and
+composites transparent pixels onto black, so it must be a full cream square —
+no transparent corners, no ring. It is rendered from `favicon.svg` through
+`scripts/render-touch-icon.mjs`, which swaps the disc for a full-square
+`<rect>`, drops the ring and hands the result to `rsvg-convert`; never render
+it from a copy:
+
+```sh
+node scripts/render-touch-icon.mjs
+```
 
 Regenerate both if the signature outline changes:
 
 1. Replace the `d` of the inline path in `index.html` with the new outline.
 2. Recompute its bounds. A browser reports them with
    `document.querySelector('path').getBBox()`; the outline is the only path, so
-   the bounding box is the mark. Update the crop numbers if they moved.
+   the bounding box is the mark. Update the crop numbers and the disc's centre
+   if they moved.
 3. Rebuild `assets/icons/favicon.svg`: a square `viewBox` centred on those
-   bounds, a full-square `<rect fill="#5c1a24">`, then the same path with
-   `fill="#f2e8d5"` and no `<text>` lockup.
+   bounds, a `<circle>` of radius half the viewBox in `#f2e8d5`, the same path
+   in `#5c1a24` scaled 0.86 about the centre, and the ring — a stroked
+   `<circle>` in `#5c1a24`, 0.12 units wide, its outer edge meeting the disc's.
+   No `<text>` lockup.
 4. Render the touch icon from that vector, never from a copy:
 
    ```sh
-   rsvg-convert -w 180 -h 180 \
-     -o assets/icons/apple-touch-icon.png assets/icons/favicon.svg
+   node scripts/render-touch-icon.mjs
    ```
 
-Keep `theme-color` equal to the stylesheet's `--bordeaux` token. The test suite
-checks the declarations, the two files, the touch icon's 180 × 180 size and its
-bordeaux corner, so a regeneration that misses a step fails before publishing.
+Keep `theme-color` equal to the stylesheet's `--bordeaux` token: the icon is the
+mark, the browser chrome is the frame, and cream chrome on a cream page would
+flatten both. The test suite checks the declarations, the two files, the disc's
+shape and centring, the ring, the mark's colour, and the touch icon's
+180 × 180 size, RGB colour model and cream corner, so a regeneration that misses
+a step fails before publishing.
 
 The print workspace is separate and must not be modified from this repository.
 Do not commit print sources, print build scripts or generated print artefacts
