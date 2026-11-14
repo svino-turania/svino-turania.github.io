@@ -5,8 +5,9 @@ The one-page Italian site for sVino, II Edizione — 6 dicembre 2026, Turania
 repository `svino-turania/svino-turania.github.io`.
 
 Status: the page carries the Locandina's facts, the Cantina paragraph and
-the map link. The identity (palette and type), the outlined signature with
-the `II EDIZIONE` lockup, the Borgo photograph with its torn edges, the Open
+the map link. The identity (palette and type), the label composition, the
+outlined signature with the `II EDIZIONE` lockup, the Borgo photograph with its
+torn lower edge, the Open
 Graph and Twitter metadata, the square social preview, the Locandina
 download and the accessibility work are all in place. The rules below
 describe the system that work preserves.
@@ -33,40 +34,39 @@ python3 -m http.server 8080    # then open http://localhost:8080/
 
 Check the three compositions before merging, in the browser's responsive mode:
 
-- 320 and 390 px: the phone column, with no horizontal scrolling;
-- 768 px: one readable column with the facts after the prose;
-- 1024, 1440×900 and 1920 px: the desktop grid, with the rail beside the prose.
-  At 1440×900 the signature, the photograph and the date strip must fit the
-  first screen.
+- 320 and 390 px: the panel with the facts stacked, and no horizontal scrolling;
+- 768 px: the panel at its reading measure, the facts as two cells;
+- 1024, 1440×900 and 1920 px: the panel centred on the cream ground. At
+  1440×900 the signature and the date must fit the first screen.
 
 Repeat at 200% text zoom: the date, the place and the organiser must stay
 readable, with no horizontal scrolling and no clipped text.
 
 ## Composition
 
-The phone and tablet compositions are one column, in the Locandina's stacking:
-signature, photograph, date strip, Cantina prose, facts, footer. Desktop is the
-only composition that changes structure. From 64 rem (1024 px) the prose and the
-facts share a grid: the prose keeps a readable measure on the left and a
-bordeaux rail on the right carries `DOVE`, `A CURA DI` and the Locandina
-download. Below 64 rem the facts band carries only `DOVE` and `A CURA DI`, and
-the footer reads map link, Locandina download, colophon. The date strip carries
-the time.
+The page is one label: a cream-light panel on the cream ground, bounded by a
+gold rule with an inset hairline, at most 46 rem wide. The order is the
+Locandina's — signature, subtitle, date lockup, photograph, Cantina prose, the
+facts — and the footer (map link, Locandina download, colophon) sits outside the
+panel.
+
+The date is the centre field: the weekday in tracked small caps, the day at
+display size, the month beneath, with the time under `DALLE ORE`. The
+photograph is contained in the panel and keeps its torn lower edge. The facts
+are two ruled cells, side by side above 30 rem and stacked below it.
 
 Each fact has one home, so the page does not read as duplicated boilerplate:
-the time is in the date strip under `DALLE ORE`; the place is under `DOVE`; the
-organiser is under `A CURA DI`. The map link opens the same search without
-repeating the place, and the colophon states the edition only. The Locandina has
-two download anchors in the DOM, one per composition: the rail copy is desktop
-only, the footer copy sits after the map link below 64 rem. Both point to the
-same file and carry the same name; the stylesheet hides the other copy with
-`display: none`, so exactly one is visible and focusable at any width. Update
-both together.
+the time is in the date under `DALLE ORE`; the place is under `DOVE`; the
+organiser is under `A CURA DI`. The map link opens Google Maps for the same
+place without repeating it, and the colophon states the edition only. The
+Locandina has two download anchors in the DOM, one per composition: the facts
+copy is desktop only, the footer copy sits after the map link below 64 rem.
+Both point to the same file and carry the same name; the stylesheet hides the
+other copy with `display: none`, so exactly one is visible and focusable at any
+width. Update both together.
 
-On desktop the photograph is height-capped so the first screen fits a 1440×900
-laptop while the page still uses the full width of the screen. The two torn
-edges keep the print's width-relative profile, so the cap does not compress
-their teeth.
+The tear is a vector polygon expressed against the photograph's own width, so
+the panel's measure cannot compress its teeth. ADR-0004 records how and why.
 
 ## Editor workflow (Comitato)
 
@@ -80,16 +80,16 @@ a short comment beside it in the file:
 | What                  | Current value                  | Where it appears on the page                                  |
 | --------------------- | ------------------------------ | ------------------------------------------------------------- |
 | Date                  | `datetime="2026-12-06"`        | the `datetime` attribute of `<time>` is the source of truth    |
-| Day number            | `6`                            | inside the date strip, under the weekday                       |
-| Weekday               | `DOMENICA`                     | inside the date strip                                          |
-| Month and year        | `DICEMBRE 2026`                | inside the date strip                                          |
-| Time                  | `12:00`                        | the date strip, under `DALLE ORE`                             |
-| Place                 | `Turania (RI)`                 | `DOVE` in the facts rail, plus the title/description metadata |
+| Day number            | `6`                            | the date lockup, under the weekday                             |
+| Weekday               | `DOMENICA`                     | the date lockup, above the numeral                             |
+| Month and year        | `DICEMBRE 2026`                | the date lockup, under the numeral                             |
+| Time                  | `12:00`                        | the date, under `DALLE ORE`                                   |
+| Place                 | `Turania (RI)`                 | `DOVE` in the facts, plus the title/description metadata |
 | Organiser             | `Comitato Feste Turania`       | the `A CURA DI` value                                         |
 | Subtitle              | `Per le cantine di Turania`    | under the signature                                           |
 | Edition               | `II EDIZIONE`                  | the lockup beside the signature, the colophon and the metadata |
 | Photograph description| the approved Italian sentence  | the `alt` attribute of the Borgo photograph                   |
-| Locandina download    | `assets/download/locandina-svino-ii-edizione.jpg` | the facts-rail link on desktop, the footer link on phone and tablet |
+| Locandina download    | `assets/download/locandina-svino-ii-edizione.jpg` | the facts link on desktop, the footer link on phone and tablet |
 
 The date is the one value the page states in several forms. Change
 `datetime="2026-12-06"` only if the Comitato moves the event, then bring the
@@ -101,15 +101,15 @@ the date and the place: update them in the same change so the page and its
 social preview agree.
 
 The body text states each fact once. If the place changes, update `DOVE`, the
-metadata and the query in the map link's `href`, which must keep matching the
-place (`Turania%20(RI)` today); do not repeat the place in the link text or the
-colophon. If the time changes, update only the value under `DALLE ORE` in the
-date strip. A test counts `12:00`, `Turania (RI)`, `Comitato Feste Turania`,
+metadata and the query in the map link's `href` (Google Maps), which must keep
+matching the place (`Turania%20(RI)` today); do not repeat the place in the link
+text or the colophon. If the time changes, update only the value under `DALLE ORE` in the
+date lockup. A test counts `12:00`, `Turania (RI)`, `Comitato Feste Turania`,
 `DALLE ORE`, `DOVE` and `A CURA DI` in the visible body text and fails if any
 appears more than once.
 
-The Locandina download is two anchors, one per composition: in the facts rail
-on desktop and in the footer after the map link on phone and tablet. They must
+The Locandina download is two anchors, one per composition: in the facts on
+desktop and in the footer after the map link on phone and tablet. They must
 keep the same `href`, `download`, `type` and link text; the stylesheet hides
 the copy that does not belong to the current composition. Change both together.
 
@@ -174,12 +174,14 @@ policy.
 
 The suite also asserts the composition's contracts: the time, place, organiser
 and the `DALLE ORE`, `DOVE`, `A CURA DI` labels each occur exactly once in the
-visible body text; the map link opens `Turania (RI)` in a new context with
-`noopener noreferrer` and its text need not repeat the place; the section order
-puts the strip's time before the prose, the facts after it, and closes with the
-map link and the colophon; and the Locandina has one download anchor in the
-facts rail and one in the footer, both resolving to the same file with the same
-declared type and name. The suite also pins the favicon's path data to the
+visible body text; the map link opens `Turania (RI)` on Google Maps in a new
+context with `noopener noreferrer` and its text need not repeat the place; the
+section order puts the date's time before the prose, the facts after it, and
+closes with the map link and the colophon; the Locandina has one download anchor
+in the facts and one in the footer, both resolving to the same file with the
+same declared type and name; and the tear is a vector polygon measured with
+`cqw` against the photograph's own width, with `container-type: inline-size` on
+its wrapper. The suite also pins the favicon's path data to the
 inline signature path, so the two cannot drift apart. The layout itself is
 verified by rendering at 320, 390, 768, 1024, 1440 and 1920 and at 200% text
 zoom, not by asserting the stylesheet.
@@ -246,9 +248,12 @@ them. `images/svino.jpg` (2048 × 1359) is the photograph before the print crop;
 do not use it for the site, or the edges will disagree with the poster.
 
 The page offers the crop at its native 2048 px width for laptop screens and the
-1200 px copy for narrow screens and slower connections, through `srcset` and
-`sizes="100vw"` on the WebP source and on the JPEG fallback. Never upscale: the
-wide candidate is the crop itself, not a larger render of the 1200 px copy.
+1200 px copy for narrow screens and slower connections, through `srcset` and a
+`sizes` value that describes the panel's measure — `(min-width: 46rem) 39.5rem,
+calc(100vw - 4.5rem)` — on the WebP source and on the JPEG fallback. It is not
+`100vw`: the photograph no longer spans the viewport, and a phone would
+otherwise fetch the 2048 px candidate for a 330 px slot. Never upscale: the wide
+candidate is the crop itself, not a larger render of the 1200 px copy.
 
 Regenerate all four files from the crop with:
 
