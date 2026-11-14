@@ -166,6 +166,22 @@ function metaContent(document, attribute, key) {
   return normalize(meta.getAttribute('content') ?? '');
 }
 
+function accessibleName(document, element) {
+  const labelledBy = normalize(element.getAttribute('aria-labelledby') ?? '');
+  if (labelledBy !== '') {
+    return labelledBy
+      .split(/\s+/)
+      .map(
+        (id) =>
+          document.getElementById(id) ?? element.querySelector(`[id="${id}"]`),
+      )
+      .filter(Boolean)
+      .map((node) => normalize(node.textContent))
+      .join(' ');
+  }
+  return normalize(element.getAttribute('aria-label') ?? '');
+}
+
 function jpegDimensions(buffer) {
   assert.equal(
     buffer.readUInt16BE(0),
@@ -767,6 +783,90 @@ test('la build non spedisce alcuna immagine di strappo', () => {
     tearImages,
     [],
     `la build contiene un'immagine di strappo: ${tearImages.join(', ')}`,
+  );
+});
+
+test('la testata riporta la firma come tracciato inline con nome accessibile e il lockup come testo', () => {
+  const document = loadSite();
+  const heading = document.querySelector('h1');
+  assert.ok(heading, 'manca il titolo principale');
+
+  const signature = heading.querySelector('svg[role="img"]');
+  assert.ok(signature, 'la firma non è un SVG inline con role="img"');
+
+  const name = accessibleName(document, signature);
+  assert.match(
+    name,
+    /sVino/,
+    `il nome accessibile della firma non nomina l’evento: "${name}"`,
+  );
+
+  const outline = [...signature.querySelectorAll('path[d]')].find(
+    (path) => (path.getAttribute('d') ?? '').length > 10000,
+  );
+  assert.ok(
+    outline,
+    'lo SVG della firma non contiene il tracciato dell’outline',
+  );
+  assert.match(
+    outline.getAttribute('d'),
+    /^M0\.592 -0\.677/,
+    'il tracciato non è quello estratto dal master di stampa',
+  );
+
+  const lockup = [...signature.querySelectorAll('text')]
+    .map((node) => normalize(node.textContent))
+    .find((value) => value === 'II EDIZIONE');
+  assert.ok(lockup, 'il lockup II EDIZIONE non è testo dentro lo SVG');
+
+  for (const element of document.querySelectorAll(
+    'img[src], object[data], embed[src]',
+  )) {
+    const source =
+      element.getAttribute('src') ?? element.getAttribute('data') ?? '';
+    assert.doesNotMatch(
+      source,
+      /signature/i,
+      `la firma è distribuita come risorsa invece che inline: ${source}`,
+    );
+  }
+});
+
+test('la build non distribuisce il font Breathing e non richiede font esterni', () => {
+  const files = readdirSync(SITE, { recursive: true }).map(String);
+
+  for (const file of files) {
+    assert.doesNotMatch(
+      file,
+      /breathing/i,
+      `la build contiene il font Breathing: ${file}`,
+    );
+  }
+  assert.deepEqual(
+    files.filter((file) => /signature/i.test(file)),
+    [],
+    'la firma è distribuita come file separato invece che inline',
+  );
+
+  const fontFiles = files.filter((file) => /\.(?:woff2?|ttf|otf)$/i.test(file));
+  for (const file of fontFiles) {
+    assert.match(
+      file,
+      /(?:^|\/)assets\/fonts\/(?:SVSerif|SVSans)-(?:Regular|Bold)\.woff2$/,
+      `la build contiene un font non ammesso: ${file}`,
+    );
+  }
+
+  const html = readFileSync(join(SITE, 'index.html'), 'utf8');
+  assert.doesNotMatch(
+    html,
+    /breathing|fonts\.(?:googleapis|gstatic)\.com|@font-face/i,
+    'la pagina richiede o nomina un font esterno',
+  );
+  assert.doesNotMatch(
+    html,
+    /url\(\s*['"]?https?:\/\//i,
+    'la pagina richiede un font da un host esterno',
   );
 });
 

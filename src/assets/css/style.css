@@ -102,39 +102,44 @@ body {
 }
 
 .header-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(1rem, 3vw, 2.5rem);
   padding-block: clamp(1.5rem, 5vw, 3.5rem);
 }
 
 .lockup {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.35rem 0.9rem;
+  flex: 1 1 18rem;
+  max-width: 34rem;
+  min-width: 0;
   margin: 0;
   font-weight: 400;
 }
 
+/*
+ * The signature is an inline SVG: the outline path plus the “II EDIZIONE”
+ * lockup as real <text>, both in the same composition. The viewBox carries
+ * extra room below the tight signature box for the lockup, so nothing clips.
+ * Colour comes from currentColor; the lockup keeps the print's gold.
+ */
 .signature {
-  font-family: var(--serif);
-  font-weight: 700;
-  font-size: clamp(3.25rem, 13vw, 7rem);
-  line-height: 0.9;
-}
-
-.edition {
-  color: var(--gold-light);
-  font-family: var(--sans);
-  font-size: clamp(0.95rem, 2.2vw, 1.25rem);
-  font-weight: 700;
-  letter-spacing: 0.22em;
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--cream-light);
 }
 
 .subtitle {
-  margin: clamp(0.75rem, 2vw, 1.25rem) 0 0;
+  flex: 0 1 auto;
+  max-width: 20rem;
+  margin: 0;
   color: var(--gold-light);
   font-family: var(--sans);
   font-size: clamp(1.15rem, 3vw, 1.6rem);
   line-height: 1.35;
+  text-align: right;
 }
 
 /* ------------------------------------------------------- fotografia e tagli */
