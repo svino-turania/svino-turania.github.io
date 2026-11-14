@@ -10,7 +10,10 @@ const ROOT = resolve(import.meta.dirname, '..');
 // The single seam: the repository root, as a static server serves it.
 const SITE = ROOT;
 const SITE_ORIGIN = 'https://svino-turania.github.io';
-const MAP_ORIGIN = 'https://www.openstreetmap.org';
+const MAP_ORIGIN = 'https://www.google.com';
+
+// The photograph's slot: the label panel's content width, not the viewport.
+const PHOTO_SIZES = '(min-width: 46rem) 39.5rem, calc(100vw - 4.5rem)';
 
 const CANTINA_PARAGRAPH =
   'Per la seconda edizione si entra nelle cantine del borgo: si assaggia il vino di Turania e da una cantina si passa alla successiva. Vi aspettiamo.';
@@ -400,7 +403,7 @@ test('la pagina spedita è solo index.html e non contiene sintassi di template',
 test('il link alla mappa porta a Turania (RI) e si apre in un nuovo contesto sicuro', () => {
   const document = loadSite();
   const link = [...document.querySelectorAll('a[href]')].find((anchor) =>
-    anchor.getAttribute('href').includes('openstreetmap'),
+    anchor.getAttribute('href').includes('google.com/maps'),
   );
 
   assert.ok(link, 'manca il link fuori sede alla mappa');
@@ -467,7 +470,7 @@ test('il download della Locandina è un’immagine dello stesso sito con tipo di
   );
 
   // On phone and tablet the footer reads map link, download, colophon.
-  const mapLink = footer.querySelector('a[href*="openstreetmap"]');
+  const mapLink = footer.querySelector('a[href*="google.com/maps"]');
   assert.ok(mapLink, 'manca il link alla mappa nel footer');
   const footerLinks = [...footer.querySelectorAll('a[href]')];
   assert.ok(
@@ -906,24 +909,34 @@ test('la pagina non promette nulla che il comitato non abbia deciso', () => {
   }
 });
 
-test('la fotografia del Borgo è a tutta larghezza tra la testata e la data', () => {
+test('la fotografia del Borgo segue la data ed è dentro il pannello', () => {
   const document = loadSite();
   const header = document.querySelector('header');
   const picture = document.querySelector('picture');
   const photo = picture?.querySelector('img');
   const date = document.querySelector('section[aria-label="Data e ora"]');
+  const prose = document.querySelector('.cantina');
+  const panel = document.querySelector('.sheet');
 
   assert.ok(header, 'manca la testata della pagina');
   assert.ok(picture, 'la fotografia non è servita dentro un elemento picture');
   assert.ok(photo, 'manca la fotografia');
-  assert.ok(date, 'manca la striscia della data');
+  assert.ok(date, 'manca il blocco della data');
+  assert.ok(prose, 'manca la prosa delle Cantine');
+  assert.ok(panel, 'manca il pannello della pagina');
 
   const elements = [...document.querySelectorAll('*')];
   const headerAt = elements.indexOf(header);
   const photoAt = elements.indexOf(photo);
   const dateAt = elements.indexOf(date);
-  assert.ok(headerAt < photoAt, 'la fotografia non segue la testata');
-  assert.ok(photoAt < dateAt, 'la fotografia non precede la striscia della data');
+  const proseAt = elements.indexOf(prose);
+  assert.ok(headerAt < dateAt, 'la data non segue la testata');
+  assert.ok(dateAt < photoAt, 'la fotografia non segue la data');
+  assert.ok(photoAt < proseAt, 'la fotografia non precede la prosa');
+  assert.ok(
+    [...panel.querySelectorAll('img')].includes(photo),
+    'la fotografia non è dentro il pannello della pagina',
+  );
 
   const alt = normalize(photo.getAttribute('alt') ?? '');
   assert.equal(
@@ -1005,8 +1018,16 @@ test('la fotografia offre una sorgente di almeno 2048 px per gli schermi larghi'
     assert.ok(bytes.length > 0, 'il WebP grande della fotografia è vuoto');
   }
 
-  assert.equal(webp.getAttribute('sizes'), '100vw', 'manca sizes sulla sorgente');
-  assert.equal(photo.getAttribute('sizes'), '100vw', 'manca sizes sul ripiego');
+  assert.equal(
+    webp.getAttribute('sizes'),
+    PHOTO_SIZES,
+    'la sorgente non dichiara la misura del pannello',
+  );
+  assert.equal(
+    photo.getAttribute('sizes'),
+    PHOTO_SIZES,
+    'il ripiego non dichiara la misura del pannello',
+  );
 
   assert.deepEqual(
     jpegSize(siteFileFor(photo.getAttribute('src')).file),
@@ -1031,6 +1052,32 @@ test('il sito non spedisce alcuna immagine di strappo', () => {
     tearImages,
     [],
     `il sito contiene un'immagine di strappo: ${tearImages.join(', ')}`,
+  );
+});
+
+test('lo strappo è vettoriale e misurato sulla larghezza del pannello', () => {
+  const css = servedStylesheet();
+
+  assert.match(
+    css,
+    /\.photo-band\s*\{[^}]*container-type:\s*inline-size/s,
+    'la fotografia non è un contenitore di larghezza: lo strappo non ha riferimento',
+  );
+
+  const rule = css.match(
+    /\.photo-frame\s*\{[^}]*?clip-path:\s*(polygon\(.*?\));/s,
+  );
+  assert.ok(rule, 'manca lo strappo vettoriale sul pannello');
+
+  assert.match(
+    rule[1],
+    /cqw/,
+    'lo strappo non è espresso contro la larghezza del pannello',
+  );
+  assert.doesNotMatch(
+    rule[1],
+    /\dvw\b/,
+    'lo strappo usa ancora la larghezza del viewport',
   );
 });
 

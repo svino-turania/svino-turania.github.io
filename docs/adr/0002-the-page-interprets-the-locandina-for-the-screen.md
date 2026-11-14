@@ -1,6 +1,7 @@
 # The page interprets the Locandina for the screen
 
-- **Status:** accepted
+- **Status:** superseded by ADR-0004 for the composition; the tear derivation
+  below still stands
 - **Date:** 2026-11-14
 - **Related:** README (*Derived assets and the print master*), `assets/css/style.css`
 
