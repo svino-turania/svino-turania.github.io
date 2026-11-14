@@ -182,6 +182,69 @@ function accessibleName(document, element) {
   return normalize(element.getAttribute('aria-label') ?? '');
 }
 
+function linkName(document, link) {
+  const labelledBy = link.getAttribute('aria-labelledby') ?? '';
+  if (labelledBy.trim() !== '') {
+    return normalize(
+      labelledBy
+        .split(/\s+/)
+        .map((id) => document.getElementById(id)?.textContent ?? '')
+        .join(' '),
+    );
+  }
+  const ariaLabel = normalize(link.getAttribute('aria-label') ?? '');
+  if (ariaLabel !== '') {
+    return ariaLabel;
+  }
+  const text = normalize(link.textContent ?? '');
+  if (text !== '') {
+    return text;
+  }
+  return normalize(link.querySelector('img[alt]')?.getAttribute('alt') ?? '');
+}
+
+/*
+ * Split a stylesheet into the CSS guarded by @supports and everything else,
+ * so the straight-edge fallback can be asserted without naming classes.
+ */
+function splitSupportsBlocks(css) {
+  const ranges = [];
+  const opening = /@supports\s*\(/g;
+  let match;
+  while ((match = opening.exec(css)) !== null) {
+    const open = css.indexOf('{', match.index);
+    assert.notEqual(open, -1, 'una regola @supports non apre un blocco');
+    let depth = 0;
+    let end = -1;
+    for (let index = open; index < css.length; index += 1) {
+      if (css[index] === '{') {
+        depth += 1;
+      } else if (css[index] === '}') {
+        depth -= 1;
+        if (depth === 0) {
+          end = index + 1;
+          break;
+        }
+      }
+    }
+    assert.notEqual(end, -1, 'una regola @supports non chiude il blocco');
+    ranges.push({ start: match.index, end });
+    opening.lastIndex = end;
+  }
+
+  let outside = '';
+  const inside = [];
+  let cursor = 0;
+  for (const range of ranges) {
+    outside += css.slice(cursor, range.start);
+    inside.push(css.slice(range.start, range.end));
+    cursor = range.end;
+  }
+  outside += css.slice(cursor);
+
+  return { outside, inside: inside.join('\n') };
+}
+
 function jpegDimensions(buffer) {
   assert.equal(
     buffer.readUInt16BE(0),
@@ -919,5 +982,132 @@ test('Lora e Lato sono auto-ospitati come WOFF2 e nessun font lascia l’origine
     readFileSync(licence, 'utf8'),
     /SIL OPEN FONT LICENSE Version 1\.1/i,
     'il file di licenza non è la SIL OFL 1.1',
+  );
+});
+
+test('la gerarchia dei titoli segue l’ordine visivo senza saltare livelli', () => {
+  const document = loadSite();
+  const headings = [...document.querySelectorAll('h1, h2, h3, h4, h5, h6')];
+
+  assert.ok(headings.length > 0, 'la pagina non ha titoli');
+  assert.equal(
+    headings.filter((heading) => heading.tagName === 'H1').length,
+    1,
+    'la pagina deve avere un solo titolo principale',
+  );
+  assert.equal(headings[0].tagName, 'H1', 'il primo titolo non è il titolo principale');
+
+  let previous = 0;
+  for (const heading of headings) {
+    const level = Number(heading.tagName.slice(1));
+    assert.ok(
+      level <= previous + 1,
+      `salto di livello: da h${previous} a h${level} ("${normalize(heading.textContent)}")`,
+    );
+    previous = level;
+  }
+
+  const heading = headings[0];
+  const headingName = [
+    normalize(heading.textContent),
+    normalize(heading.querySelector('svg[role="img"] title')?.textContent ?? ''),
+  ].join(' ');
+  assert.match(
+    headingName,
+    /sVino/,
+    'il nome del titolo principale non nomina l’evento',
+  );
+});
+
+test('ogni immagine ha una descrizione testuale non vuota', () => {
+  const document = loadSite();
+  const images = [...document.querySelectorAll('img')];
+
+  assert.ok(images.length > 0, 'la pagina non contiene immagini');
+  for (const image of images) {
+    const alt = normalize(image.getAttribute('alt') ?? '');
+    assert.ok(
+      alt.length > 0,
+      `immagine senza descrizione: ${image.getAttribute('src') ?? '(senza src)'}`,
+    );
+  }
+});
+
+test('ogni link ha un nome discernibile e resta raggiungibile da tastiera', () => {
+  const document = loadSite();
+  const links = [...document.querySelectorAll('a')];
+
+  assert.ok(links.length > 0, 'la pagina non contiene link');
+  for (const link of links) {
+    const href = link.getAttribute('href');
+    assert.ok(href, 'un link non ha href');
+    assert.ok(
+      linkName(document, link).length > 0,
+      `link senza nome discernibile: ${href}`,
+    );
+    assert.notEqual(
+      link.getAttribute('tabindex'),
+      '-1',
+      `un link è escluso dall’ordine di tabulazione: ${href}`,
+    );
+  }
+});
+
+test('il foglio di stile espone un indicatore di focus visibile sui link', () => {
+  const css = builtStylesheet();
+  const rules = [...css.matchAll(/([^{}]+:focus-visible[^{}]*)\{([^}]*)\}/g)];
+  const linkRule = rules.find((rule) =>
+    /(?:^|,)\s*a\s*:focus-visible/i.test(rule[1]),
+  );
+
+  assert.ok(linkRule, 'manca una regola :focus-visible per i link');
+
+  const outline = linkRule[2].match(/(?:^|;)\s*outline\s*:\s*([^;}]+)/i);
+  assert.ok(outline, 'la regola :focus-visible non dichiara un outline');
+
+  const value = outline[1].trim();
+  assert.doesNotMatch(
+    value,
+    /\bnone\b|\b0(?:px)?\b/i,
+    `l’indicatore di focus è assente: outline: ${value}`,
+  );
+  assert.match(value, /\b(?:solid|dashed|dotted|double|auto)\b/i, `stile di outline non visibile: ${value}`);
+
+  const width = value.match(/(\d+(?:\.\d+)?)(px|rem)/i);
+  assert.ok(width, `l’outline non dichiara una larghezza: ${value}`);
+  const pixels = width[2].toLowerCase() === 'rem'
+    ? Number(width[1]) * 16
+    : Number(width[1]);
+  assert.ok(pixels >= 2, `outline troppo sottile: ${value}`);
+});
+
+test('senza clip-path la pagina ripiega su bordi dritti e resta leggibile', () => {
+  const css = builtStylesheet();
+  const { outside, inside } = splitSupportsBlocks(css);
+
+  assert.match(
+    css,
+    /@supports\s*\(clip-path:\s*polygon\(/i,
+    'i tagli non sono protetti da @supports',
+  );
+  assert.doesNotMatch(
+    outside,
+    /clip-path\s*:\s*polygon\(/i,
+    'il foglio di stile applica un poligono anche senza supporto per clip-path',
+  );
+  assert.match(
+    outside,
+    /--tear-height:\s*calc\(100vw\s*\*\s*63\.5\s*\/\s*303\)/i,
+    'manca l’altezza dritta della striscia chiara nel ripiego',
+  );
+  assert.match(
+    inside,
+    /--tear-height:\s*calc\(100vw\s*\*\s*72\s*\/\s*303\)/i,
+    'manca l’altezza strappata della striscia chiara sotto @supports',
+  );
+  assert.match(
+    inside,
+    /clip-path\s*:\s*polygon\(/i,
+    'il blocco @supports non applica i poligoni dei tagli',
   );
 });
