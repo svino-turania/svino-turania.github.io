@@ -19,7 +19,7 @@ const CANTINA_PARAGRAPH =
   "Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva, con il bicchiere in mano. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio. Questa pagina sarà aggiornata con tutte le novità dell'evento. Il programma e gli aggiornamenti arriveranno qui presto. Vi aspettiamo.";
 
 const PHOTO_ALT =
-  "Strada acciottolata di un borgo italiano, con case in pietra e intonaco chiaro, balconi, persiane e una torre con orologio sullo sfondo; in primo piano, su una botte di legno, un grappolo d'uva nera, una bottiglia di vino scuro e un calice di vino rosso.";
+  "Interno di una cantina scavata nella roccia: soffitto e pareti di pietra grezza, una lampadina nuda appesa a un filo, damigiane di vetro anche dentro cesti di vimini, una botte coricata e un grande tino chiaro con il coperchio; un palo di legno regge la volta.";
 
 const IMAGE_TYPE_BY_EXTENSION = new Map([
   ['.jpg', 'image/jpeg'],
@@ -986,7 +986,7 @@ test('la pagina non promette nulla che il comitato non abbia deciso', () => {
   }
 });
 
-test('la fotografia del Borgo segue la data ed è dentro il pannello', () => {
+test('la fotografia della Cantina segue la data ed è dentro il pannello', () => {
   const document = loadSite();
   const header = document.querySelector('header');
   const picture = document.querySelector('picture');

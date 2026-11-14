@@ -6,11 +6,10 @@ repository `svino-turania/svino-turania.github.io`.
 
 Status: the page carries the Locandina's facts, the Cantina prose and
 the map link. The identity (palette and type), the label composition, the
-outlined signature with the `II EDIZIONE` lockup, the Borgo photograph with its
-torn lower edge, the Open
-Graph and Twitter metadata, the square social preview, the Locandina
-download, the print-derived motion and the accessibility work are all in
-place. The rules below describe the system that work preserves.
+outlined signature with the `II EDIZIONE` lockup, the Cantina photograph with
+its torn lower edge, the Open Graph and Twitter metadata, the square social
+preview, the Locandina download, the print-derived motion and the accessibility
+work are all in place. The rules below describe the system that work preserves.
 
 ## The site is the files it is
 
@@ -129,7 +128,7 @@ a short comment beside it in the file:
 | Organiser             | `Comitato Feste Turania`       | the `A CURA DI` value                                         |
 | Subtitle              | `Per le cantine di Turania`    | under the signature                                           |
 | Edition               | `II EDIZIONE`                  | the lockup beside the signature, the colophon and the metadata |
-| Photograph description| the approved Italian sentence  | the `alt` attribute of the Borgo photograph                   |
+| Photograph description| the approved Italian sentence  | the `alt` attribute of the Cantina photograph                 |
 | Locandina download    | `assets/download/locandina-svino-ii-edizione.jpg` | the facts link on desktop, the footer link on phone and tablet |
 
 The date is the one value the page states in several forms. Change
@@ -271,9 +270,9 @@ is the one exception delivered as a path.
 ## Derived assets and the print master
 
 The print workspace at `/Users/angelo/svino` remains the source of truth for
-the identity: `Svino_A3_master_v11.svg` and the accompanying v11 print and
-social files define the palette, type, signature, photograph, tear profile and
-wording. The site derives from them, never the reverse.
+the identity: `SVINO_v15/sorgenti/Svino_A3_master_v15.svg` and the accompanying
+v15 print and social files define the palette, type, signature, photograph,
+tear profile and wording. The site derives from them, never the reverse.
 
 Site assets under `assets/` are derivatives, regenerated from the master rather
 than edited independently. They are:
@@ -289,51 +288,66 @@ than edited independently. They are:
 ### The photograph
 
 The photograph derives from the print master's photograph crop,
-`/Users/angelo/svino/images/build/svino_a3.jpg`: 2048 × 1291, RGB, already
+`/Users/angelo/svino/images/build/svino_a3.jpg`: 2244 × 1415, RGB, already
 cropped to the approved framing. The site's 1200 × 756 copy is that same crop
 scaled — the two differ only by resampling, so the framing cannot drift between
-them. `images/svino.jpg` (2048 × 1359) is the photograph before the print crop;
-do not use it for the site, or the edges will disagree with the poster.
+them. `images/cantina-marcello.jpeg` (1122 × 1402) is the source photograph;
+`prepare_images.py` upscales it 2×, grades it and crops it to the A3 band.
+`images/svino.jpg` (2048 × 1359) is the previous edition's photograph before
+the print crop; do not use it for the site, or the edges will disagree with the
+poster.
 
-The page offers the crop at its native 2048 px width for laptop screens and the
-1200 px copy for narrow screens and slower connections, through `srcset` and a
-`sizes` value that describes the panel's measure — `(min-width: 46rem) 39.5rem,
+The page offers the crop at 2048 px for laptop screens and the 1200 px copy for
+narrow screens and slower connections, through `srcset` and a `sizes` value
+that describes the panel's measure — `(min-width: 46rem) 39.5rem,
 calc(100vw - 4.5rem)` — on the WebP source and on the JPEG fallback. It is not
 `100vw`: the photograph no longer spans the viewport, and a phone would
 otherwise fetch the 2048 px candidate for a 330 px slot. Never upscale: the wide
-candidate is the crop itself, not a larger render of the 1200 px copy.
+candidate is a downscale of the 2244 px crop, not a larger render of the
+1200 px copy.
 
 Regenerate all four files from the crop with:
 
 ```sh
 # 1200 px narrow copy: JPEG and WebP
-sips --resampleWidth 1200 /Users/angelo/svino/images/build/svino_a3.jpg \
-  --out assets/img/svino-borgo-1200.jpg
+sips -z 756 1200 /Users/angelo/svino/images/build/svino_a3.jpg \
+  --out assets/img/svino-cantina-1200.jpg
 cwebp -q 78 -resize 1200 756 /Users/angelo/svino/images/build/svino_a3.jpg \
-  -o assets/img/svino-borgo-1200.webp
+  -o assets/img/svino-cantina-1200.webp
 
 # 2048 px wide candidate: JPEG and WebP
 magick /Users/angelo/svino/images/build/svino_a3.jpg \
-  -strip -sampling-factor 2x2,1x1,1x1 -quality 93 \
-  assets/img/svino-borgo-2048.jpg
-cwebp -q 78 /Users/angelo/svino/images/build/svino_a3.jpg \
-  -o assets/img/svino-borgo-2048.webp
+  -resize 2048x1291! -strip -sampling-factor 2x2,1x1,1x1 -quality 93 \
+  assets/img/svino-cantina-2048.jpg
+cwebp -q 78 -resize 2048 1291 /Users/angelo/svino/images/build/svino_a3.jpg \
+  -o assets/img/svino-cantina-2048.webp
 ```
 
-Keep both variants RGB — never CMYK — and keep the two widths in step: they are
-the same crop, and the `<img>` keeps the approved 1200 × 756 intrinsic size. The
-1200 px JPEG stays the `<img>` fallback for browsers that read no `srcset`.
+The explicit sizes matter: the source is 2244 × 1415, so a bare
+`--resampleWidth 1200` would round to 757 px tall and break the `<img>`
+intrinsic 1200 × 756. Keep both variants RGB — never CMYK — and keep the two
+widths in step: they are the same crop. The 1200 px JPEG stays the `<img>`
+fallback for browsers that read no `srcset`.
 
-The printable Locandina and the downloadable copy must never disagree. When a
-print master carries the QR code (a future v12), regenerate the download from
-that same master — not from an earlier one — so the poster on paper and the
-poster on the page are the same object.
+### The square social preview
+
+`assets/img/svino-quadrato-og.jpg` is a 1080 × 1080 RGB JPEG converted from
+`SVINO_v15/Svino_quadrato_1080x1080_v15.png` with `sips -s format jpeg
+-s formatOptions 60`. Regenerate it from the current square master, never from
+an earlier one, so the preview shows the same photograph as the page.
+
+### The downloadable Locandina
+
+The printable Locandina and the downloadable copy must never disagree. The v15
+master carries the QR code, so the download comes from that same master — not
+from an earlier one — and the poster on paper and the poster on the page are
+the same object.
 
 The downloadable copy is `assets/download/locandina-svino-ii-edizione.jpg`:
-a 1240 × 1744 RGB JPEG rendered from `Svino_A3_master_v11.svg` with
-`rsvg-convert -w 1240`, then converted with `sips` at JPEG quality 78. Regenerate
-it with the same recipe from the QR-bearing master once v12 exists; never edit
-the JPEG independently of the master it derives from.
+a 1240 × 1744 RGB JPEG rendered from
+`SVINO_v15/sorgenti/Svino_A3_master_v15.svg` with `rsvg-convert -w 1240`, then
+converted with `sips` at JPEG quality 78. Never edit the JPEG independently of
+the master it derives from.
 
 ### Icons for the tab and home screen
 
