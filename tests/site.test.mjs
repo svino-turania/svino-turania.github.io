@@ -36,6 +36,33 @@ function servedStylesheet() {
   return readFileSync(file, 'utf8');
 }
 
+/*
+ * The span of every at-rule block whose header matches. Brace counting is
+ * enough for this stylesheet: it has no braces inside strings, and it lets a
+ * @media block nested in @supports be found as its own block.
+ */
+function atRuleBlocks(css, header) {
+  const blocks = [];
+  const pattern = new RegExp(header, 'gi');
+  let match;
+  while ((match = pattern.exec(css)) !== null) {
+    let depth = 0;
+    let index = match.index;
+    for (; index < css.length; index += 1) {
+      if (css[index] === '{') {
+        depth += 1;
+      } else if (css[index] === '}') {
+        depth -= 1;
+        if (depth === 0) {
+          break;
+        }
+      }
+    }
+    blocks.push({ start: match.index, end: index });
+  }
+  return blocks;
+}
+
 function paletteToken(name) {
   const source = servedStylesheet().match(
     new RegExp(`--${name}\\s*:\\s*(#[0-9a-fA-F]{6})\\s*;`),
@@ -1394,4 +1421,69 @@ test('il foglio di stile espone un indicatore di focus visibile sui link', () =>
     ? Number(width[1]) * 16
     : Number(width[1]);
   assert.ok(pixels >= 2, `outline troppo sottile: ${value}`);
+});
+
+test('il movimento è CSS, usa i token e ha una via per chi riduce il movimento', () => {
+  const css = servedStylesheet();
+
+  assert.doesNotMatch(
+    css,
+    /\binfinite\b/i,
+    'il movimento non deve ripetersi senza fine',
+  );
+
+  for (const token of ['ink', 'rule', 'date', 'quick', 'settle', 'scroll']) {
+    assert.match(
+      css,
+      new RegExp(`--motion-${token}\\s*:\\s*[^;]+;`),
+      `manca il token --motion-${token} nel foglio di stile`,
+    );
+  }
+
+  const noPreference = atRuleBlocks(
+    css,
+    '@media\\s*\\(prefers-reduced-motion:\\s*no-preference\\)',
+  );
+  assert.ok(noPreference.length > 0, 'manca il blocco no-preference');
+
+  const animations = [...css.matchAll(/(?:^|[;{\s])animation\s*:\s*([^;}]+)/g)];
+  assert.ok(animations.length > 0, 'manca il movimento d’ingresso');
+
+  for (const animation of animations) {
+    assert.ok(
+      noPreference.some(
+        ({ start, end }) => animation.index > start && animation.index < end,
+      ),
+      `animazione fuori da no-preference: ${normalize(animation[1])}`,
+    );
+    assert.match(
+      animation[1],
+      /var\(--motion-/,
+      `l’animazione non usa un token di durata: ${normalize(animation[1])}`,
+    );
+  }
+
+  const supports = atRuleBlocks(
+    css,
+    '@supports\\s*\\(animation-timeline:\\s*view\\(\\)\\)',
+  );
+  assert.ok(supports.length > 0, 'manca il blocco @supports per view()');
+
+  for (const use of css.matchAll(/animation-timeline\s*:\s*view\(\)/g)) {
+    assert.ok(
+      supports.some(({ start, end }) => use.index > start && use.index < end),
+      'animation-timeline: view() è fuori dal blocco @supports',
+    );
+  }
+
+  const reduce = atRuleBlocks(
+    css,
+    '@media\\s*\\(prefers-reduced-motion:\\s*reduce\\)',
+  );
+  assert.deepEqual(reduce.length, 1, 'manca il blocco reduce');
+  assert.match(
+    css.slice(reduce[0].start, reduce[0].end),
+    /transition\s*:\s*none/,
+    'il blocco reduce non spegne le transizioni',
+  );
 });

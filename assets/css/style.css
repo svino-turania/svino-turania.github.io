@@ -87,6 +87,20 @@
   --space-6: 2rem;
   --space-7: 3rem;
   --space-8: 4.5rem;
+
+  /*
+   * Motion scale. Named for the print: ink is laid down, rules are ruled,
+   * paper settles. Every animation in this file takes its duration from one
+   * of these tokens, and every one lives behind prefers-reduced-motion:
+   * no-preference.
+   */
+  --motion-ink: 460ms;
+  --motion-rule: 320ms;
+  --motion-date: 240ms;
+  --motion-quick: 240ms;
+  --motion-settle: 480ms;
+  --motion-scroll: 1ms;
+  --ease-press: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 *,
@@ -181,12 +195,35 @@ body {
  * day at display size, the month beneath. The DOM keeps the printed order
  * (day, weekday, month) so the time element reads as one date; grid areas put
  * the weekday above the numeral on screen.
+ *
+ * The two rules are pseudo-lines rather than borders so the entrance can rule
+ * them from the centre. The extra 1px of padding keeps the rendered box
+ * identical to the border version: 1px line + 1.5rem padding on each side.
  */
 .date {
+  position: relative;
   margin-block: var(--space-7);
-  padding-block: var(--space-5);
-  border-block: 1px solid var(--rule);
+  padding-block: calc(var(--space-5) + 1px);
+  border-block: 0;
   text-align: center;
+}
+
+.date::before,
+.date::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  height: 1px;
+  background: var(--rule);
+  transform: scaleX(1);
+}
+
+.date::before {
+  top: 0;
+}
+
+.date::after {
+  bottom: 0;
 }
 
 .date-lockup {
@@ -306,10 +343,26 @@ body {
  * stylesheet hides the one that does not belong to the composition, so
  * display: none keeps it out of the focus order.
  */
+/*
+ * The rule is a pseudo-line for the same reason as the date's: it can extend
+ * when the facts enter the viewport. The extra 1px of padding preserves the
+ * box the border version produced.
+ */
 .facts {
+  position: relative;
   margin-block-start: var(--space-7);
-  padding-block-start: var(--space-5);
-  border-block-start: 1px solid var(--rule);
+  padding-block-start: calc(var(--space-5) + 1px);
+  border-block-start: 0;
+}
+
+.facts::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: var(--rule);
+  transform: scaleX(1);
 }
 
 .info-grid {
@@ -350,15 +403,30 @@ body {
 
 /* ------------------------------------------------------------------ link */
 
+/*
+ * The link acknowledges the pointer and the thumb: the rule beneath the word
+ * thickens and drops a fraction on hover, and a tap holds the heavier rule.
+ * Focus stays instant — the outline is feedback, not decoration.
+ */
 a {
   color: var(--link);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
-  transition: color 180ms ease;
+  transition:
+    color var(--motion-quick) var(--ease-press),
+    text-decoration-thickness var(--motion-quick) var(--ease-press),
+    text-underline-offset var(--motion-quick) var(--ease-press);
 }
 
 a:hover {
   color: var(--link-hover);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.25em;
+}
+
+a:active {
+  color: var(--ink);
+  text-decoration-thickness: 2px;
 }
 
 a:focus-visible {
@@ -408,6 +476,188 @@ a:focus-visible {
 
 .colophon p {
   margin: 0;
+}
+
+/* ------------------------------------------------------------- movimento */
+
+/*
+ * The page prints itself. The signature is clipped in from the left like a
+ * press impression; the lockup follows; the subtitle settles; the date's rules
+ * extend from the centre and the fields follow. Every duration is a token, and
+ * every animation is an addition: with reduced motion the page is the finished
+ * label, immediately.
+ *
+ * clip-path on the filled signature path is what makes the press edge work;
+ * the path has no stroke to draw with. A browser that ignores it shows the
+ * signature at once, which is the correct fallback.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .signature path {
+    clip-path: inset(0 0 0 0);
+    animation: signature-press var(--motion-ink) var(--ease-press) both;
+  }
+
+  .signature text {
+    animation: lockup-in var(--motion-quick) ease-out 300ms both;
+  }
+
+  .subtitle {
+    animation: settle-in var(--motion-settle) var(--ease-press) 360ms both;
+  }
+
+  .date::before,
+  .date::after {
+    animation: rule-extend var(--motion-rule) var(--ease-press) 320ms both;
+  }
+
+  .date-weekday,
+  .date-day,
+  .date-month,
+  .date-time {
+    animation: date-in var(--motion-date) ease-out both;
+  }
+
+  .date-weekday {
+    animation-delay: 400ms;
+  }
+
+  .date-day {
+    animation-delay: 420ms;
+  }
+
+  .date-month {
+    animation-delay: 480ms;
+  }
+
+  .date-time {
+    animation-delay: 560ms;
+  }
+}
+
+@keyframes signature-press {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes lockup-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes settle-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rule-extend {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes date-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/*
+ * Below the fold the page reveals itself as it enters the viewport. This is
+ * progressive enhancement: view() timelines are recent, so the reveal lives
+ * behind @supports and the static page is the baseline. The photograph
+ * develops inside its fixed tear; the prose rises; the facts rule extends.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .photo-frame img {
+      animation: photograph-develop linear var(--motion-scroll) both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 60%;
+    }
+
+    .cantina {
+      animation: section-rise linear var(--motion-scroll) both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 45%;
+    }
+
+    /*
+     * The cells settle, not the aside: the aside carries the desktop Locandina
+     * link, and a link inside an opacity-0 container can lose its focus ring.
+     */
+    .info-grid {
+      animation: section-rise linear var(--motion-scroll) both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 45%;
+    }
+
+    .facts::before {
+      animation: rule-extend linear var(--motion-scroll) both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 50%;
+    }
+
+    /*
+     * The footer settles without fading: it carries the map and download links,
+     * which must stay visible when focused.
+     */
+    .site-footer {
+      animation: footer-settle linear var(--motion-scroll) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+
+@keyframes photograph-develop {
+  from {
+    opacity: 0.55;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes section-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes footer-settle {
+  from {
+    transform: translateY(8px);
+  }
+  to {
+    transform: none;
+  }
 }
 
 /* --------------------------------------------------------------- telefono */

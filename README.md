@@ -9,8 +9,8 @@ the map link. The identity (palette and type), the label composition, the
 outlined signature with the `II EDIZIONE` lockup, the Borgo photograph with its
 torn lower edge, the Open
 Graph and Twitter metadata, the square social preview, the Locandina
-download and the accessibility work are all in place. The rules below
-describe the system that work preserves.
+download, the print-derived motion and the accessibility work are all in
+place. The rules below describe the system that work preserves.
 
 ## The site is the files it is
 
@@ -75,6 +75,39 @@ width. Update both together.
 
 The tear is a vector polygon expressed against the photograph's own width, so
 the panel's measure cannot compress its teeth. ADR-0004 records how and why.
+
+## Motion
+
+The page prints itself rather than fading in like a template. The signature is
+clipped in from the left like a press impression, the `II EDIZIONE` lockup
+follows, the subtitle settles, the date's two rules extend from the centre and
+the weekday, day, month and time follow. Below the fold, the photograph
+develops inside its fixed tear, the prose rises and the facts rule extends as
+they enter the viewport.
+
+Motion is CSS only. The no-JavaScript test fails on any script, so no effect
+may depend on one. The rules are:
+
+- **The base style is the finished page.** Animations are added under
+  `prefers-reduced-motion: no-preference`; under `reduce` the label is complete
+  and still. Nothing starts invisible.
+- **Nothing repeats.** There are no ambient effects, so no pause control is
+  needed and no new UI appears.
+- **Focus never animates.** `:focus-visible` is feedback and appears at once.
+- **Durations come from the motion tokens** in `:root` (`--motion-ink`,
+  `--motion-rule`, `--motion-date`, `--motion-quick`, `--motion-settle`,
+  `--motion-scroll`), not from magic numbers.
+
+The entrance finishes within about 900 ms. Scroll-driven reveals
+(`animation-timeline: view()`) are progressive enhancement behind `@supports`;
+browsers without it, including iOS before 26, serve the static page.
+
+The signature has no stroke, so the press edge is a `clip-path` on the filled
+path, not a stroke animation. The date's rules and the facts rule are
+pseudo-lines rather than borders precisely so they can extend; the extra 1px
+of padding keeps their rendered boxes identical. ADR-0004 records the label
+composition the motion sits on; the motion itself is cheap to reverse and has
+no ADR.
 
 ## Editor workflow (Comitato)
 
@@ -194,7 +227,10 @@ in the facts and one in the footer, both resolving to the same file with the
 same declared type and name; and the tear is a vector polygon measured with
 `cqw` against the photograph's own width, with `container-type: inline-size` on
 its wrapper. The suite also pins the favicon's path data to the
-inline signature path, so the two cannot drift apart. The layout itself is
+inline signature path, so the two cannot drift apart. The motion rules are
+asserted as well: no looping animation, every animation inside
+`prefers-reduced-motion: no-preference` and taking its duration from a motion
+token, and every `view()` timeline behind `@supports`. The layout itself is
 verified by rendering at 320, 390, 768, 1024, 1440 and 1920 and at 200% text
 zoom, not by asserting the stylesheet.
 
