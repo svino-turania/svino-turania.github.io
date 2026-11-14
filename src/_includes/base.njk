@@ -38,20 +38,35 @@
     </header>
 
     <main>
-      <section class="band band--date" aria-label="Data e ora">
-        <div class="wrap">
-          <p class="date-block">
-            <time datetime="{{ date | isoDate }}">
-              <span class="date-day">{{ date | dayNumber }}</span>
-              <span class="date-labels">
-                <span class="date-weekday">{{ date | weekdayIt }}</span>
-                <span class="date-month">{{ date | monthYearIt }}</span>
-              </span>
-            </time>
-            <span class="date-time">dalle ore {{ time }}</span>
-          </p>
-        </div>
-      </section>
+      <div class="collage">
+        <figure class="photo-band">
+          <picture>
+            <source srcset="/assets/img/svino-borgo-1200.webp" type="image/webp">
+            <img
+              src="/assets/img/svino-borgo-1200.jpg"
+              width="1200"
+              height="756"
+              alt="Strada acciottolata di un borgo italiano, con case in pietra e intonaco chiaro, balconi, persiane e una torre con orologio sullo sfondo; in primo piano, su una botte di legno, un grappolo d'uva nera, una bottiglia di vino scuro e un calice di vino rosso."
+              decoding="async"
+            >
+          </picture>
+        </figure>
+
+        <section class="band band--date" aria-label="Data e ora">
+          <div class="wrap">
+            <p class="date-block">
+              <time datetime="{{ date | isoDate }}">
+                <span class="date-day">{{ date | dayNumber }}</span>
+                <span class="date-labels">
+                  <span class="date-weekday">{{ date | weekdayIt }}</span>
+                  <span class="date-month">{{ date | monthYearIt }}</span>
+                </span>
+              </time>
+              <span class="date-time">dalle ore {{ time }}</span>
+            </p>
+          </div>
+        </section>
+      </div>
 
       <div class="wrap">
         <div class="cantina">
