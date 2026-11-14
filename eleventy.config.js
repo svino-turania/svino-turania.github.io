@@ -25,6 +25,9 @@ const monthIt = new Intl.DateTimeFormat('it-IT', {
 module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ 'src/assets': 'assets' });
 
+  // The local preview must be as JavaScript-free as the deployed page.
+  eleventyConfig.setServerOptions({ liveReload: false });
+
   eleventyConfig.addFilter('dayNumber', (value) =>
     String(asUtcDate(value).getUTCDate()),
   );
