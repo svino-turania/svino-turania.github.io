@@ -22,6 +22,9 @@ const MAP_ORIGIN = 'https://www.openstreetmap.org';
 const CANTINA_PARAGRAPH =
   'Per la seconda edizione si entra nelle cantine del borgo: si assaggia il vino di Turania e da una cantina si passa alla successiva. Vi aspettiamo.';
 
+const PHOTO_ALT =
+  "Strada acciottolata di un borgo italiano, con case in pietra e intonaco chiaro, balconi, persiane e una torre con orologio sullo sfondo; in primo piano, su una botte di legno, un grappolo d'uva nera, una bottiglia di vino scuro e un calice di vino rosso.";
+
 const IMAGE_TYPE_BY_EXTENSION = new Map([
   ['.jpg', 'image/jpeg'],
   ['.jpeg', 'image/jpeg'],
@@ -136,6 +139,18 @@ function readImage(bytes, mime) {
   }
 
   assert.fail(`tipo di immagine non verificabile: ${mime}`);
+}
+
+function siteFileFor(rawUrl) {
+  assert.ok(
+    !/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(rawUrl),
+    `la risorsa non è un percorso relativo: ${rawUrl}`,
+  );
+  const url = new URL(rawUrl, `${SITE_ORIGIN}/`);
+  assert.equal(url.origin, SITE_ORIGIN, `la risorsa punta a un altro host: ${rawUrl}`);
+  const file = join(SITE, decodeURIComponent(url.pathname));
+  assert.ok(existsSync(file), `la risorsa non esiste nella build: ${url.pathname}`);
+  return { url, file };
 }
 
 function loadSite() {
@@ -663,6 +678,112 @@ test('il foglio di stile usa i sei ruoli cromatici con i contrasti documentati',
       `il contrasto ${foreground}/${background} è ${actual.toFixed(2)}, atteso almeno ${minimum}`,
     );
   }
+});
+
+test('la fotografia del Borgo è a tutta larghezza tra la testata e la data', () => {
+  const document = loadSite();
+  const header = document.querySelector('header');
+  const picture = document.querySelector('picture');
+  const photo = picture?.querySelector('img');
+  const date = document.querySelector('section[aria-label="Data e ora"]');
+
+  assert.ok(header, 'manca la testata della pagina');
+  assert.ok(picture, 'la fotografia non è servita dentro un elemento picture');
+  assert.ok(photo, 'manca la fotografia');
+  assert.ok(date, 'manca la striscia della data');
+
+  const elements = [...document.querySelectorAll('*')];
+  const headerAt = elements.indexOf(header);
+  const photoAt = elements.indexOf(photo);
+  const dateAt = elements.indexOf(date);
+  assert.ok(headerAt < photoAt, 'la fotografia non segue la testata');
+  assert.ok(photoAt < dateAt, 'la fotografia non precede la striscia della data');
+
+  const alt = normalize(photo.getAttribute('alt') ?? '');
+  assert.equal(
+    alt,
+    PHOTO_ALT,
+    'la descrizione della fotografia non è quella approvata',
+  );
+  assert.ok(
+    !/Turania/i.test(alt),
+    'la descrizione della fotografia la presenta come un luogo reale',
+  );
+  assert.equal(photo.getAttribute('width'), '1200');
+  assert.equal(photo.getAttribute('height'), '756');
+
+  const webp = picture.querySelector('source[srcset]');
+  assert.ok(webp, 'manca la sorgente WebP della fotografia');
+  assert.equal(webp.getAttribute('type'), 'image/webp');
+
+  const jpeg = siteFileFor(photo.getAttribute('src'));
+  assert.match(jpeg.url.pathname, /\.jpe?g$/i, 'il ripiego non è un JPEG');
+  assert.deepEqual(
+    jpegDimensions(readFileSync(jpeg.file)),
+    { width: 1200, height: 756 },
+    'il JPEG della fotografia non è 1200×756',
+  );
+
+  const webpSource = webp.getAttribute('srcset').trim().split(/\s+/)[0];
+  const webpFile = siteFileFor(webpSource).file;
+  const webpBytes = readFileSync(webpFile);
+  assert.equal(webpBytes.subarray(0, 4).toString('ascii'), 'RIFF');
+  assert.equal(webpBytes.subarray(8, 12).toString('ascii'), 'WEBP');
+  assert.ok(webpBytes.length > 0, 'il WebP della fotografia è vuoto');
+});
+
+test('le due estremità inferiori sono tagliate con clip-path e hanno un ripiego dritto', () => {
+  const css = builtStylesheet();
+  const polygons = [...css.matchAll(/clip-path:\s*polygon\(([^)]*)\)/gi)].map(
+    (match) => match[1],
+  );
+  const pointCount = (polygon) => polygon.split(',').length;
+
+  assert.ok(
+    polygons.some((polygon) => pointCount(polygon) === 120),
+    'manca il poligono del taglio inferiore della fotografia (120 punti)',
+  );
+  assert.ok(
+    polygons.some((polygon) => pointCount(polygon) === 123),
+    'manca il poligono del taglio inferiore della striscia chiara (123 punti)',
+  );
+
+  assert.match(
+    css,
+    /aspect-ratio:\s*303\s*\/\s*191/,
+    'la fotografia non conserva il rapporto 303/191 del taglio',
+  );
+  assert.match(
+    css,
+    /--tear-height:\s*calc\(100vw\s*\*\s*72\s*\/\s*303\)/,
+    'la striscia chiara non deriva l’altezza 303/72 dalla larghezza',
+  );
+  assert.match(
+    css,
+    /--tear-height:\s*calc\(100vw\s*\*\s*63\.5\s*\/\s*303\)/,
+    'manca il ripiego dritto della striscia chiara a 349,5 mm',
+  );
+  assert.match(
+    css,
+    /@supports\s*\(clip-path:\s*polygon\(/,
+    'i tagli non sono protetti da @supports: senza clip-path la pagina si romperebbe',
+  );
+  assert.match(css, /object-fit:\s*cover/, 'la fotografia non copre il suo riquadro');
+});
+
+test('la build non spedisce alcuna immagine di strappo', () => {
+  const files = readdirSync(SITE, { recursive: true }).map(String);
+  const tearImages = files.filter(
+    (file) =>
+      /\.(?:png|jpe?g|webp|gif|avif|svg)$/i.test(file) &&
+      /(?:tear|fibra|fiber|strappo|edge)/i.test(file.split('/').pop()),
+  );
+
+  assert.deepEqual(
+    tearImages,
+    [],
+    `la build contiene un'immagine di strappo: ${tearImages.join(', ')}`,
+  );
 });
 
 test('la testata riporta la firma come tracciato inline con nome accessibile e il lockup come testo', () => {
