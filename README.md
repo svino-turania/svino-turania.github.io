@@ -172,6 +172,8 @@ Site assets under `assets/` are derivatives, regenerated from the master rather
 than edited independently. They are:
 
 - the signature outline, inlined in `index.html`;
+- the tab icon and the touch icon, under `assets/icons/`, derived from that
+  inline outline;
 - the photograph derivative, under `assets/img/`;
 - the square social preview image, under `assets/img/`;
 - the Locandina download, under `assets/download/`, rendered from the print
@@ -187,6 +189,41 @@ a 1240 × 1744 RGB JPEG rendered from `Svino_A3_master_v11.svg` with
 `rsvg-convert -w 1240`, then converted with `sips` at JPEG quality 78. Regenerate
 it with the same recipe from the QR-bearing master once v12 exists; never edit
 the JPEG independently of the master it derives from.
+
+### Icons for the tab and home screen
+
+`assets/icons/favicon.svg` and `assets/icons/apple-touch-icon.png` are both
+derived from the signature outline already inlined in `index.html`. They are not
+new artwork: the print's bordeaux `#5c1a24` is the ground and cream-light
+`#f2e8d5` is the mark, the same pairing the signature uses. The page declares
+them, and that ground as `theme-color`, in its `<head>`.
+
+The page SVG's viewBox keeps room below the outline for the `II EDIZIONE`
+lockup. The icon crops to the outline's own bounds instead —
+`x −0.0243333333 … 2.521`, `y −1.313 … 0.1348571429` — so the tab shows the
+mark and not the empty lockup band. The icon's square viewBox is 2.82 units
+wide, which leaves about 5 % of the wider axis as padding and centres the mark
+vertically.
+
+Regenerate both if the signature outline changes:
+
+1. Replace the `d` of the inline path in `index.html` with the new outline.
+2. Recompute its bounds. A browser reports them with
+   `document.querySelector('path').getBBox()`; the outline is the only path, so
+   the bounding box is the mark. Update the crop numbers if they moved.
+3. Rebuild `assets/icons/favicon.svg`: a square `viewBox` centred on those
+   bounds, a full-square `<rect fill="#5c1a24">`, then the same path with
+   `fill="#f2e8d5"` and no `<text>` lockup.
+4. Render the touch icon from that vector, never from a copy:
+
+   ```sh
+   rsvg-convert -w 180 -h 180 \
+     -o assets/icons/apple-touch-icon.png assets/icons/favicon.svg
+   ```
+
+Keep `theme-color` equal to the stylesheet's `--bordeaux` token. The test suite
+checks the declarations, the two files, the touch icon's 180 × 180 size and its
+bordeaux corner, so a regeneration that misses a step fails before publishing.
 
 The print workspace is separate and must not be modified from this repository.
 Do not commit print sources, print build scripts or generated print artefacts
