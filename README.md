@@ -112,12 +112,19 @@ independently. When each asset lands, it is generated this way:
 - the signature outline;
 - the photograph derivative;
 - the square social preview image;
-- the Locandina download.
+- the Locandina download (the RGB JPEG under `src/assets/download/`, rendered
+  from the print master).
 
 The printable Locandina and the downloadable copy must never disagree. When a
 print master carries the QR code (a future v12), regenerate the download from
 that same master — not from an earlier one — so the poster on paper and the
 poster on the page are the same object.
+
+The downloadable copy is `src/assets/download/locandina-svino-ii-edizione.jpg`:
+a 1240 × 1744 RGB JPEG rendered from `Svino_A3_master_v11.svg` with
+`rsvg-convert -w 1240`, then converted with `sips` at JPEG quality 78. Regenerate
+it with the same recipe from the QR-bearing master once v12 exists; never edit
+the JPEG independently of the master it derives from.
 
 The print workspace is separate and must not be modified from this repository.
 Do not commit print sources, print build scripts or generated print artefacts
