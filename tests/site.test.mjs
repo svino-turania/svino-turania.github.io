@@ -125,6 +125,26 @@ function loadSite() {
   return document;
 }
 
+/*
+ * Read the candidates a browser sees in a srcset: each one is a URL and the
+ * width descriptor that lets it choose against the layout width.
+ */
+function parseSrcset(value) {
+  return value
+    .split(',')
+    .map((candidate) => candidate.trim())
+    .filter(Boolean)
+    .map((candidate) => {
+      const [url, descriptor] = candidate.split(/\s+/);
+      return {
+        url,
+        width: descriptor && /^\d+w$/.test(descriptor)
+          ? Number.parseInt(descriptor, 10)
+          : null,
+      };
+    });
+}
+
 function metaContent(document, attribute, key) {
   const meta = document.querySelector(`meta[${attribute}="${key}"]`);
   assert.ok(meta, `manca il meta ${attribute}="${key}"`);
@@ -637,6 +657,71 @@ test('la fotografia del Borgo è a tutta larghezza tra la testata e la data', ()
   assert.equal(webpBytes.subarray(0, 4).toString('ascii'), 'RIFF');
   assert.equal(webpBytes.subarray(8, 12).toString('ascii'), 'WEBP');
   assert.ok(webpBytes.length > 0, 'il WebP della fotografia è vuoto');
+});
+
+test('la fotografia offre una sorgente di almeno 2048 px per gli schermi larghi', () => {
+  const document = loadSite();
+  const picture = document.querySelector('picture');
+  const photo = picture?.querySelector('img');
+  assert.ok(picture, 'la fotografia non è servita dentro un elemento picture');
+  assert.ok(photo, 'manca la fotografia');
+
+  const jpegCandidates = parseSrcset(photo.getAttribute('srcset') ?? '');
+  const largeJpeg = jpegCandidates.filter(
+    (candidate) => candidate.width !== null && candidate.width >= 2048,
+  );
+  assert.ok(
+    largeJpeg.length > 0,
+    'la fotografia non offre un JPEG di almeno 2048 px',
+  );
+
+  for (const candidate of largeJpeg) {
+    const { file, url } = siteFileFor(candidate.url);
+    assert.match(url.pathname, /\.jpe?g$/i, 'la sorgente grande non è un JPEG');
+    const frame = jpegFrame(readFileSync(file));
+    assert.ok(
+      frame.width >= 2048,
+      `il JPEG grande dichiara ${candidate.width}w ma misura ${frame.width} px`,
+    );
+    assert.equal(
+      frame.components,
+      3,
+      'il JPEG grande non è RGB: la fotografia è un’immagine CMYK',
+    );
+    assert.ok(
+      Math.abs(frame.width / frame.height - 1200 / 756) < 0.002,
+      'il JPEG grande non mantiene l’inquadratura approvata',
+    );
+  }
+
+  const webp = picture.querySelector('source[type="image/webp"][srcset]');
+  assert.ok(webp, 'manca la sorgente WebP della fotografia');
+  const largeWebp = parseSrcset(webp.getAttribute('srcset')).filter(
+    (candidate) => candidate.width !== null && candidate.width >= 2048,
+  );
+  assert.ok(
+    largeWebp.length > 0,
+    'la sorgente WebP non offre un candidato di almeno 2048 px',
+  );
+  for (const candidate of largeWebp) {
+    const bytes = readFileSync(siteFileFor(candidate.url).file);
+    assert.equal(bytes.subarray(0, 4).toString('ascii'), 'RIFF');
+    assert.equal(bytes.subarray(8, 12).toString('ascii'), 'WEBP');
+    assert.ok(bytes.length > 0, 'il WebP grande della fotografia è vuoto');
+  }
+
+  assert.equal(webp.getAttribute('sizes'), '100vw', 'manca sizes sulla sorgente');
+  assert.equal(photo.getAttribute('sizes'), '100vw', 'manca sizes sul ripiego');
+
+  assert.deepEqual(
+    jpegSize(siteFileFor(photo.getAttribute('src')).file),
+    { width: 1200, height: 756 },
+    'il ripiego stretto non è più la copia 1200×756',
+  );
+  assert.ok(
+    jpegCandidates.some((candidate) => candidate.width === 1200),
+    'la copia 1200 non è più offerta come candidato stretto',
+  );
 });
 
 test('il sito non spedisce alcuna immagine di strappo', () => {
