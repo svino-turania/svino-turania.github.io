@@ -31,10 +31,39 @@ the stylesheet and fonts under `/assets/` load.
 python3 -m http.server 8080    # then open http://localhost:8080/
 ```
 
-Check the page in a phone-sized viewport before merging: in the browser's
-responsive mode use 320 px wide (the narrowest supported layout) and a normal
-phone width, then repeat at 200% text zoom. The date and the place must remain
+Check the three compositions before merging, in the browser's responsive mode:
+
+- 320 and 390 px: the phone column, with no horizontal scrolling;
+- 768 px: one readable column with the facts after the prose;
+- 1024, 1440×900 and 1920 px: the desktop grid, with the rail beside the prose.
+  At 1440×900 the signature, the photograph and the date strip must fit the
+  first screen.
+
+Repeat at 200% text zoom: the date, the place and the organiser must stay
 readable, with no horizontal scrolling and no clipped text.
+
+## Composition
+
+The phone and tablet compositions are one column, in the Locandina's stacking:
+signature, photograph, date strip, Cantina prose, facts, footer. Desktop is the
+only composition that changes structure. From 64 rem (1024 px) the prose and the
+facts share a grid: the prose keeps a readable measure on the left and a
+bordeaux rail on the right carries `DOVE`, `A CURA DI` and the Locandina
+download. The date strip carries the time; the footer carries the map link and
+the colophon.
+
+Each fact has one home, so the page does not read as duplicated boilerplate:
+the time is in the date strip under `DALLE ORE`; the place is under `DOVE`; the
+organiser is under `A CURA DI`. The map link opens the same search without
+repeating the place, and the colophon states the edition only. The Locandina has
+one download link in the DOM — it lives in the facts region, which is the rail
+on desktop and the footer region on phone and tablet. Do not duplicate it to
+move it.
+
+On desktop the photograph is height-capped so the first screen fits a 1440×900
+laptop while the page still uses the full width of the screen. The two torn
+edges keep the print's width-relative profile, so the cap does not compress
+their teeth.
 
 ## Editor workflow (Comitato)
 
@@ -51,12 +80,13 @@ a short comment beside it in the file:
 | Day number            | `6`                            | inside the date strip, under the weekday                       |
 | Weekday               | `DOMENICA`                     | inside the date strip                                          |
 | Month and year        | `DICEMBRE 2026`                | inside the date strip                                          |
-| Time                  | `12:00`                        | the phrase “dalle ore 12:00” and the value under `DALLE ORE`   |
-| Place                 | `Turania (RI)`                 | `DOVE`, the map link, the title and the colophon               |
-| Organiser             | `Comitato Feste Turania`       | the `A CURA DI` value                                          |
-| Subtitle              | `Per le cantine di Turania`    | under the signature                                            |
+| Time                  | `12:00`                        | the date strip, under `DALLE ORE`                             |
+| Place                 | `Turania (RI)`                 | `DOVE` in the facts rail, plus the title/description metadata |
+| Organiser             | `Comitato Feste Turania`       | the `A CURA DI` value                                         |
+| Subtitle              | `Per le cantine di Turania`    | under the signature                                           |
 | Edition               | `II EDIZIONE`                  | the lockup beside the signature, the colophon and the metadata |
-| Photograph description| the approved Italian sentence  | the `alt` attribute of the Borgo photograph                    |
+| Photograph description| the approved Italian sentence  | the `alt` attribute of the Borgo photograph                   |
+| Locandina download    | `assets/download/locandina-svino-ii-edizione.jpg` | the one link in the facts region (rail on desktop, footer on phone) |
 
 The date is the one value the page states in several forms. Change
 `datetime="2026-12-06"` only if the Comitato moves the event, then bring the
@@ -66,6 +96,18 @@ drift, so a wrong weekday cannot be published. The title, the description, the
 Open Graph and Twitter tags and the `og:image:alt` value repeat the edition,
 the date and the place: update them in the same change so the page and its
 social preview agree.
+
+The body text states each fact once. If the place changes, update `DOVE`, the
+metadata and the query in the map link's `href`, which must keep matching the
+place (`Turania%20(RI)` today); do not repeat the place in the link text or the
+colophon. If the time changes, update only the value under `DALLE ORE` in the
+date strip. A test counts `12:00`, `Turania (RI)`, `Comitato Feste Turania`,
+`DALLE ORE`, `DOVE` and `A CURA DI` in the visible body text and fails if any
+appears more than once.
+
+The Locandina download is a single link in the facts region. It is the rail on
+desktop and the footer region on phone and tablet; keep one `<a download>`, not
+one per composition.
 
 The Cantina paragraph sits between the `CANTINA — INIZIO REGIONE MODIFICABILE`
 and `CANTINA — FINE REGIONE MODIFICABILE` comments. Keep the paragraph inside
@@ -87,17 +129,15 @@ maintainer instead of editing it alone.
 
 When the Comitato supplies the programme, add it as a new section of
 `index.html` — not as a new page or route — so the address printed on the
-Locandina stays the address of the programme. Add the section inside `<main>`,
-after the Cantina region, using the existing `.wrap` container so it lines up
-with the rest of the page:
+Locandina stays the address of the programme. Add the section inside the
+Cantina prose region, after the approved paragraph and before the facts
+`aside`; it then inherits the prose measure in all three compositions:
 
 ```html
-<div class="wrap">
-  <section aria-labelledby="programma">
-    <h2 id="programma">Programma</h2>
-    <p>…</p>
-  </section>
-</div>
+<section aria-labelledby="programma">
+  <h2 id="programma">Programma</h2>
+  <p>…</p>
+</section>
 ```
 
 Keep the heading order valid: the signature is the page's only `h1`, so the
@@ -124,8 +164,18 @@ The test seam is the repository root, as a static server serves it. `npm test`
 runs `node --test tests/*.test.mjs`; there is no build to run first. The tests
 read `index.html`, its assets and its metadata as a visitor or link checker
 would: the printed facts and the Cantina paragraph verbatim, the date literals
-against `datetime`, the map link, the declared language, headings and link
-names, the absence of JavaScript and third-party hosts, and the content policy.
+against `datetime`, the map destination, the declared language, headings and
+link names, the absence of JavaScript and third-party hosts, and the content
+policy.
+
+The suite also asserts the composition's contracts: the time, place, organiser
+and the `DALLE ORE`, `DOVE`, `A CURA DI` labels each occur exactly once in the
+visible body text; the map link opens `Turania (RI)` in a new context with
+`noopener noreferrer` and its text need not repeat the place; the section order
+puts the strip's time before the prose, the facts after it, and closes with the
+map link and the colophon; and there is exactly one Locandina download link in
+the DOM. The layout itself is verified by rendering at 320, 390, 768, 1024,
+1440 and 1920 and at 200% text zoom, not by asserting the stylesheet.
 
 Directory-walking assertions use an allowlist — `index.html` and everything
 under `assets/` — so `node_modules/`, the tests, the repository documents and
