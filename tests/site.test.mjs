@@ -95,6 +95,7 @@ test('modificare un valore in front matter cambia la pagina senza toccare i temp
 
     const entryPath = join(buildDir, 'src', 'index.md');
     const edited = readFileSync(entryPath, 'utf8')
+      .replace('date: 2026-12-06', 'date: 2027-01-03')
       .replace('place: "Turania (RI)"', 'place: "Sentinella (ZZ)"')
       .replace('time: "12:00"', 'time: "13:30"')
       .concat('\n## Sezione futura\n\nTesto aggiunto in seguito.\n');
@@ -113,8 +114,9 @@ test('modificare un valore in front matter cambia la pagina senza toccare i temp
 
     assert.ok(text.includes('Sentinella (ZZ)'), 'il nuovo luogo non appare');
     assert.ok(text.includes('13:30'), 'il nuovo orario non appare');
+    assert.ok(text.includes('GENNAIO 2027'), 'la nuova data non appare');
     assert.ok(
-      !text.includes('Turania (RI)'),
+      !text.includes('Turania (RI)') && !text.includes('DICEMBRE 2026'),
       'un vecchio valore di front matter è rimasto nella pagina',
     );
     assert.ok(
