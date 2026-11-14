@@ -34,14 +34,18 @@
 
       - Data: l'attributo datetime di <time> è la fonte di verità; il giorno,
         il giorno della settimana e il mese/anno devono concordare con esso.
-      - Orario: la frase accanto alla data e il valore sotto DALLE ORE.
-      - Luogo: "Turania (RI)" (compare anche nel titolo, nella descrizione,
-        nel link alla mappa e nel colophon).
+      - Orario: il valore sotto DALLE ORE, accanto alla data; non è ripetuto
+        altrove.
+      - Luogo: "Turania (RI)" sotto DOVE, una sola volta nel corpo. Il titolo,
+        la descrizione e i metadati lo ripetono; il link alla mappa apre la
+        ricerca senza ripetere il nome, e il colophon non lo ripete.
       - Organizzatore: "Comitato Feste Turania" sotto A CURA DI.
       - Sottotitolo: "Per le cantine di Turania", sotto la firma.
       - Edizione: "II EDIZIONE" (lockup nella firma, colophon e metadati).
       - Descrizione della fotografia: l'attributo alt dell'immagine.
       - Paragrafo delle Cantine: la regione tra i commenti CANTINA.
+      - Locandina: il link di download nella regione "facts" (il rail a
+        destra della prosa su desktop, la fascia del footer su telefono).
 
       Non serve alcuna build: la pagina è servita così com'è scritta.
     -->
@@ -106,10 +110,10 @@
 
         <section class="band band--date" aria-label="Data e ora">
           <div class="wrap">
-            <p class="date-block">
+            <div class="date-block">
               <!-- DATA E ORARIO: datetime è la fonte di verità; il giorno, il
                    giorno della settimana e il mese/anno devono concordare con
-                   esso. "dalle ore 12:00" è ripetuto sotto DALLE ORE. -->
+                   esso. L'orario compare qui, sotto DALLE ORE, una sola volta. -->
               <time datetime="2026-12-06">
                 <span class="date-day">6</span>
                 <span class="date-labels">
@@ -117,58 +121,63 @@
                   <span class="date-month">DICEMBRE 2026</span>
                 </span>
               </time>
-              <span class="date-time">dalle ore 12:00</span>
-            </p>
+              <dl class="date-time">
+                <dt>DALLE ORE</dt>
+                <dd>12:00</dd>
+              </dl>
+            </div>
           </div>
         </section>
       </div>
 
-      <div class="wrap">
+      <div class="composition">
         <div class="cantina">
           <!-- CANTINA — INIZIO REGIONE MODIFICABILE: il paragrafo approvato va qui. -->
           <p>Per la seconda edizione si entra nelle cantine del borgo: si assaggia il vino di Turania e da una cantina si passa alla successiva. Vi aspettiamo.</p>
           <!-- CANTINA — FINE REGIONE MODIFICABILE -->
         </div>
+
+        <!-- FATTI E LOCANDINA: il rail a destra della prosa su desktop, la fascia
+             del footer su telefono e tablet. Un solo link di download. -->
+        <aside class="facts" aria-label="Informazioni">
+          <div class="facts-inner">
+            <dl class="info-grid">
+              <div class="info-item">
+                <dt>DOVE</dt>
+                <dd>Turania (RI)</dd>
+              </div>
+              <div class="info-item info-item--organiser">
+                <dt>A CURA DI</dt>
+                <dd>Comitato Feste Turania</dd>
+              </div>
+            </dl>
+
+            <p class="locandina-download">
+              <a
+                href="/assets/download/locandina-svino-ii-edizione.jpg"
+                download
+                type="image/jpeg"
+              >Scarica la Locandina (immagine JPEG)</a>
+            </p>
+          </div>
+        </aside>
       </div>
     </main>
 
     <footer class="band band--footer">
       <div class="wrap footer-block">
-        <dl class="info-grid">
-          <div class="info-item info-item--time">
-            <dt>DALLE ORE</dt>
-            <dd>12:00</dd>
-          </div>
-          <div class="info-item info-item--place">
-            <dt>DOVE</dt>
-            <dd>Turania (RI)</dd>
-          </div>
-          <div class="info-item info-item--organiser">
-            <dt>A CURA DI</dt>
-            <dd>Comitato Feste Turania</dd>
-          </div>
-        </dl>
-
         <p class="map-link">
           <a
             href="https://www.openstreetmap.org/search?query=Turania%20(RI)"
             target="_blank"
             rel="noopener noreferrer"
-          >Apri Turania (RI) nella mappa</a>
-        </p>
-
-        <p class="locandina-download">
-          <a
-            href="/assets/download/locandina-svino-ii-edizione.jpg"
-            download
-            type="image/jpeg"
-          >Scarica la Locandina (immagine JPEG)</a>
+          >Apri la mappa</a>
         </p>
       </div>
 
       <div class="wrap colophon">
-        <!-- COLOPHON: l'edizione e il luogo ripetono i valori qui sopra. -->
-        <p>sVino — II EDIZIONE · Turania (RI)</p>
+        <!-- COLOPHON: l'edizione chiude la pagina; il luogo è già sotto DOVE. -->
+        <p>sVino — II EDIZIONE</p>
       </div>
     </footer>
   </body>

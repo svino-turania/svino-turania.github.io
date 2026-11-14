@@ -301,18 +301,48 @@ body {
   overflow-wrap: break-word;
 }
 
+/*
+ * The time is the date strip's one home: the printed label DALLE ORE with the
+ * clock value, beside the date. It is not repeated in the facts rail or the
+ * footer.
+ */
 .date-time {
+  margin: 0;
   margin-inline-start: auto;
-  color: var(--bronze);
+  padding-block-end: 0.2em;
   font-family: var(--sans);
-  font-size: clamp(1rem, 2.6vw, 1.25rem);
 }
 
-/* ------------------------------------------------------------------ cantina */
+.date-time dt {
+  color: var(--bronze);
+  font-family: var(--sans);
+  font-size: clamp(0.7rem, 1.4vw, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+}
 
+.date-time dd {
+  margin: 0.25rem 0 0;
+  color: var(--bronze);
+  font-size: clamp(1rem, 2.6vw, 1.25rem);
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1.25;
+}
+
+/* -------------------------------------------------- prosa, fatti e locandina */
+
+/*
+ * Phone and tablet are one column: the prose, then the facts and the Locandina
+ * in the footer region. The facts band bleeds to the screen edges, like the
+ * footer beneath it. Desktop is the only composition that changes structure;
+ * see the media query at the end of this file.
+ */
 .cantina {
-  max-width: 42rem;
+  max-width: calc(42rem + 2 * var(--gutter));
   margin-block: clamp(2rem, 6vw, 4rem);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
   font-family: var(--sans);
   font-size: clamp(1.05rem, 2.4vw, 1.25rem);
   line-height: 1.65;
@@ -326,10 +356,22 @@ body {
   margin-top: 1em;
 }
 
+.facts {
+  margin-top: clamp(2.5rem, 7vw, 5rem);
+  background: var(--bordeaux);
+  color: var(--cream-light);
+}
+
+.facts-inner {
+  max-width: calc(42rem + 2 * var(--gutter));
+  margin-inline: auto;
+  padding: clamp(1.75rem, 4.5vw, 3rem) var(--gutter);
+}
+
 /* ---------------------------------------------------------- fascia footer */
 
 .band--footer {
-  margin-top: clamp(2.5rem, 7vw, 5rem);
+  margin-top: 0;
   background: var(--bordeaux);
   color: var(--cream-light);
 }
@@ -341,8 +383,8 @@ body {
 
 .info-grid {
   display: grid;
-  grid-template-columns: 1fr 1.32fr 1fr;
-  gap: clamp(1rem, 3vw, 2.5rem);
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1rem, 4vw, 1.5rem);
   margin: 0;
 }
 
@@ -351,9 +393,9 @@ body {
   margin: 0;
 }
 
-.info-item--place {
-  border-inline-start: 1px solid var(--gold);
-  padding-inline-start: clamp(1rem, 3vw, 2.5rem);
+.info-item + .info-item {
+  border-block-start: 1px solid var(--gold);
+  padding-block-start: clamp(1rem, 4vw, 1.5rem);
 }
 
 .info-grid dt {
@@ -375,19 +417,13 @@ body {
   overflow-wrap: break-word;
 }
 
-.info-item--time dd {
-  font-size: clamp(1.5rem, 4vw, 2rem);
-  font-variant-numeric: lining-nums tabular-nums;
-  font-weight: 700;
-}
-
 .info-item--organiser dd {
   font-size: clamp(0.95rem, 2vw, 1.15rem);
   font-weight: 700;
 }
 
 .map-link {
-  margin: clamp(1.5rem, 4vw, 2.25rem) 0 0;
+  margin: 0;
   font-family: var(--sans);
   font-size: clamp(0.95rem, 2vw, 1.05rem);
 }
@@ -414,7 +450,9 @@ a:focus-visible {
 }
 
 .locandina-download {
-  margin: 2rem 0;
+  margin: clamp(1.5rem, 3vw, 2rem) 0 0;
+  padding-block-start: clamp(1.5rem, 3vw, 2rem);
+  border-block-start: 1px solid var(--gold);
   font-size: 1.125rem;
 }
 
@@ -437,22 +475,83 @@ a:focus-visible {
 /* --------------------------------------------------------------- telefono */
 
 @media (max-width: 48rem) {
-  .info-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: clamp(1rem, 4vw, 1.5rem);
-  }
-
-  .info-item--place {
-    border-inline-start: 0;
-    padding-inline-start: 0;
-  }
-
-  .info-item + .info-item {
-    border-block-start: 1px solid var(--gold);
-    padding-block-start: clamp(1rem, 4vw, 1.5rem);
-  }
-
   .date-time {
     margin-inline-start: 0;
+  }
+}
+
+/* ---------------------------------------------------------------- desktop */
+
+/*
+ * From 1024 px the prose and the facts share a grid. The rail on the right
+ * carries DOVE, A CURA DI and the one Locandina download; the date strip
+ * carries the time. The header shrinks and the photograph is height-capped so
+ * that on a 1440×900 first screen the signature, the photograph and the date
+ * strip fit without scrolling. The tear's amplitude stays width-relative, so
+ * capping the box does not compress its teeth.
+ */
+@media (min-width: 64rem) {
+  :root {
+    --measure: 88rem;
+  }
+
+  .header-inner {
+    gap: clamp(1.5rem, 3vw, 3rem);
+    padding-block: clamp(1rem, 2.6vw, 1.75rem);
+  }
+
+  .lockup {
+    max-width: clamp(18rem, 26vw, 26rem);
+  }
+
+  .subtitle {
+    font-size: clamp(1.15rem, 1.4vw, 1.5rem);
+  }
+
+  .photo-band {
+    width: 100%;
+    max-height: 42vh;
+  }
+
+  .band--date {
+    --tear-height: min(calc(100vw * 72 / 303), 22vh);
+  }
+
+  .band--date .wrap {
+    /* Clear the photograph's tear, then keep the date above the deepest tooth. */
+    padding-block-start: calc(4.62046% + 0.75rem);
+    padding-block-end: calc(2.7vw + 0.75rem);
+  }
+
+  .composition {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(14rem, 28vw, 24rem);
+    gap: clamp(2rem, 4vw, 4rem);
+    align-items: stretch;
+    max-width: var(--measure);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .cantina {
+    max-width: 48rem;
+    margin-block: clamp(0.75rem, 1.5vh, 1rem) clamp(2.5rem, 6vh, 4rem);
+    padding-inline: 0;
+    font-size: clamp(1.15rem, 1.4vw, 1.35rem);
+  }
+
+  .facts {
+    margin-top: clamp(0.75rem, 1.5vh, 1rem);
+  }
+
+  .facts-inner {
+    max-width: none;
+    margin: 0;
+    padding: clamp(1rem, 1.8vw, 1.5rem) clamp(1.5rem, 2.4vw, 2.5rem)
+      clamp(1.5rem, 2.4vw, 2.5rem);
+  }
+
+  .band--footer {
+    margin-top: clamp(2.5rem, 6vh, 4rem);
   }
 }
