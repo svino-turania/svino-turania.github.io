@@ -739,12 +739,12 @@ test('le due estremità inferiori sono tagliate con clip-path e hanno un ripiego
   );
   assert.match(
     css,
-    /aspect-ratio:\s*303\s*\/\s*72/,
-    'la striscia chiara non conserva il rapporto 303/72 del taglio',
+    /--tear-height:\s*calc\(100vw\s*\*\s*72\s*\/\s*303\)/,
+    'la striscia chiara non deriva l’altezza 303/72 dalla larghezza',
   );
   assert.match(
     css,
-    /aspect-ratio:\s*303\s*\/\s*63\.5/,
+    /--tear-height:\s*calc\(100vw\s*\*\s*63\.5\s*\/\s*303\)/,
     'manca il ripiego dritto della striscia chiara a 349,5 mm',
   );
   assert.match(

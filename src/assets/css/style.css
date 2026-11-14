@@ -179,27 +179,42 @@ body {
 /*
  * The strip underlaps the photograph by the print's 14 mm (14/303 of the
  * width), so the photograph's deepest 6.98 mm notch still shows cream.
- * Without clip-path the strip is straight at 349.5 mm (aspect 303/63.5);
- * with it, the print's 72 mm box and torn lower edge (seam 348 mm + 1.5 mm).
- * The rem min-height keeps the date inside the cream when the 72 mm ratio is
- * shorter than the text at narrow widths; the tear then scales with that
- * height, which is the accepted approximation.
+ * Without clip-path the strip is straight at 349.5 mm (303/63.5); with it,
+ * the print's 72 mm box and torn lower edge (seam 348 mm + 1.5 mm).
+ * The tear is a fixed box at the bottom whose height always comes from the
+ * width (303/72, or 303/63.5 straight), so its amplitude scales with width,
+ * never with the text. The strip above it grows when enlarged text needs the
+ * room; 18 % of the tear box is kept empty below the text so the deepest
+ * tooth (88.54 % from the top of the box) never reaches it.
  */
 .band--date {
+  --tear-height: calc(100vw * 63.5 / 303); /* straight: 286..349.5 mm */
   position: relative;
   z-index: 1;
   margin-top: -4.62046%; /* 14 mm of 303 mm, the print overlap */
-  aspect-ratio: 303 / 63.5;
-  min-height: 9rem;
+  min-height: var(--tear-height);
 }
 
-/* The cream sheet; the date text is normal-flow content above it. */
-.band--date::before {
+.band--date::before,
+.band--date::after {
   content: "";
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
   z-index: 0;
   background: var(--cream);
+}
+
+/* Cream above the tear box; the date text is normal-flow content above it. */
+.band--date::before {
+  top: 0;
+  bottom: var(--tear-height);
+}
+
+/* The cream that is torn at the bottom; the bordeaux shows through its notches. */
+.band--date::after {
+  bottom: 0;
+  height: var(--tear-height);
 }
 
 .band--date .wrap {
@@ -207,8 +222,8 @@ body {
   z-index: 1;
   /* 24 mm from the strip top puts the date clear of the photograph's tear. */
   padding-block-start: calc(100% * 24 / 303);
-  /* The deepest cream tooth rises to 88.54% of the box; keep text above it. */
-  padding-block-end: calc(100% * 16 / 303);
+  /* Keep the bottom of the tear box empty below the date block. */
+  padding-block-end: calc(var(--tear-height) * 0.18);
 }
 
 @supports (clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%)) {
@@ -217,10 +232,10 @@ body {
   }
 
   .band--date {
-    aspect-ratio: 303 / 72;
+    --tear-height: calc(100vw * 72 / 303); /* 286..358 mm, torn */
   }
 
-  .band--date::before {
+  .band--date::after {
     clip-path: polygon(0% 0%, 100% 0%, 100% 89.929%, 99.34% 89.608%, 99.01% 90.482%, 97.69% 89.929%, 97.36% 90.087%, 97.03% 91.107%, 95.71% 90.874%, 93.729% 91.714%, 92.739% 90.668%, 92.409% 89.871%, 91.749% 90.251%, 90.759% 88.856%, 89.769% 89.093%, 88.779% 88.621%, 88.119% 89.433%, 87.789% 88.924%, 84.818% 89.779%, 84.158% 89.312%, 83.498% 90.342%, 80.528% 90.897%, 80.198% 91.746%, 79.208% 90.207%, 78.548% 90.544%, 78.218% 89.653%, 77.228% 89.629%, 76.568% 90.725%, 76.238% 90.261%, 74.587% 91.953%, 73.927% 91.551%, 73.597% 90.712%, 72.937% 91.482%, 72.607% 90.982%, 71.947% 91.368%, 71.617% 90.518%, 70.957% 90.071%, 69.967% 88.538%, 68.647% 88.79%, 67.987% 90.037%, 67.327% 90.283%, 66.337% 90.517%, 65.347% 89.878%, 65.017% 90.861%, 64.356% 90.028%, 64.026% 91.132%, 63.696% 91.244%, 63.036% 90.932%, 61.716% 91.274%, 60.726% 90.272%, 59.406% 90.036%, 58.746% 89.169%, 57.756% 90.586%, 57.426% 90.276%, 56.766% 91.265%, 55.446% 91.49%, 55.116% 91.174%, 54.785% 90.226%, 54.125% 91.025%, 53.135% 90.767%, 52.805% 91.411%, 52.145% 90.644%, 51.155% 91.576%, 50.825% 90.558%, 49.505% 90.614%, 47.195% 93.479%, 46.535% 93.521%, 46.205% 94.269%, 45.545% 94.679%, 45.215% 95.524%, 44.224% 93.496%, 43.234% 92.975%, 42.244% 90.901%, 41.584% 91.092%, 41.254% 90.767%, 40.594% 89.296%, 39.604% 90.475%, 37.624% 91.157%, 35.644% 89.431%, 34.983% 90.132%, 34.653% 89.299%, 34.323% 89.196%, 33.333% 90.586%, 33.003% 89.992%, 32.343% 91.185%, 31.023% 90.694%, 30.363% 90.875%, 30.033% 91.957%, 29.703% 92.097%, 27.723% 90.357%, 26.733% 90.692%, 26.403% 91.333%, 25.413% 90.692%, 24.752% 91.828%, 23.432% 89.722%, 21.782% 88.786%, 21.122% 89.871%, 20.792% 89.81%, 19.802% 91.428%, 19.142% 90.91%, 18.812% 91.331%, 17.822% 91.036%, 17.162% 89.546%, 16.172% 89.775%, 15.182% 91.382%, 14.521% 91.475%, 13.531% 90.875%, 13.201% 91.483%, 12.541% 91.776%, 11.551% 91.028%, 11.221% 91.954%, 10.561% 90.583%, 9.571% 90.251%, 9.241% 90.986%, 8.581% 90.442%, 7.921% 90.849%, 4.95% 90.167%, 2.64% 91.979%, 1.98% 90.564%, 1.65% 91.133%, 0.99% 90.66%, 0.33% 91.144%, 0% 90.614%);
   }
 }
