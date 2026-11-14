@@ -716,6 +716,60 @@ test('la fotografia del Borgo è a tutta larghezza tra la testata e la data', ()
   assert.ok(webpBytes.length > 0, 'il WebP della fotografia è vuoto');
 });
 
+test('le due estremità inferiori sono tagliate con clip-path e hanno un ripiego dritto', () => {
+  const css = builtStylesheet();
+  const polygons = [...css.matchAll(/clip-path:\s*polygon\(([^)]*)\)/gi)].map(
+    (match) => match[1],
+  );
+  const pointCount = (polygon) => polygon.split(',').length;
+
+  assert.ok(
+    polygons.some((polygon) => pointCount(polygon) === 120),
+    'manca il poligono del taglio inferiore della fotografia (120 punti)',
+  );
+  assert.ok(
+    polygons.some((polygon) => pointCount(polygon) === 123),
+    'manca il poligono del taglio inferiore della striscia chiara (123 punti)',
+  );
+
+  assert.match(
+    css,
+    /aspect-ratio:\s*303\s*\/\s*191/,
+    'la fotografia non conserva il rapporto 303/191 del taglio',
+  );
+  assert.match(
+    css,
+    /aspect-ratio:\s*303\s*\/\s*72/,
+    'la striscia chiara non conserva il rapporto 303/72 del taglio',
+  );
+  assert.match(
+    css,
+    /aspect-ratio:\s*303\s*\/\s*63\.5/,
+    'manca il ripiego dritto della striscia chiara a 349,5 mm',
+  );
+  assert.match(
+    css,
+    /@supports\s*\(clip-path:\s*polygon\(/,
+    'i tagli non sono protetti da @supports: senza clip-path la pagina si romperebbe',
+  );
+  assert.match(css, /object-fit:\s*cover/, 'la fotografia non copre il suo riquadro');
+});
+
+test('la build non spedisce alcuna immagine di strappo', () => {
+  const files = readdirSync(SITE, { recursive: true }).map(String);
+  const tearImages = files.filter(
+    (file) =>
+      /\.(?:png|jpe?g|webp|gif|avif|svg)$/i.test(file) &&
+      /(?:tear|fibra|fiber|strappo|edge)/i.test(file.split('/').pop()),
+  );
+
+  assert.deepEqual(
+    tearImages,
+    [],
+    `la build contiene un'immagine di strappo: ${tearImages.join(', ')}`,
+  );
+});
+
 test('Lora e Lato sono auto-ospitati come WOFF2 e nessun font lascia l’origine', () => {
   const cssPath = join(SITE, 'assets', 'css', 'style.css');
   const css = builtStylesheet();
