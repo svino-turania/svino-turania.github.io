@@ -1,21 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  cpSync,
-  existsSync,
-  mkdtempSync,
-  readFileSync,
-  readdirSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
-import { execFileSync } from 'node:child_process';
-import { tmpdir } from 'node:os';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
+import { inflateSync } from 'node:zlib';
 import { parseHTML } from 'linkedom';
 
 const ROOT = resolve(import.meta.dirname, '..');
-const SITE = join(ROOT, '_site');
+
+// The single seam: the repository root, as a static server serves it.
+const SITE = ROOT;
 const SITE_ORIGIN = 'https://svino-turania.github.io';
 const MAP_ORIGIN = 'https://www.openstreetmap.org';
 
@@ -34,10 +27,89 @@ function normalize(value) {
   return value.replace(/\s+/g, ' ').trim();
 }
 
-function builtStylesheet() {
+function servedStylesheet() {
   const file = join(SITE, 'assets', 'css', 'style.css');
-  assert.ok(existsSync(file), 'la build non ha prodotto il foglio di stile');
+  assert.ok(existsSync(file), 'manca il foglio di stile nel sito');
   return readFileSync(file, 'utf8');
+}
+
+function paletteToken(name) {
+  const source = servedStylesheet().match(
+    new RegExp(`--${name}\\s*:\\s*(#[0-9a-fA-F]{6})\\s*;`),
+  );
+  assert.ok(source, `manca il token --${name} nel foglio di stile`);
+  return source[1].toLowerCase();
+}
+
+function rgb(hexColour) {
+  return {
+    r: Number.parseInt(hexColour.slice(1, 3), 16),
+    g: Number.parseInt(hexColour.slice(3, 5), 16),
+    b: Number.parseInt(hexColour.slice(5, 7), 16),
+  };
+}
+
+/*
+ * Read the IHDR of a PNG and the first decoded pixel, as a browser drawing the
+ * touch icon would: its size, its colour model and the colour of its corner.
+ */
+function pngFrame(bytes) {
+  assert.equal(
+    bytes.subarray(0, 8).toString('hex'),
+    '89504e470d0a1a0a',
+    'il file non è un PNG',
+  );
+  assert.equal(bytes.subarray(12, 16).toString('ascii'), 'IHDR');
+  return {
+    width: bytes.readUInt32BE(16),
+    height: bytes.readUInt32BE(20),
+    bitDepth: bytes[24],
+    colorType: bytes[25],
+  };
+}
+
+function pngTopLeftPixel(bytes) {
+  const { bitDepth, colorType } = pngFrame(bytes);
+  assert.equal(bitDepth, 8, `profondità PNG non attesa: ${bitDepth}`);
+  assert.ok(
+    colorType === 2 || colorType === 6,
+    `modello di colore PNG non atteso: ${colorType}`,
+  );
+
+  const chunks = [];
+  let offset = 8;
+  while (offset + 12 <= bytes.length) {
+    const length = bytes.readUInt32BE(offset);
+    const type = bytes.subarray(offset + 4, offset + 8).toString('ascii');
+    if (type === 'IDAT') {
+      chunks.push(bytes.subarray(offset + 8, offset + 8 + length));
+    }
+    if (type === 'IEND') {
+      break;
+    }
+    offset += 12 + length;
+  }
+  const scanlines = inflateSync(Buffer.concat(chunks));
+  // For the first pixel of the first row every filter predictor is zero, so
+  // the stored samples are the pixel's RGB values.
+  return { r: scanlines[1], g: scanlines[2], b: scanlines[3] };
+}
+
+/*
+ * Everything a static server publishes from the repository root: the page
+ * document and the assets tree. This is an allowlist, so node_modules, the
+ * tests, the repository documents and .git are never in scope for the
+ * directory-walking assertions below.
+ */
+function shippedFiles() {
+  const files = ['index.html'];
+  const assets = join(SITE, 'assets');
+  if (existsSync(assets)) {
+    for (const name of readdirSync(assets, { recursive: true })) {
+      files.push(join('assets', String(name)));
+    }
+  }
+  return files;
 }
 
 /*
@@ -99,7 +171,7 @@ function siteFileFor(rawUrl) {
   const url = new URL(rawUrl, `${SITE_ORIGIN}/`);
   assert.equal(url.origin, SITE_ORIGIN, `la risorsa punta a un altro host: ${rawUrl}`);
   const file = join(SITE, decodeURIComponent(url.pathname));
-  assert.ok(existsSync(file), `la risorsa non esiste nella build: ${url.pathname}`);
+  assert.ok(existsSync(file), `la risorsa non esiste nel sito: ${url.pathname}`);
   return { url, file };
 }
 
@@ -111,9 +183,36 @@ function sameOriginUrl(rawUrl) {
 
 function loadSite() {
   const file = join(SITE, 'index.html');
-  assert.ok(existsSync(file), 'la build non ha prodotto _site/index.html');
+  assert.ok(existsSync(file), 'manca index.html alla radice del sito');
   const { document } = parseHTML(readFileSync(file, 'utf8'));
   return document;
+}
+
+/*
+ * Read the candidates a browser sees in a srcset: each one is a URL and the
+ * width descriptor that lets it choose against the layout width.
+ */
+function parseSrcset(value) {
+  return value
+    .split(',')
+    .map((candidate) => candidate.trim())
+    .filter(Boolean)
+    .map((candidate) => {
+      const [url, descriptor] = candidate.split(/\s+/);
+      return {
+        url,
+        width: descriptor && /^\d+w$/.test(descriptor)
+          ? Number.parseInt(descriptor, 10)
+          : null,
+      };
+    });
+}
+
+/* The candidates wide enough for a laptop screen: 2048 px and up. */
+function wideCandidates(value) {
+  return parseSrcset(value).filter(
+    (candidate) => candidate.width !== null && candidate.width >= 2048,
+  );
 }
 
 function metaContent(document, attribute, key) {
@@ -159,7 +258,24 @@ function wholeDocumentText(document) {
   return normalize(parts.join(' ')).toLowerCase();
 }
 
-test('la pagina costruita riporta i fatti stampati sulla Locandina', () => {
+/*
+ * The text a visitor reads in the body, with metadata out of scope. Comments
+ * are not part of textContent; scripts, styles, templates and hidden nodes are
+ * removed so the count reflects what is on the page.
+ */
+function visibleBodyText(document) {
+  const body = document.body.cloneNode(true);
+  for (const node of body.querySelectorAll('script, style, template, [hidden]')) {
+    node.remove();
+  }
+  return normalize(body.textContent);
+}
+
+function occurrences(text, fact) {
+  return text.split(fact).length - 1;
+}
+
+test('la pagina servita riporta i fatti stampati sulla Locandina', () => {
   const document = loadSite();
   const text = normalize(document.body.textContent);
 
@@ -186,6 +302,101 @@ test('la pagina costruita riporta i fatti stampati sulla Locandina', () => {
   );
 });
 
+test('ogni fatto compare una sola volta nel testo visibile della pagina', () => {
+  const document = loadSite();
+  const text = visibleBodyText(document);
+
+  for (const fact of ['12:00', 'Turania (RI)', 'Comitato Feste Turania']) {
+    assert.equal(
+      occurrences(text, fact),
+      1,
+      `il fatto "${fact}" compare ${occurrences(text, fact)} volte, non una`,
+    );
+  }
+
+  for (const label of ['DALLE ORE', 'DOVE', 'A CURA DI']) {
+    assert.equal(
+      occurrences(text, label),
+      1,
+      `l’etichetta "${label}" compare ${occurrences(text, label)} volte, non una`,
+    );
+  }
+});
+
+test('le literal della data concordano con l’attributo datetime', () => {
+  const document = loadSite();
+  const time = document.querySelector('time[datetime]');
+  assert.ok(time, 'manca un elemento time con un attributo datetime');
+
+  const iso = time.getAttribute('datetime');
+  assert.match(
+    iso,
+    /^\d{4}-\d{2}-\d{2}$/,
+    `datetime non è una data ISO: ${iso}`,
+  );
+  const date = new Date(`${iso}T00:00:00Z`);
+
+  // Recompute the date independently of the page with the same locale the
+  // printed date uses; the literals must not drift away from datetime.
+  const weekday = new Intl.DateTimeFormat('it-IT', {
+    weekday: 'long',
+    timeZone: 'UTC',
+  })
+    .format(date)
+    .toUpperCase();
+  const month = new Intl.DateTimeFormat('it-IT', {
+    month: 'long',
+    timeZone: 'UTC',
+  })
+    .format(date)
+    .toUpperCase();
+  const day = String(date.getUTCDate());
+  const year = String(date.getUTCFullYear());
+
+  assert.equal(
+    normalize(time.textContent),
+    `${day} ${weekday} ${month} ${year}`,
+    'giorno, giorno della settimana, mese o anno non concordano con datetime',
+  );
+
+  // The date strip is the time's single home: the DALLE ORE label and its
+  // clock value sit inside the strip, beside the date. The exactly-once test
+  // proves no other visible copy of the time exists on the page.
+  const strip = document.querySelector('section[aria-label="Data e ora"]');
+  assert.ok(strip, 'manca la striscia della data e ora');
+  assert.ok(strip.contains(time), 'la data non è nella striscia della data');
+
+  const label = [...strip.querySelectorAll('dt')].find(
+    (node) => normalize(node.textContent) === 'DALLE ORE',
+  );
+  assert.ok(label, 'manca il fatto DALLE ORE nella striscia della data');
+  assert.ok(
+    time.parentElement?.contains(label),
+    'il fatto DALLE ORE non è accanto alla data',
+  );
+  assert.match(
+    normalize(label.nextElementSibling?.textContent ?? ''),
+    /^\d{2}:\d{2}$/,
+    'il valore sotto DALLE ORE non è un orario',
+  );
+});
+
+test('la pagina spedita è solo index.html e non contiene sintassi di template', () => {
+  const pages = shippedFiles().filter((file) => file.endsWith('.html'));
+  assert.deepEqual(
+    pages,
+    ['index.html'],
+    `il sito spedisce più di una pagina HTML: ${pages.join(', ')}`,
+  );
+
+  const html = readFileSync(join(SITE, 'index.html'), 'utf8');
+  assert.doesNotMatch(
+    html,
+    /\{\{|\{%|\{#/,
+    'la pagina contiene sintassi di template non risolta',
+  );
+});
+
 test('il link alla mappa porta a Turania (RI) e si apre in un nuovo contesto sicuro', () => {
   const document = loadSite();
   const link = [...document.querySelectorAll('a[href]')].find((anchor) =>
@@ -201,7 +412,13 @@ test('il link alla mappa porta a Turania (RI) e si apre in un nuovo contesto sic
     'la ricerca sulla mappa non punta a Turania (RI)',
   );
 
-  assert.match(normalize(link.textContent), /Turania \(RI\)/);
+  // The destination is the place; the link text need not repeat it, because
+  // the place is stated once under DOVE.
+  assert.match(
+    normalize(link.textContent),
+    /mappa/i,
+    'il link non dice che apre la mappa',
+  );
   assert.equal(link.getAttribute('target'), '_blank');
 
   const rel = (link.getAttribute('rel') ?? '').split(/\s+/);
@@ -211,37 +428,87 @@ test('il link alla mappa porta a Turania (RI) e si apre in un nuovo contesto sic
 
 test('il download della Locandina è un’immagine dello stesso sito con tipo dichiarato', () => {
   const document = loadSite();
-  const link = document.querySelector('a[download]');
+  const rail = document.querySelector('aside[aria-label="Informazioni"]');
+  const footer = document.querySelector('footer');
+  assert.ok(rail, 'manca il rail dei fatti');
+  assert.ok(footer, 'manca il footer della pagina');
 
-  assert.ok(link, 'manca il link per scaricare la Locandina');
-  assert.notEqual(
-    link.getAttribute('download'),
-    null,
-    'il link della Locandina non ha l’attributo download',
+  const downloads = [...document.querySelectorAll('a[download]')];
+  assert.equal(
+    downloads.length,
+    2,
+    'la pagina deve offrire un link per scaricare la Locandina nel rail e uno nel footer',
   );
 
-  const name = normalize(
-    link.getAttribute('aria-label') ?? link.textContent ?? '',
+  const railLink = rail.querySelector('a[download]');
+  const footerLink = footer.querySelector('a[download]');
+  assert.ok(railLink, 'manca il link della Locandina nel rail dei fatti');
+  assert.ok(footerLink, 'manca il link della Locandina nel footer');
+
+  const railName = accessibleName(document, railLink);
+  const footerName = accessibleName(document, footerLink);
+  assert.ok(
+    railName.length > 0,
+    'il link della Locandina nel rail non ha testo discernibile',
   );
-  assert.ok(name.length > 0, 'il link della Locandina non ha testo discernibile');
-  assert.match(name, /Scarica la Locandina/i, 'il link non dice che scarica la Locandina');
+  assert.ok(
+    footerName.length > 0,
+    'il link della Locandina nel footer non ha testo discernibile',
+  );
+  assert.equal(
+    railName,
+    footerName,
+    'i due link della Locandina non hanno lo stesso nome discernibile',
+  );
+  assert.match(
+    railName,
+    /Scarica la Locandina/i,
+    'il link non dice che scarica la Locandina',
+  );
 
-  const href = link.getAttribute('href');
-  assert.ok(href, 'il link della Locandina non ha un href');
+  // On phone and tablet the footer reads map link, download, colophon.
+  const mapLink = footer.querySelector('a[href*="openstreetmap"]');
+  assert.ok(mapLink, 'manca il link alla mappa nel footer');
+  const footerLinks = [...footer.querySelectorAll('a[href]')];
+  assert.ok(
+    footerLinks.indexOf(footerLink) > footerLinks.indexOf(mapLink),
+    'il download nel footer non segue il link alla mappa',
+  );
 
-  const { url, file } = siteFileFor(href);
+  const railHref = railLink.getAttribute('href');
+  const footerHref = footerLink.getAttribute('href');
+  assert.ok(railHref, 'il link della Locandina nel rail non ha un href');
+  assert.ok(footerHref, 'il link della Locandina nel footer non ha un href');
 
-  const extension = extname(decodeURIComponent(url.pathname)).toLowerCase();
+  const railFile = siteFileFor(railHref);
+  const footerFile = siteFileFor(footerHref);
+  assert.equal(
+    decodeURIComponent(railFile.url.pathname),
+    decodeURIComponent(footerFile.url.pathname),
+    'i due download non puntano allo stesso file',
+  );
+
+  const extension = extname(decodeURIComponent(railFile.url.pathname)).toLowerCase();
   const expectedType = IMAGE_TYPE_BY_EXTENSION.get(extension);
   assert.ok(expectedType, `il download non è un’immagine web: ${extension}`);
 
-  assert.equal(
-    link.getAttribute('type'),
-    expectedType,
-    'il tipo dichiarato dal link non corrisponde all’estensione del file',
-  );
+  for (const [where, link] of [
+    ['rail', railLink],
+    ['footer', footerLink],
+  ]) {
+    assert.notEqual(
+      link.getAttribute('download'),
+      null,
+      `il link della Locandina nel ${where} non ha l’attributo download`,
+    );
+    assert.equal(
+      link.getAttribute('type'),
+      expectedType,
+      `il tipo dichiarato dal link nel ${where} non corrisponde all’estensione del file`,
+    );
+  }
 
-  const bytes = readFileSync(file);
+  const bytes = readFileSync(railFile.file);
   assert.ok(bytes.length > 0, 'il file scaricabile è vuoto');
 
   const image = jpegFrame(bytes);
@@ -256,75 +523,17 @@ test('il download della Locandina è un’immagine dello stesso sito con tipo di
   );
 });
 
-test('la build non distribuisce PDF, file CMYK o master di stampa', () => {
-  const files = readdirSync(SITE, { recursive: true }).map(String);
+test('il sito non distribuisce PDF, file CMYK o master di stampa', () => {
+  const files = shippedFiles();
 
   for (const name of files) {
     const base = name.split('/').pop().toLowerCase();
-    assert.ok(!base.endsWith('.pdf'), `la build contiene un PDF: ${name}`);
-    assert.ok(!base.includes('cmyk'), `la build contiene un file CMYK: ${name}`);
+    assert.ok(!base.endsWith('.pdf'), `il sito contiene un PDF: ${name}`);
+    assert.ok(!base.includes('cmyk'), `il sito contiene un file CMYK: ${name}`);
     assert.ok(
       !/(svino_a3|print[-_]?ready|(?:^|[-_.])master(?:[-_.]|$))/.test(base),
-      `la build contiene un master di stampa: ${name}`,
+      `il sito contiene un master di stampa: ${name}`,
     );
-  }
-});
-
-test('modificare un valore in front matter cambia la pagina senza toccare i template', () => {
-  const buildDir = mkdtempSync(join(tmpdir(), 'svino-build-'));
-
-  try {
-    cpSync(join(ROOT, 'src'), join(buildDir, 'src'), { recursive: true });
-    cpSync(
-      join(ROOT, 'eleventy.config.js'),
-      join(buildDir, 'eleventy.config.js'),
-    );
-
-    const entryPath = join(buildDir, 'src', 'index.md');
-    const edited = readFileSync(entryPath, 'utf8')
-      .replace('date: 2026-12-06', 'date: 2027-01-03')
-      .replace('place: "Turania (RI)"', 'place: "Sentinella (ZZ)"')
-      .replace('time: "12:00"', 'time: "13:30"')
-      .replace(/^photoAlt: .*$/m, 'photoAlt: "Descrizione modificata per il test"')
-      .concat('\n## Sezione futura\n\nTesto aggiunto in seguito.\n');
-    writeFileSync(entryPath, edited);
-
-    execFileSync(
-      process.execPath,
-      [join(ROOT, 'node_modules', '@11ty', 'eleventy', 'cmd.cjs'), '--quiet'],
-      { cwd: buildDir, stdio: 'pipe' },
-    );
-
-    const { document } = parseHTML(
-      readFileSync(join(buildDir, '_site', 'index.html'), 'utf8'),
-    );
-    const text = normalize(document.body.textContent);
-
-    assert.ok(text.includes('Sentinella (ZZ)'), 'il nuovo luogo non appare');
-    assert.ok(text.includes('13:30'), 'il nuovo orario non appare');
-    assert.ok(text.includes('GENNAIO 2027'), 'la nuova data non appare');
-    assert.ok(
-      !text.includes('Turania (RI)') && !text.includes('DICEMBRE 2026'),
-      'un vecchio valore di front matter è rimasto nella pagina',
-    );
-    assert.ok(
-      text.includes('Sezione futura') && text.includes('Testo aggiunto in seguito.'),
-      'una nuova sezione dello stesso entry non finisce nella stessa pagina',
-    );
-
-    const photo = document.querySelector('picture img');
-    assert.equal(
-      photo?.getAttribute('alt'),
-      'Descrizione modificata per il test',
-      'la descrizione della fotografia non viene dal front matter',
-    );
-
-    const routes = readdirSync(join(buildDir, '_site'), { recursive: true })
-      .map(String)
-      .filter((file) => file.endsWith('.html'));
-    assert.deepEqual(routes, ['index.html'], 'la nuova sezione ha creato una rotta');
-  } finally {
-    rmSync(buildDir, { recursive: true, force: true });
   }
 });
 
@@ -398,7 +607,7 @@ test('la pagina fornisce anteprime Open Graph e Twitter con l’immagine quadrat
   const imageFile = join(SITE, decodeURIComponent(imageUrl.pathname));
   assert.ok(
     existsSync(imageFile),
-    `l’immagine di anteprima non esiste in _site: ${imageUrl.pathname}`,
+    `l’immagine di anteprima non esiste nel sito: ${imageUrl.pathname}`,
   );
   assert.deepEqual(
     jpegSize(imageFile),
@@ -423,6 +632,133 @@ test('la pagina fornisce anteprime Open Graph e Twitter con l’immagine quadrat
     description,
   );
   assert.equal(metaContent(document, 'name', 'twitter:image'), image);
+});
+
+test('la pagina dichiara un’icona, un’icona touch e il colore del tema della palette', () => {
+  const document = loadSite();
+
+  const icon = document.querySelector('link[rel="icon"]');
+  assert.ok(icon, 'manca il link rel="icon"');
+  assert.equal(
+    icon.getAttribute('type'),
+    'image/svg+xml',
+    'l’icona dichiarata non è un SVG',
+  );
+  const iconUrl = sameOriginUrl(icon.getAttribute('href'));
+  assert.match(iconUrl.pathname, /\.svg$/i, 'l’icona non è un file SVG');
+
+  const touch = document.querySelector('link[rel="apple-touch-icon"]');
+  assert.ok(touch, 'manca il link rel="apple-touch-icon"');
+  const touchUrl = sameOriginUrl(touch.getAttribute('href'));
+  assert.match(touchUrl.pathname, /\.png$/i, 'l’icona touch non è un PNG');
+
+  const theme = document.querySelector('meta[name="theme-color"]');
+  assert.ok(theme, 'manca il meta theme-color');
+  assert.equal(
+    normalize(theme.getAttribute('content') ?? '').toLowerCase(),
+    paletteToken('bordeaux'),
+    'il colore del tema non è il bordeaux della palette',
+  );
+});
+
+test('le due icone esistono nel sito e sono l’unico patrimonio iconografico', () => {
+  const document = loadSite();
+
+  for (const rel of ['icon', 'apple-touch-icon']) {
+    const link = document.querySelector(`link[rel="${rel}"]`);
+    assert.ok(link, `manca il link rel="${rel}"`);
+    siteFileFor(link.getAttribute('href'));
+  }
+
+  const icons = shippedFiles()
+    .filter((file) => file.startsWith('assets/icons/'))
+    .sort();
+  assert.deepEqual(
+    icons,
+    ['assets/icons/apple-touch-icon.png', 'assets/icons/favicon.svg'],
+    `il sito distribuisce altri file di identità: ${icons.join(', ')}`,
+  );
+});
+
+test('l’icona vettoriale è il tracciato della firma su fondo bordeaux', () => {
+  const document = loadSite();
+  const href = document.querySelector('link[rel="icon"]').getAttribute('href');
+  const { file } = siteFileFor(href);
+  const svg = readFileSync(file, 'utf8');
+
+  assert.match(svg, /<svg\b[^>]*\bviewBox="[^"]+"/, 'l’icona SVG non ha un viewBox');
+  const signaturePath = document.querySelector('h1 svg[role="img"] path[d]');
+  assert.ok(
+    signaturePath,
+    'la firma inline non contiene il tracciato vettoriale',
+  );
+  const outline = svg.match(/<path\b[^>]*\bd="([^"]+)"/);
+  assert.ok(outline, 'l’icona SVG non contiene il tracciato della firma');
+  // The icon crops the inline path but must not redraw or reflow it: the
+  // two path data strings stay identical, so they cannot drift silently.
+  assert.equal(
+    normalize(outline[1]),
+    normalize(signaturePath.getAttribute('d')),
+    'il tracciato dell’icona non è esattamente quello della firma inline',
+  );
+  assert.doesNotMatch(
+    svg,
+    /<text\b/i,
+    'l’icona contiene il lockup testuale invece del solo marchio',
+  );
+
+  const ground = paletteToken('bordeaux');
+  const mark = paletteToken('cream-light');
+  assert.match(
+    svg,
+    new RegExp(`fill="${ground}"`, 'i'),
+    'l’icona non ha il fondo bordeaux della palette',
+  );
+  assert.match(
+    svg,
+    new RegExp(`fill="${mark}"`, 'i'),
+    'il marchio dell’icona non è in crema chiaro',
+  );
+});
+
+test('l’icona touch è un PNG 180×180 sul fondo bordeaux', () => {
+  const document = loadSite();
+  const href = document
+    .querySelector('link[rel="apple-touch-icon"]')
+    .getAttribute('href');
+  const { file } = siteFileFor(href);
+  const bytes = readFileSync(file);
+
+  const frame = pngFrame(bytes);
+  assert.equal(frame.width, 180, 'l’icona touch non è larga 180 px');
+  assert.equal(frame.height, 180, 'l’icona touch non è alta 180 px');
+  assert.equal(frame.bitDepth, 8, 'l’icona touch non è un PNG a 8 bit');
+  assert.deepEqual(
+    pngTopLeftPixel(bytes),
+    rgb(paletteToken('bordeaux')),
+    'l’angolo dell’icona touch non è sul fondo bordeaux',
+  );
+});
+
+test('le icone restano nella testata e non diventano immagini del corpo', () => {
+  const document = loadSite();
+  const sources = [
+    ...document.querySelectorAll(
+      'body img[src], body source[srcset], body object[data], body embed[src]',
+    ),
+  ].map(
+    (element) =>
+      element.getAttribute('src') ??
+      element.getAttribute('srcset') ??
+      element.getAttribute('data') ??
+      '',
+  );
+
+  assert.deepEqual(
+    sources.filter((source) => /assets\/icons\//.test(source)),
+    [],
+    'un’icona è usata come immagine nel corpo della pagina',
+  );
 });
 
 test('la pagina è indicizzabile e dichiarata in italiano', () => {
@@ -451,16 +787,20 @@ test('la pagina è indicizzabile e dichiarata in italiano', () => {
 test('le sezioni compaiono nell’ordine della Locandina', () => {
   const document = loadSite();
   const text = normalize(document.body.textContent);
+  // The strip's time precedes the prose; the facts follow it; the map link and
+  // the colophon close the page. "sVino — II EDIZIONE" names the colophon
+  // without matching the signature's lockup earlier in the page.
   const order = [
     'sVino',
     'Per le cantine di Turania',
     'DICEMBRE 2026',
-    'Per la seconda edizione',
     'DALLE ORE',
+    'Per la seconda edizione',
     'DOVE',
     'A CURA DI',
-    'nella mappa',
     'Scarica la Locandina',
+    'mappa',
+    'sVino — II EDIZIONE',
   ];
 
   let previous = -1;
@@ -513,11 +853,11 @@ test('la pagina non carica JavaScript né risorse di terze parti', () => {
     );
   }
 
-  const files = readdirSync(SITE, { recursive: true }).map(String);
+  const files = shippedFiles();
   assert.deepEqual(
     files.filter((file) => file.endsWith('.js')),
     [],
-    'la build contiene file JavaScript',
+    'il sito contiene file JavaScript',
   );
 
   for (const file of files.filter((name) => name.endsWith('.css'))) {
@@ -618,8 +958,69 @@ test('la fotografia del Borgo è a tutta larghezza tra la testata e la data', ()
   assert.ok(webpBytes.length > 0, 'il WebP della fotografia è vuoto');
 });
 
-test('la build non spedisce alcuna immagine di strappo', () => {
-  const files = readdirSync(SITE, { recursive: true }).map(String);
+test('la fotografia offre una sorgente di almeno 2048 px per gli schermi larghi', () => {
+  const document = loadSite();
+  const picture = document.querySelector('picture');
+  const photo = picture?.querySelector('img');
+  assert.ok(picture, 'la fotografia non è servita dentro un elemento picture');
+  assert.ok(photo, 'manca la fotografia');
+
+  const jpegCandidates = parseSrcset(photo.getAttribute('srcset') ?? '');
+  const largeJpeg = wideCandidates(photo.getAttribute('srcset') ?? '');
+  assert.ok(
+    largeJpeg.length > 0,
+    'la fotografia non offre un JPEG di almeno 2048 px',
+  );
+
+  for (const candidate of largeJpeg) {
+    const { file, url } = siteFileFor(candidate.url);
+    assert.match(url.pathname, /\.jpe?g$/i, 'la sorgente grande non è un JPEG');
+    const frame = jpegFrame(readFileSync(file));
+    assert.ok(
+      frame.width >= 2048,
+      `il JPEG grande dichiara ${candidate.width}w ma misura ${frame.width} px`,
+    );
+    assert.equal(
+      frame.components,
+      3,
+      'il JPEG grande non è RGB: la fotografia è un’immagine CMYK',
+    );
+    assert.ok(
+      Math.abs(frame.width / frame.height - 1200 / 756) < 0.002,
+      'il JPEG grande non mantiene l’inquadratura approvata',
+    );
+  }
+
+  const webp = picture.querySelector('source[type="image/webp"][srcset]');
+  assert.ok(webp, 'manca la sorgente WebP della fotografia');
+  const largeWebp = wideCandidates(webp.getAttribute('srcset'));
+  assert.ok(
+    largeWebp.length > 0,
+    'la sorgente WebP non offre un candidato di almeno 2048 px',
+  );
+  for (const candidate of largeWebp) {
+    const bytes = readFileSync(siteFileFor(candidate.url).file);
+    assert.equal(bytes.subarray(0, 4).toString('ascii'), 'RIFF');
+    assert.equal(bytes.subarray(8, 12).toString('ascii'), 'WEBP');
+    assert.ok(bytes.length > 0, 'il WebP grande della fotografia è vuoto');
+  }
+
+  assert.equal(webp.getAttribute('sizes'), '100vw', 'manca sizes sulla sorgente');
+  assert.equal(photo.getAttribute('sizes'), '100vw', 'manca sizes sul ripiego');
+
+  assert.deepEqual(
+    jpegSize(siteFileFor(photo.getAttribute('src')).file),
+    { width: 1200, height: 756 },
+    'il ripiego stretto non è più la copia 1200×756',
+  );
+  assert.ok(
+    jpegCandidates.some((candidate) => candidate.width === 1200),
+    'la copia 1200 non è più offerta come candidato stretto',
+  );
+});
+
+test('il sito non spedisce alcuna immagine di strappo', () => {
+  const files = shippedFiles();
   const tearImages = files.filter(
     (file) =>
       /\.(?:png|jpe?g|webp|gif|avif|svg)$/i.test(file) &&
@@ -629,7 +1030,7 @@ test('la build non spedisce alcuna immagine di strappo', () => {
   assert.deepEqual(
     tearImages,
     [],
-    `la build contiene un'immagine di strappo: ${tearImages.join(', ')}`,
+    `il sito contiene un'immagine di strappo: ${tearImages.join(', ')}`,
   );
 });
 
@@ -674,14 +1075,14 @@ test('la testata riporta la firma come tracciato inline con nome accessibile e i
   }
 });
 
-test('la build non distribuisce il font Breathing e non richiede font esterni', () => {
-  const files = readdirSync(SITE, { recursive: true }).map(String);
+test('il sito non distribuisce il font Breathing e non richiede font esterni', () => {
+  const files = shippedFiles();
 
   for (const file of files) {
     assert.doesNotMatch(
       file,
       /breathing/i,
-      `la build contiene il font Breathing: ${file}`,
+      `il sito contiene il font Breathing: ${file}`,
     );
   }
   assert.deepEqual(
@@ -695,7 +1096,7 @@ test('la build non distribuisce il font Breathing e non richiede font esterni', 
     assert.match(
       file,
       /(?:^|\/)assets\/fonts\/(?:SVSerif|SVSans)-(?:Regular|Bold)\.woff2$/,
-      `la build contiene un font non ammesso: ${file}`,
+      `il sito contiene un font non ammesso: ${file}`,
     );
   }
 
@@ -714,7 +1115,7 @@ test('la build non distribuisce il font Breathing e non richiede font esterni', 
 
 test('i font auto-ospitati sono WOFF2 dello stesso sito', () => {
   const cssPath = join(SITE, 'assets', 'css', 'style.css');
-  const css = builtStylesheet();
+  const css = servedStylesheet();
   const faces = [...css.matchAll(/@font-face\s*\{([^}]*)\}/gi)].map(
     (match) => match[1],
   );
@@ -753,7 +1154,7 @@ test('i font auto-ospitati sono WOFF2 dello stesso sito', () => {
   ]) {
     assert.ok(
       existsSync(join(SITE, 'assets', 'fonts', `${name}.woff2`)),
-      `manca il font ${name}.woff2 nella build`,
+      `manca il font ${name}.woff2 nel sito`,
     );
   }
 
@@ -871,7 +1272,7 @@ test('ogni link ha un nome discernibile e resta raggiungibile da tastiera', () =
 });
 
 test('il foglio di stile espone un indicatore di focus visibile sui link', () => {
-  const css = builtStylesheet();
+  const css = servedStylesheet();
   const rules = [...css.matchAll(/([^{}]+:focus-visible[^{}]*)\{([^}]*)\}/g)];
   const linkRule = rules.find((rule) =>
     /(?:^|,)\s*a\s*:focus-visible/i.test(rule[1]),

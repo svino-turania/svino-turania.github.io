@@ -1,0 +1,585 @@
+/*
+ * Identity type, self-hosted. SV Serif and SV Sans are the OFL subsets of
+ * Lora and Lato renamed for the Reserved Font Name condition; the licence
+ * ships beside them as OFL-1.1.txt. No request leaves the origin.
+ */
+@font-face {
+  font-family: "SV Serif";
+  src: url("../fonts/SVSerif-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SV Serif";
+  src: url("../fonts/SVSerif-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SV Sans";
+  src: url("../fonts/SVSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SV Sans";
+  src: url("../fonts/SVSans-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
+ * Palette from the print system. Roles and documented WCAG 2.x contrast
+ * ratios, measured at these rendered colours:
+ *
+ *   --bordeaux     #5C1A24  bands and headings; on cream 9.94:1
+ *   --cream        #EDE1C6  page ground; with bordeaux 9.94:1
+ *   --cream-light  #F2E8D5  text on bordeaux; 10.61:1
+ *   --gold-light   #C9A96A  small text on bordeaux; 5.75:1
+ *   --gold         #A9854F  rules and large text only; 3.78:1 on bordeaux
+ *   --bronze       #7A5C2E  small text on cream; 4.76:1
+ *
+ * Gold is never used for small text on bordeaux; gold-light carries that role.
+ */
+:root {
+  --bordeaux: #5c1a24;
+  --cream: #ede1c6;
+  --cream-light: #f2e8d5;
+  --gold-light: #c9a96a;
+  --gold: #a9854f;
+  --bronze: #7a5c2e;
+
+  --serif: "SV Serif", Georgia, "Times New Roman", serif;
+  --sans: "SV Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --measure: 64rem;
+  --gutter: clamp(1.25rem, 5vw, 3rem);
+  /* Reading measure of the prose and of the facts block on phone and tablet. */
+  --prose-measure: calc(42rem + 2 * var(--gutter));
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--bordeaux);
+  font-family: var(--sans);
+  font-synthesis: none;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.band {
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------- testata */
+
+.band--header {
+  background: var(--bordeaux);
+  color: var(--cream-light);
+}
+
+.header-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  padding-block: clamp(1.5rem, 5vw, 3.5rem);
+}
+
+.lockup {
+  flex: 1 1 18rem;
+  max-width: 34rem;
+  min-width: 0;
+  margin: 0;
+  font-weight: 400;
+}
+
+/*
+ * The signature is an inline SVG: the outline path plus the “II EDIZIONE”
+ * lockup as real <text>, both in the same composition. The viewBox carries
+ * extra room below the tight signature box for the lockup, so nothing clips.
+ * Colour comes from currentColor; the lockup keeps the print's gold.
+ */
+.signature {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--cream-light);
+}
+
+/* The lockup uses the site's sans stack, declared once in --sans. */
+.signature text {
+  font-family: var(--sans);
+}
+
+.subtitle {
+  flex: 0 1 auto;
+  max-width: 20rem;
+  margin: 0;
+  color: var(--gold-light);
+  font-family: var(--sans);
+  font-size: clamp(1.15rem, 3vw, 1.6rem);
+  line-height: 1.35;
+  text-align: right;
+}
+
+/* ------------------------------------------------------- fotografia e tagli */
+
+/*
+ * Collage of three layers in the print's paint order: the bordeaux sheet
+ * (this wrapper), the cream strip (the date band, painted behind) and the
+ * photograph (painted above). The photograph's lower edge is torn back to
+ * reveal cream; the cream strip's lower edge is torn down to reveal bordeaux.
+ * The polygons are the A3 tear profile (seams 300 mm and 348 mm, amplitude
+ * 4.0 mm and 2.48 mm; see the print master). Their vertical coordinates are
+ * lengths against the band's width, never percentages of its height: a point
+ * p% down the box is calc(100% - (100 - p) * U), where U is 1% of the box in
+ * viewport units. For the 303/191 photograph U is 0.63036vw; for the date's
+ * 72/303 tear box it is 0.23761vw (72/303 = 0.23762, rounded to the value
+ * that reproduces the uncapped render exactly). Capping the photograph's
+ * height therefore cannot compress the teeth. X stays a percentage of width.
+ * No raster tear is shipped.
+ */
+.collage {
+  position: relative;
+  isolation: isolate;
+  background: var(--bordeaux);
+}
+
+.photo-band {
+  position: relative;
+  z-index: 2;
+  display: block;
+  margin: 0;
+  aspect-ratio: 303 / 191;
+}
+
+.photo-band picture,
+.photo-band img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.photo-band img {
+  object-fit: cover;
+}
+
+/* ------------------------------------------------------------ striscia data */
+
+/*
+ * The strip underlaps the photograph by the print's 14 mm (14/303 of the
+ * width), so the photograph's deepest 6.98 mm notch still shows cream.
+ * Without clip-path the strip is straight at 349.5 mm (303/63.5); with it,
+ * the print's 72 mm box and torn lower edge (seam 348 mm + 1.5 mm).
+ * The tear is a fixed box at the bottom whose height always comes from the
+ * width (303/72, or 303/63.5 straight), so its amplitude scales with width,
+ * never with the text. The strip above it grows when enlarged text needs the
+ * room; 18 % of the tear box is kept empty below the text so the deepest
+ * tooth (88.54 % from the top of the box) never reaches it.
+ */
+.band--date {
+  --tear-height: calc(100vw * 63.5 / 303); /* straight: 286..349.5 mm */
+  position: relative;
+  z-index: 1;
+  margin-top: -4.62046%; /* 14 mm of 303 mm, the print overlap */
+  min-height: var(--tear-height);
+}
+
+.band--date::before,
+.band--date::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  background: var(--cream);
+}
+
+/* Cream above the tear box; the date text is normal-flow content above it. */
+.band--date::before {
+  top: 0;
+  bottom: var(--tear-height);
+}
+
+/* The cream that is torn at the bottom; the bordeaux shows through its notches. */
+.band--date::after {
+  bottom: 0;
+  height: var(--tear-height);
+}
+
+.band--date .wrap {
+  position: relative;
+  z-index: 1;
+  /* 24 mm from the strip top puts the date clear of the photograph's tear. */
+  padding-block-start: calc(100% * 24 / 303);
+  /* Keep the bottom of the tear box empty below the date block. */
+  padding-block-end: calc(var(--tear-height) * 0.18);
+}
+
+@supports (clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%)) {
+  .photo-band {
+    clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 0.91843452vw), 99.34% calc(100% - 0.85350744vw), 98.35% calc(100% - 0.28555308vw), 97.69% calc(100% - 0.5893866vw), 96.7% calc(100% - 0.32400504vw), 96.04% calc(100% - 0.614601vw), 95.05% calc(100% - 0.83018412vw), 94.389% calc(100% - 0.58119192vw), 93.399% calc(100% - 0.99092592vw), 91.749% calc(100% - 0.89006832vw), 91.089% calc(100% - 0.46268424vw), 90.429% calc(100% - 0.64233684vw), 89.439% calc(100% - 0.73815156vw), 88.779% calc(100% - 0.62027424vw), 88.449% calc(100% - 0.68772276vw), 87.789% calc(100% - 1.24874316vw), 86.799% calc(100% - 1.19957508vw), 85.479% calc(100% - 1.4372208vw), 85.149% calc(100% - 1.38490092vw), 83.828% calc(100% - 0.66755124vw), 83.498% calc(100% - 0.64233684vw), 82.838% calc(100% - 0.94175784vw), 82.178% calc(100% - 0.94175784vw), 81.188% calc(100% - 0.56165076vw), 80.198% calc(100% - 0.535806vw), 79.538% calc(100% - 0.66376908vw), 77.888% calc(100% - 0.44566452vw), 76.238% calc(100% - 0.4696182vw), 75.578% calc(100% - 0.21495276vw), 75.248% calc(100% - 0.30509424vw), 73.927% calc(100% - 1.09493532vw), 72.937% calc(100% - 1.39435632vw), 71.287% calc(100% - 2.285055vw), 70.957% calc(100% - 2.3039658vw), 70.297% calc(100% - 2.26866564vw), 69.637% calc(100% - 2.04677892vw), 68.977% calc(100% - 2.03480208vw), 66.337% calc(100% - 1.01677068vw), 65.017% calc(100% - 1.05081012vw), 62.376% calc(100% - 0.85918068vw), 61.716% calc(100% - 0.51941664vw), 61.386% calc(100% - 0.50996124vw), 60.726% calc(100% - 0.71167644vw), 60.066% calc(100% - 0.44566452vw), 59.736% calc(100% - 0.49042008vw), 59.076% calc(100% - 0.84279132vw), 58.416% calc(100% - 0.67700664vw), 58.086% calc(100% - 0.71608896vw), 57.426% calc(100% - 1.01424924vw), 56.766% calc(100% - 1.11132468vw), 55.776% calc(100% - 0.83711808vw), 54.125% calc(100% - 0.85350744vw), 53.465% calc(100% - 1.34140608vw), 51.815% calc(100% - 0.7627356vw), 50.825% calc(100% - 0.85350744vw), 49.175% calc(100% - 0.78227676vw), 48.515% calc(100% - 1.04198508vw), 47.525% calc(100% - 0.90708804vw), 45.215% calc(100% - 1.04702796vw), 44.554% calc(100% - 0.64233684vw), 44.224% calc(100% - 0.59001696vw), 43.564% calc(100% - 0.83018412vw), 42.904% calc(100% - 0.42990552vw), 42.574% calc(100% - 0.37569456vw), 41.254% calc(100% - 0.7123068vw), 40.924% calc(100% - 0.67070304vw), 40.264% calc(100% - 0.2868138vw), 39.604% calc(100% - 0.61838316vw), 39.274% calc(100% - 0.66629052vw), 38.614% calc(100% - 0.50617908vw), 37.624% calc(100% - 0.85918068vw), 36.964% calc(100% - 1.24937352vw), 36.304% calc(100% - 0.98777412vw), 35.314% calc(100% - 1.27900044vw), 34.653% calc(100% - 0.86296284vw), 33.003% calc(100% - 1.1283444vw), 32.673% calc(100% - 1.02307428vw), 32.013% calc(100% - 0.57804012vw), 30.363% calc(100% - 0.7753428vw), 29.703% calc(100% - 0.69276564vw), 29.043% calc(100% - 0.33346044vw), 28.713% calc(100% - 0.29879064vw), 25.743% calc(100% - 1.25819856vw), 25.413% calc(100% - 1.24622172vw), 24.752% calc(100% - 0.92221668vw), 24.092% calc(100% - 1.1472552vw), 23.762% calc(100% - 1.13023548vw), 23.102% calc(100% - 0.91843452vw), 22.442% calc(100% - 0.47403072vw), 22.112% calc(100% - 0.45133776vw), 21.452% calc(100% - 0.71356752vw), 19.802% calc(100% - 0.93230244vw), 19.142% calc(100% - 0.54463104vw), 18.812% calc(100% - 0.56795436vw), 18.152% calc(100% - 0.94427928vw), 17.492% calc(100% - 0.78921072vw), 16.502% calc(100% - 0.78290712vw), 15.842% calc(100% - 0.62216532vw), 14.851% calc(100% - 0.64674936vw), 14.191% calc(100% - 0.49420224vw), 13.201% calc(100% - 0.70222104vw), 12.541% calc(100% - 1.07665488vw), 11.551% calc(100% - 0.84216096vw), 10.891% calc(100% - 1.06593876vw), 10.231% calc(100% - 1.08926208vw), 9.241% calc(100% - 0.79551432vw), 8.251% calc(100% - 0.83963952vw), 7.591% calc(100% - 0.32526576vw), 7.261% calc(100% - 0.43620912vw), 6.931% calc(100% - 0.7028514vw), 6.601% calc(100% - 0.74193372vw), 5.941% calc(100% - 0.43368768vw), 4.29% calc(100% - 0.6555744vw), 3.63% calc(100% - 0.57804012vw), 2.64% calc(100% - 0.74508552vw), 1.98% calc(100% - 1.27143612vw), 1.65% calc(100% - 1.3930956vw), 0% calc(100% - 1.4372208vw));
+  }
+
+  .band--date {
+    --tear-height: calc(100vw * 72 / 303); /* 286..358 mm, torn */
+  }
+
+  .band--date::after {
+    clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 2.39297031vw), 99.34% calc(100% - 2.46924312vw), 99.01% calc(100% - 2.26157198vw), 97.69% calc(100% - 2.39297031vw), 97.36% calc(100% - 2.35542793vw), 97.03% calc(100% - 2.11306573vw), 95.71% calc(100% - 2.16842886vw), 93.729% calc(100% - 1.96883646vw), 92.739% calc(100% - 2.21737652vw), 92.409% calc(100% - 2.40675169vw), 91.749% calc(100% - 2.31645989vw), 90.759% calc(100% - 2.64792584vw), 89.769% calc(100% - 2.59161227vw), 88.779% calc(100% - 2.70376419vw), 88.119% calc(100% - 2.51082487vw), 87.789% calc(100% - 2.63176836vw), 84.818% calc(100% - 2.42861181vw), 84.158% calc(100% - 2.53957568vw), 83.498% calc(100% - 2.29483738vw), 80.528% calc(100% - 2.16296383vw), 80.198% calc(100% - 1.96123294vw), 79.208% calc(100% - 2.32691473vw), 78.548% calc(100% - 2.24684016vw), 78.218% calc(100% - 2.45855067vw), 77.228% calc(100% - 2.46425331vw), 76.568% calc(100% - 2.20383275vw), 76.238% calc(100% - 2.31408379vw), 74.587% calc(100% - 1.91204767vw), 73.927% calc(100% - 2.00756689vw), 73.597% calc(100% - 2.20692168vw), 72.937% calc(100% - 2.02396198vw), 72.607% calc(100% - 2.14276698vw), 71.947% calc(100% - 2.05104952vw), 71.617% calc(100% - 2.25301802vw), 70.957% calc(100% - 2.35922969vw), 69.967% calc(100% - 2.72348582vw), 68.647% calc(100% - 2.6636081vw), 67.987% calc(100% - 2.36730843vw), 67.327% calc(100% - 2.30885637vw), 66.337% calc(100% - 2.25325563vw), 65.347% calc(100% - 2.40508842vw), 65.017% calc(100% - 2.17151779vw), 64.356% calc(100% - 2.36944692vw), 64.026% calc(100% - 2.10712548vw), 63.696% calc(100% - 2.08051316vw), 63.036% calc(100% - 2.15464748vw), 61.716% calc(100% - 2.07338486vw), 60.726% calc(100% - 2.31147008vw), 59.406% calc(100% - 2.36754604vw), 58.746% calc(100% - 2.57355391vw), 57.756% calc(100% - 2.23686054vw), 57.426% calc(100% - 2.31051964vw), 56.766% calc(100% - 2.07552335vw), 55.446% calc(100% - 2.0220611vw), 55.116% calc(100% - 2.09714586vw), 54.785% calc(100% - 2.32240014vw), 54.125% calc(100% - 2.13254975vw), 53.135% calc(100% - 2.19385313vw), 52.805% calc(100% - 2.04083229vw), 52.145% calc(100% - 2.22307916vw), 51.155% calc(100% - 2.00162664vw), 50.825% calc(100% - 2.24351362vw), 49.505% calc(100% - 2.23020746vw), 47.195% calc(100% - 1.54945481vw), 46.535% calc(100% - 1.53947519vw), 46.205% calc(100% - 1.36174291vw), 45.545% calc(100% - 1.26432281vw), 45.215% calc(100% - 1.06354236vw), 44.224% calc(100% - 1.54541544vw), 43.234% calc(100% - 1.66921025vw), 42.244% calc(100% - 2.16201339vw), 41.584% calc(100% - 2.11662988vw), 41.254% calc(100% - 2.19385313vw), 40.594% calc(100% - 2.54337744vw), 39.604% calc(100% - 2.26323525vw), 37.624% calc(100% - 2.10118523vw), 35.644% calc(100% - 2.51130009vw), 34.983% calc(100% - 2.34473548vw), 34.653% calc(100% - 2.54266461vw), 34.323% calc(100% - 2.56713844vw), 33.333% calc(100% - 2.23686054vw), 33.003% calc(100% - 2.37800088vw), 32.343% calc(100% - 2.09453215vw), 31.023% calc(100% - 2.21119866vw), 30.363% calc(100% - 2.16819125vw), 30.033% calc(100% - 1.91109723vw), 29.703% calc(100% - 1.87783183vw), 27.723% calc(100% - 2.29127323vw), 26.733% calc(100% - 2.21167388vw), 26.403% calc(100% - 2.05936587vw), 25.413% calc(100% - 2.21167388vw), 24.752% calc(100% - 1.94174892vw), 23.432% calc(100% - 2.44215558vw), 21.782% calc(100% - 2.66455854vw), 21.122% calc(100% - 2.40675169vw), 20.792% calc(100% - 2.4212459vw), 19.802% calc(100% - 2.03679292vw), 19.142% calc(100% - 2.1598749vw), 18.812% calc(100% - 2.05984109vw), 17.822% calc(100% - 2.12993604vw), 17.162% calc(100% - 2.48397494vw), 16.172% calc(100% - 2.42956225vw), 15.182% calc(100% - 2.04772298vw), 14.521% calc(100% - 2.02562525vw), 13.531% calc(100% - 2.16819125vw), 13.201% calc(100% - 2.02372437vw), 12.541% calc(100% - 1.95410464vw), 11.551% calc(100% - 2.13183692vw), 11.221% calc(100% - 1.91181006vw), 10.561% calc(100% - 2.23757337vw), 9.571% calc(100% - 2.31645989vw), 9.241% calc(100% - 2.14181654vw), 8.581% calc(100% - 2.27107638vw), 7.921% calc(100% - 2.17436911vw), 4.95% calc(100% - 2.33641913vw), 2.64% calc(100% - 1.90586981vw), 1.98% calc(100% - 2.24208796vw), 1.65% calc(100% - 2.10688787vw), 0.99% calc(100% - 2.2192774vw), 0.33% calc(100% - 2.10427416vw), 0% calc(100% - 2.23020746vw));
+  }
+}
+
+.date-block {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1.5rem;
+  margin: 0;
+}
+
+.date-block time {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: clamp(0.75rem, 3vw, 2rem);
+  font-family: var(--serif);
+}
+
+.date-day {
+  color: var(--bordeaux);
+  font-family: var(--serif);
+  font-size: clamp(4.5rem, 17vw, 8.5rem);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 700;
+  line-height: 0.78;
+}
+
+.date-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  min-width: 0;
+  padding-block-end: 0.2em;
+}
+
+.date-weekday {
+  color: var(--bronze);
+  font-family: var(--sans);
+  font-size: clamp(0.8rem, 2.2vw, 1rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.date-month {
+  color: var(--bordeaux);
+  font-family: var(--serif);
+  font-size: clamp(1.25rem, 5.5vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+  overflow-wrap: break-word;
+}
+
+/*
+ * The time is the date strip's one home: the printed label DALLE ORE with the
+ * clock value, beside the date. It is not repeated in the facts rail or the
+ * footer.
+ */
+.date-time {
+  margin: 0;
+  margin-inline-start: auto;
+  padding-block-end: 0.2em;
+  font-family: var(--sans);
+}
+
+.date-time dt {
+  color: var(--bronze);
+  font-family: var(--sans);
+  font-size: clamp(0.7rem, 1.4vw, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+}
+
+.date-time dd {
+  margin: 0.25rem 0 0;
+  color: var(--bronze);
+  font-size: clamp(1rem, 2.6vw, 1.25rem);
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1.25;
+}
+
+/* -------------------------------------------------- prosa, fatti e locandina */
+
+/*
+ * Phone and tablet are one column: the prose, then the facts (DOVE and
+ * A CURA DI), then the footer with the map link, the Locandina download and
+ * the colophon. The facts band bleeds to the screen edges, like the footer
+ * beneath it. Desktop is the only composition that changes structure; see the
+ * media query at the end of this file.
+ */
+.cantina {
+  max-width: var(--prose-measure);
+  margin-block: clamp(2rem, 6vw, 4rem);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  font-family: var(--sans);
+  font-size: clamp(1.05rem, 2.4vw, 1.25rem);
+  line-height: 1.65;
+}
+
+.cantina p {
+  margin: 0;
+}
+
+.cantina p + p {
+  margin-top: 1em;
+}
+
+.facts {
+  margin-top: clamp(2.5rem, 7vw, 5rem);
+  background: var(--bordeaux);
+  color: var(--cream-light);
+}
+
+.facts-inner {
+  max-width: var(--prose-measure);
+  margin-inline: auto;
+  padding: clamp(1.75rem, 4.5vw, 3rem) var(--gutter);
+}
+
+/* ---------------------------------------------------------- fascia footer */
+
+.band--footer {
+  margin-top: 0;
+  background: var(--bordeaux);
+  color: var(--cream-light);
+}
+
+.footer-block {
+  padding-block: clamp(1.75rem, 4.5vw, 3rem);
+  border-block: 1px solid var(--gold);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1rem, 4vw, 1.5rem);
+  margin: 0;
+}
+
+.info-item {
+  min-width: 0;
+  margin: 0;
+}
+
+.info-item + .info-item {
+  border-block-start: 1px solid var(--gold);
+  padding-block-start: clamp(1rem, 4vw, 1.5rem);
+}
+
+.info-grid dt {
+  color: var(--gold-light);
+  font-family: var(--sans);
+  font-size: clamp(0.7rem, 1.4vw, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+}
+
+.info-grid dd {
+  margin: 0.4rem 0 0;
+  color: var(--cream-light);
+  font-family: var(--sans);
+  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+  font-weight: 400;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+}
+
+.info-item--organiser dd {
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
+  font-weight: 700;
+}
+
+.map-link {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+}
+
+.map-link a,
+.locandina-download a {
+  color: var(--gold-light);
+  text-underline-offset: 0.2em;
+}
+
+.map-link a {
+  text-decoration-thickness: 1px;
+}
+
+.map-link a:hover,
+.locandina-download a:hover {
+  color: var(--cream-light);
+}
+
+a:focus-visible {
+  border-radius: 1px;
+  outline: 3px solid currentColor;
+  outline-offset: 3px;
+}
+
+.locandina-download {
+  margin: clamp(1.5rem, 3vw, 2rem) 0 0;
+  padding-block-start: clamp(1.5rem, 3vw, 2rem);
+  border-block-start: 1px solid var(--gold);
+  font-size: 1.125rem;
+}
+
+.locandina-download a {
+  font-weight: 700;
+}
+
+/*
+ * The Locandina has one download per composition, never one shared link: the
+ * rail copy is desktop only, the footer copy sits under the map link below
+ * 64rem. display: none keeps the other copy out of the focus order, so a
+ * keyboard visitor reaches exactly one download.
+ */
+.facts .locandina-download {
+  display: none;
+}
+
+.colophon {
+  padding-block: clamp(1rem, 2.5vw, 1.5rem);
+  color: var(--gold-light);
+  font-family: var(--sans);
+  font-size: clamp(0.8rem, 1.6vw, 0.9rem);
+  letter-spacing: 0.04em;
+}
+
+.colophon p {
+  margin: 0;
+}
+
+/* --------------------------------------------------------------- telefono */
+
+@media (max-width: 48rem) {
+  .date-time {
+    margin-inline-start: 0;
+  }
+}
+
+/* ---------------------------------------------------------------- desktop */
+
+/*
+ * From 1024 px the prose and the facts share a grid. The rail on the right
+ * carries DOVE, A CURA DI and the Locandina download; the footer keeps only
+ * the map link and the colophon, its download copy being hidden. The date
+ * strip carries the time. The header shrinks and the photograph is capped so
+ * that on a 1440×900 first screen the signature, the photograph and the date
+ * strip fit without scrolling. The tear's amplitude stays width-relative, so
+ * capping the box does not compress its teeth.
+ */
+@media (min-width: 64rem) {
+  :root {
+    --measure: 88rem;
+  }
+
+  .header-inner {
+    gap: clamp(1.5rem, 3vw, 3rem);
+    padding-block: clamp(1rem, 2.6vw, 1.75rem);
+  }
+
+  .lockup {
+    max-width: clamp(18rem, 26vw, 26rem);
+  }
+
+  .subtitle {
+    font-size: clamp(1.15rem, 1.4vw, 1.5rem);
+  }
+
+  .photo-band {
+    width: 100%;
+    max-height: 42vh;
+  }
+
+  .band--date {
+    --tear-height: min(calc(100vw * 72 / 303), 22vh);
+  }
+
+  .band--date .wrap {
+    /* Clear the photograph's tear, then keep the date above the deepest tooth. */
+    padding-block-start: calc(4.62046% + 0.75rem);
+    padding-block-end: calc(2.7vw + 0.75rem);
+  }
+
+  .composition {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(14rem, 28vw, 24rem);
+    gap: clamp(2rem, 4vw, 4rem);
+    align-items: stretch;
+    max-width: var(--measure);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .cantina {
+    max-width: 48rem;
+    margin-block: clamp(0.75rem, 1.5vh, 1rem) clamp(2.5rem, 6vh, 4rem);
+    padding-inline: 0;
+    font-size: clamp(1.15rem, 1.4vw, 1.35rem);
+  }
+
+  .facts {
+    margin-top: clamp(0.75rem, 1.5vh, 1rem);
+  }
+
+  .facts-inner {
+    max-width: none;
+    margin: 0;
+    padding: clamp(1rem, 1.8vw, 1.5rem) clamp(1.5rem, 2.4vw, 2.5rem)
+      clamp(1.5rem, 2.4vw, 2.5rem);
+  }
+
+  /* The rail owns the download from 64rem; the footer copy leaves the flow. */
+  .facts .locandina-download {
+    display: block;
+  }
+
+  .band--footer .locandina-download {
+    display: none;
+  }
+
+  .band--footer {
+    margin-top: clamp(2.5rem, 6vh, 4rem);
+  }
+}
