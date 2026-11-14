@@ -387,13 +387,18 @@ body {
   font-size: clamp(0.95rem, 2vw, 1.05rem);
 }
 
-.map-link a {
+.map-link a,
+.locandina-download a {
   color: var(--gold-light);
-  text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
 }
 
-.map-link a:hover {
+.map-link a {
+  text-decoration-thickness: 1px;
+}
+
+.map-link a:hover,
+.locandina-download a:hover {
   color: var(--cream-light);
 }
 
@@ -409,13 +414,7 @@ a:focus-visible {
 }
 
 .locandina-download a {
-  color: var(--gold-light);
   font-weight: 700;
-  text-underline-offset: 0.2em;
-}
-
-.locandina-download a:hover {
-  color: var(--cream-light);
 }
 
 .colophon {
