@@ -1,0 +1,115 @@
+{% set pageTitle = site.name + " — " + edition + " · " + (date | dateLongIt) + " — " + place %}
+{% set pageDescription = site.name + ", " + edition + ", " + (date | dateLongIt) + " — " + place + "." %}
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ pageTitle }}</title>
+    <meta name="description" content="{{ pageDescription }}">
+    <link rel="canonical" href="{{ site.origin }}/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ site.name }}">
+    <meta property="og:title" content="{{ pageTitle }}">
+    <meta property="og:description" content="{{ pageDescription }}">
+    <meta property="og:url" content="{{ site.origin }}/">
+    <meta property="og:locale" content="it_IT">
+    <meta property="og:image" content="{{ site.origin }}/assets/img/svino-quadrato-og.jpg">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1080">
+    <meta property="og:image:height" content="1080">
+    <meta property="og:image:alt" content="Locandina di {{ site.name }}, {{ edition }}, {{ date | dateLongIt }} — {{ place }}">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ pageTitle }}">
+    <meta name="twitter:description" content="{{ pageDescription }}">
+    <meta name="twitter:image" content="{{ site.origin }}/assets/img/svino-quadrato-og.jpg">
+    <link rel="stylesheet" href="/assets/css/style.css">
+  </head>
+  <body>
+    <header class="band band--header">
+      <div class="wrap header-inner">
+        <h1 class="lockup">
+          {% include "signature.njk" %}
+        </h1>
+        <p class="subtitle">{{ subtitle }}</p>
+      </div>
+    </header>
+
+    <main>
+      <div class="collage">
+        <figure class="photo-band">
+          <picture>
+            <source srcset="/assets/img/svino-borgo-1200.webp" type="image/webp">
+            <img
+              src="/assets/img/svino-borgo-1200.jpg"
+              width="1200"
+              height="756"
+              alt="{{ photoAlt }}"
+              decoding="async"
+            >
+          </picture>
+        </figure>
+
+        <section class="band band--date" aria-label="Data e ora">
+          <div class="wrap">
+            <p class="date-block">
+              <time datetime="{{ date | isoDate }}">
+                <span class="date-day">{{ date | dayNumber }}</span>
+                <span class="date-labels">
+                  <span class="date-weekday">{{ date | weekdayIt }}</span>
+                  <span class="date-month">{{ date | monthYearIt }}</span>
+                </span>
+              </time>
+              <span class="date-time">dalle ore {{ time }}</span>
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <div class="wrap">
+        <div class="cantina">
+          {{ content | safe }}
+        </div>
+      </div>
+    </main>
+
+    <footer class="band band--footer">
+      <div class="wrap footer-block">
+        <dl class="info-grid">
+          <div class="info-item info-item--time">
+            <dt>DALLE ORE</dt>
+            <dd>{{ time }}</dd>
+          </div>
+          <div class="info-item info-item--place">
+            <dt>DOVE</dt>
+            <dd>{{ place }}</dd>
+          </div>
+          <div class="info-item info-item--organiser">
+            <dt>A CURA DI</dt>
+            <dd>{{ organiser }}</dd>
+          </div>
+        </dl>
+
+        <p class="map-link">
+          <a
+            href="https://www.openstreetmap.org/search?query={{ place | urlencode }}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Apri {{ place }} nella mappa</a>
+        </p>
+
+        <p class="locandina-download">
+          <a
+            href="/assets/download/locandina-svino-ii-edizione.jpg"
+            download
+            type="image/jpeg"
+          >Scarica la Locandina (immagine JPEG)</a>
+        </p>
+      </div>
+
+      <div class="wrap colophon">
+        <p>sVino — {{ edition }} · {{ place }}</p>
+      </div>
+    </footer>
+  </body>
+</html>

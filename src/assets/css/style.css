@@ -1,0 +1,453 @@
+/*
+ * Identity type, self-hosted. SV Serif and SV Sans are the OFL subsets of
+ * Lora and Lato renamed for the Reserved Font Name condition; the licence
+ * ships beside them as OFL-1.1.txt. No request leaves the origin.
+ */
+@font-face {
+  font-family: "SV Serif";
+  src: url("../fonts/SVSerif-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SV Serif";
+  src: url("../fonts/SVSerif-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SV Sans";
+  src: url("../fonts/SVSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SV Sans";
+  src: url("../fonts/SVSans-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
+ * Palette from the print system. Roles and documented WCAG 2.x contrast
+ * ratios, measured at these rendered colours:
+ *
+ *   --bordeaux     #5C1A24  bands and headings; on cream 9.94:1
+ *   --cream        #EDE1C6  page ground; with bordeaux 9.94:1
+ *   --cream-light  #F2E8D5  text on bordeaux; 10.61:1
+ *   --gold-light   #C9A96A  small text on bordeaux; 5.75:1
+ *   --gold         #A9854F  rules and large text only; 3.78:1 on bordeaux
+ *   --bronze       #7A5C2E  small text on cream; 4.76:1
+ *
+ * Gold is never used for small text on bordeaux; gold-light carries that role.
+ */
+:root {
+  --bordeaux: #5c1a24;
+  --cream: #ede1c6;
+  --cream-light: #f2e8d5;
+  --gold-light: #c9a96a;
+  --gold: #a9854f;
+  --bronze: #7a5c2e;
+
+  --serif: "SV Serif", Georgia, "Times New Roman", serif;
+  --sans: "SV Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --measure: 64rem;
+  --gutter: clamp(1.25rem, 5vw, 3rem);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--bordeaux);
+  font-family: var(--sans);
+  font-synthesis: none;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.band {
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------- testata */
+
+.band--header {
+  background: var(--bordeaux);
+  color: var(--cream-light);
+}
+
+.header-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  padding-block: clamp(1.5rem, 5vw, 3.5rem);
+}
+
+.lockup {
+  flex: 1 1 18rem;
+  max-width: 34rem;
+  min-width: 0;
+  margin: 0;
+  font-weight: 400;
+}
+
+/*
+ * The signature is an inline SVG: the outline path plus the “II EDIZIONE”
+ * lockup as real <text>, both in the same composition. The viewBox carries
+ * extra room below the tight signature box for the lockup, so nothing clips.
+ * Colour comes from currentColor; the lockup keeps the print's gold.
+ */
+.signature {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--cream-light);
+}
+
+.subtitle {
+  flex: 0 1 auto;
+  max-width: 20rem;
+  margin: 0;
+  color: var(--gold-light);
+  font-family: var(--sans);
+  font-size: clamp(1.15rem, 3vw, 1.6rem);
+  line-height: 1.35;
+  text-align: right;
+}
+
+/* ------------------------------------------------------- fotografia e tagli */
+
+/*
+ * Collage of three layers in the print's paint order: the bordeaux sheet
+ * (this wrapper), the cream strip (the date band, painted behind) and the
+ * photograph (painted above). The photograph's lower edge is torn back to
+ * reveal cream; the cream strip's lower edge is torn down to reveal bordeaux.
+ * The polygons are the A3 tear profile (seams 300 mm and 348 mm, amplitude
+ * 4.0 mm and 2.48 mm; see the print master). The elements keep the print
+ * aspect ratios so the amplitude scales with width, not height. No raster
+ * tear is shipped.
+ */
+.collage {
+  position: relative;
+  isolation: isolate;
+  background: var(--bordeaux);
+}
+
+.photo-band {
+  position: relative;
+  z-index: 2;
+  display: block;
+  margin: 0;
+  aspect-ratio: 303 / 191;
+}
+
+.photo-band picture,
+.photo-band img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.photo-band img {
+  object-fit: cover;
+}
+
+/* ------------------------------------------------------------ striscia data */
+
+/*
+ * The strip underlaps the photograph by the print's 14 mm (14/303 of the
+ * width), so the photograph's deepest 6.98 mm notch still shows cream.
+ * Without clip-path the strip is straight at 349.5 mm (303/63.5); with it,
+ * the print's 72 mm box and torn lower edge (seam 348 mm + 1.5 mm).
+ * The tear is a fixed box at the bottom whose height always comes from the
+ * width (303/72, or 303/63.5 straight), so its amplitude scales with width,
+ * never with the text. The strip above it grows when enlarged text needs the
+ * room; 18 % of the tear box is kept empty below the text so the deepest
+ * tooth (88.54 % from the top of the box) never reaches it.
+ */
+.band--date {
+  --tear-height: calc(100vw * 63.5 / 303); /* straight: 286..349.5 mm */
+  position: relative;
+  z-index: 1;
+  margin-top: -4.62046%; /* 14 mm of 303 mm, the print overlap */
+  min-height: var(--tear-height);
+}
+
+.band--date::before,
+.band--date::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  background: var(--cream);
+}
+
+/* Cream above the tear box; the date text is normal-flow content above it. */
+.band--date::before {
+  top: 0;
+  bottom: var(--tear-height);
+}
+
+/* The cream that is torn at the bottom; the bordeaux shows through its notches. */
+.band--date::after {
+  bottom: 0;
+  height: var(--tear-height);
+}
+
+.band--date .wrap {
+  position: relative;
+  z-index: 1;
+  /* 24 mm from the strip top puts the date clear of the photograph's tear. */
+  padding-block-start: calc(100% * 24 / 303);
+  /* Keep the bottom of the tear box empty below the date block. */
+  padding-block-end: calc(var(--tear-height) * 0.18);
+}
+
+@supports (clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%)) {
+  .photo-band {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 98.543%, 99.34% 98.646%, 98.35% 99.547%, 97.69% 99.065%, 96.7% 99.486%, 96.04% 99.025%, 95.05% 98.683%, 94.389% 99.078%, 93.399% 98.428%, 91.749% 98.588%, 91.089% 99.266%, 90.429% 98.981%, 89.439% 98.829%, 88.779% 99.016%, 88.449% 98.909%, 87.789% 98.019%, 86.799% 98.097%, 85.479% 97.72%, 85.149% 97.803%, 83.828% 98.941%, 83.498% 98.981%, 82.838% 98.506%, 82.178% 98.506%, 81.188% 99.109%, 80.198% 99.15%, 79.538% 98.947%, 77.888% 99.293%, 76.238% 99.255%, 75.578% 99.659%, 75.248% 99.516%, 73.927% 98.263%, 72.937% 97.788%, 71.287% 96.375%, 70.957% 96.345%, 70.297% 96.401%, 69.637% 96.753%, 68.977% 96.772%, 66.337% 98.387%, 65.017% 98.333%, 62.376% 98.637%, 61.716% 99.176%, 61.386% 99.191%, 60.726% 98.871%, 60.066% 99.293%, 59.736% 99.222%, 59.076% 98.663%, 58.416% 98.926%, 58.086% 98.864%, 57.426% 98.391%, 56.766% 98.237%, 55.776% 98.672%, 54.125% 98.646%, 53.465% 97.872%, 51.815% 98.79%, 50.825% 98.646%, 49.175% 98.759%, 48.515% 98.347%, 47.525% 98.561%, 45.215% 98.339%, 44.554% 98.981%, 44.224% 99.064%, 43.564% 98.683%, 42.904% 99.318%, 42.574% 99.404%, 41.254% 98.87%, 40.924% 98.936%, 40.264% 99.545%, 39.604% 99.019%, 39.274% 98.943%, 38.614% 99.197%, 37.624% 98.637%, 36.964% 98.018%, 36.304% 98.433%, 35.314% 97.971%, 34.653% 98.631%, 33.003% 98.21%, 32.673% 98.377%, 32.013% 99.083%, 30.363% 98.77%, 29.703% 98.901%, 29.043% 99.471%, 28.713% 99.526%, 25.743% 98.004%, 25.413% 98.023%, 24.752% 98.537%, 24.092% 98.18%, 23.762% 98.207%, 23.102% 98.543%, 22.442% 99.248%, 22.112% 99.284%, 21.452% 98.868%, 19.802% 98.521%, 19.142% 99.136%, 18.812% 99.099%, 18.152% 98.502%, 17.492% 98.748%, 16.502% 98.758%, 15.842% 99.013%, 14.851% 98.974%, 14.191% 99.216%, 13.201% 98.886%, 12.541% 98.292%, 11.551% 98.664%, 10.891% 98.309%, 10.231% 98.272%, 9.241% 98.738%, 8.251% 98.668%, 7.591% 99.484%, 7.261% 99.308%, 6.931% 98.885%, 6.601% 98.823%, 5.941% 99.312%, 4.29% 98.96%, 3.63% 99.083%, 2.64% 98.818%, 1.98% 97.983%, 1.65% 97.79%, 0% 97.72%);
+  }
+
+  .band--date {
+    --tear-height: calc(100vw * 72 / 303); /* 286..358 mm, torn */
+  }
+
+  .band--date::after {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 89.929%, 99.34% 89.608%, 99.01% 90.482%, 97.69% 89.929%, 97.36% 90.087%, 97.03% 91.107%, 95.71% 90.874%, 93.729% 91.714%, 92.739% 90.668%, 92.409% 89.871%, 91.749% 90.251%, 90.759% 88.856%, 89.769% 89.093%, 88.779% 88.621%, 88.119% 89.433%, 87.789% 88.924%, 84.818% 89.779%, 84.158% 89.312%, 83.498% 90.342%, 80.528% 90.897%, 80.198% 91.746%, 79.208% 90.207%, 78.548% 90.544%, 78.218% 89.653%, 77.228% 89.629%, 76.568% 90.725%, 76.238% 90.261%, 74.587% 91.953%, 73.927% 91.551%, 73.597% 90.712%, 72.937% 91.482%, 72.607% 90.982%, 71.947% 91.368%, 71.617% 90.518%, 70.957% 90.071%, 69.967% 88.538%, 68.647% 88.79%, 67.987% 90.037%, 67.327% 90.283%, 66.337% 90.517%, 65.347% 89.878%, 65.017% 90.861%, 64.356% 90.028%, 64.026% 91.132%, 63.696% 91.244%, 63.036% 90.932%, 61.716% 91.274%, 60.726% 90.272%, 59.406% 90.036%, 58.746% 89.169%, 57.756% 90.586%, 57.426% 90.276%, 56.766% 91.265%, 55.446% 91.49%, 55.116% 91.174%, 54.785% 90.226%, 54.125% 91.025%, 53.135% 90.767%, 52.805% 91.411%, 52.145% 90.644%, 51.155% 91.576%, 50.825% 90.558%, 49.505% 90.614%, 47.195% 93.479%, 46.535% 93.521%, 46.205% 94.269%, 45.545% 94.679%, 45.215% 95.524%, 44.224% 93.496%, 43.234% 92.975%, 42.244% 90.901%, 41.584% 91.092%, 41.254% 90.767%, 40.594% 89.296%, 39.604% 90.475%, 37.624% 91.157%, 35.644% 89.431%, 34.983% 90.132%, 34.653% 89.299%, 34.323% 89.196%, 33.333% 90.586%, 33.003% 89.992%, 32.343% 91.185%, 31.023% 90.694%, 30.363% 90.875%, 30.033% 91.957%, 29.703% 92.097%, 27.723% 90.357%, 26.733% 90.692%, 26.403% 91.333%, 25.413% 90.692%, 24.752% 91.828%, 23.432% 89.722%, 21.782% 88.786%, 21.122% 89.871%, 20.792% 89.81%, 19.802% 91.428%, 19.142% 90.91%, 18.812% 91.331%, 17.822% 91.036%, 17.162% 89.546%, 16.172% 89.775%, 15.182% 91.382%, 14.521% 91.475%, 13.531% 90.875%, 13.201% 91.483%, 12.541% 91.776%, 11.551% 91.028%, 11.221% 91.954%, 10.561% 90.583%, 9.571% 90.251%, 9.241% 90.986%, 8.581% 90.442%, 7.921% 90.849%, 4.95% 90.167%, 2.64% 91.979%, 1.98% 90.564%, 1.65% 91.133%, 0.99% 90.66%, 0.33% 91.144%, 0% 90.614%);
+  }
+}
+
+.date-block {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1.5rem;
+  margin: 0;
+}
+
+.date-block time {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: clamp(0.75rem, 3vw, 2rem);
+  font-family: var(--serif);
+}
+
+.date-day {
+  color: var(--bordeaux);
+  font-family: var(--serif);
+  font-size: clamp(4.5rem, 17vw, 8.5rem);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 700;
+  line-height: 0.78;
+}
+
+.date-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  min-width: 0;
+  padding-block-end: 0.2em;
+}
+
+.date-weekday {
+  color: var(--bronze);
+  font-family: var(--sans);
+  font-size: clamp(0.8rem, 2.2vw, 1rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.date-month {
+  color: var(--bordeaux);
+  font-family: var(--serif);
+  font-size: clamp(1.25rem, 5.5vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+  overflow-wrap: break-word;
+}
+
+.date-time {
+  margin-inline-start: auto;
+  color: var(--bronze);
+  font-family: var(--sans);
+  font-size: clamp(1rem, 2.6vw, 1.25rem);
+}
+
+/* ------------------------------------------------------------------ cantina */
+
+.cantina {
+  max-width: 42rem;
+  margin-block: clamp(2rem, 6vw, 4rem);
+  font-family: var(--sans);
+  font-size: clamp(1.05rem, 2.4vw, 1.25rem);
+  line-height: 1.65;
+}
+
+.cantina p {
+  margin: 0;
+}
+
+.cantina p + p {
+  margin-top: 1em;
+}
+
+/* ---------------------------------------------------------- fascia footer */
+
+.band--footer {
+  margin-top: clamp(2.5rem, 7vw, 5rem);
+  background: var(--bordeaux);
+  color: var(--cream-light);
+}
+
+.footer-block {
+  padding-block: clamp(1.75rem, 4.5vw, 3rem);
+  border-block: 1px solid var(--gold);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.32fr 1fr;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  margin: 0;
+}
+
+.info-item {
+  min-width: 0;
+  margin: 0;
+}
+
+.info-item--place {
+  border-inline-start: 1px solid var(--gold);
+  padding-inline-start: clamp(1rem, 3vw, 2.5rem);
+}
+
+.info-grid dt {
+  color: var(--gold-light);
+  font-family: var(--sans);
+  font-size: clamp(0.7rem, 1.4vw, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+}
+
+.info-grid dd {
+  margin: 0.4rem 0 0;
+  color: var(--cream-light);
+  font-family: var(--sans);
+  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+  font-weight: 400;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+}
+
+.info-item--time dd {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 700;
+}
+
+.info-item--organiser dd {
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
+  font-weight: 700;
+}
+
+.map-link {
+  margin: clamp(1.5rem, 4vw, 2.25rem) 0 0;
+  font-family: var(--sans);
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+}
+
+.map-link a,
+.locandina-download a {
+  color: var(--gold-light);
+  text-underline-offset: 0.2em;
+}
+
+.map-link a {
+  text-decoration-thickness: 1px;
+}
+
+.map-link a:hover,
+.locandina-download a:hover {
+  color: var(--cream-light);
+}
+
+a:focus-visible {
+  border-radius: 1px;
+  outline: 3px solid currentColor;
+  outline-offset: 3px;
+}
+
+.locandina-download {
+  margin: 2rem 0;
+  font-size: 1.125rem;
+}
+
+.locandina-download a {
+  font-weight: 700;
+}
+
+.colophon {
+  padding-block: clamp(1rem, 2.5vw, 1.5rem);
+  color: var(--gold-light);
+  font-family: var(--sans);
+  font-size: clamp(0.8rem, 1.6vw, 0.9rem);
+  letter-spacing: 0.04em;
+}
+
+.colophon p {
+  margin: 0;
+}
+
+/* --------------------------------------------------------------- telefono */
+
+@media (max-width: 48rem) {
+  .info-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1rem, 4vw, 1.5rem);
+  }
+
+  .info-item--place {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+  }
+
+  .info-item + .info-item {
+    border-block-start: 1px solid var(--gold);
+    padding-block-start: clamp(1rem, 4vw, 1.5rem);
+  }
+
+  .date-time {
+    margin-inline-start: 0;
+  }
+}
