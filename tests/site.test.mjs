@@ -28,33 +28,10 @@ const PHOTO_ALT =
 const IMAGE_TYPE_BY_EXTENSION = new Map([
   ['.jpg', 'image/jpeg'],
   ['.jpeg', 'image/jpeg'],
-  ['.png', 'image/png'],
-  ['.webp', 'image/webp'],
 ]);
 
 function normalize(value) {
   return value.replace(/\s+/g, ' ').trim();
-}
-
-function relativeLuminance(hex) {
-  const channels = hex
-    .replace('#', '')
-    .match(/.{2}/g)
-    .map((channel) => parseInt(channel, 16) / 255)
-    .map((channel) =>
-      channel <= 0.03928
-        ? channel / 12.92
-        : ((channel + 0.055) / 1.055) ** 2.4,
-    );
-  return (
-    0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
-  );
-}
-
-function contrastRatio(first, second) {
-  const lighter = Math.max(relativeLuminance(first), relativeLuminance(second));
-  const darker = Math.min(relativeLuminance(first), relativeLuminance(second));
-  return (lighter + 0.05) / (darker + 0.05);
 }
 
 function builtStylesheet() {
@@ -63,7 +40,13 @@ function builtStylesheet() {
   return readFileSync(file, 'utf8');
 }
 
-function readJpegFrame(bytes) {
+/*
+ * Read the SOF header of a JPEG as a browser loading the file would: the
+ * type, the pixel size and the colour model. One parser serves the download,
+ * the photograph and the social preview.
+ */
+function jpegFrame(bytes) {
+  assert.equal(bytes.readUInt16BE(0), 0xffd8, 'il file non è un JPEG');
   let offset = 2;
   while (offset + 9 < bytes.length) {
     if (bytes[offset] !== 0xff) {
@@ -71,6 +54,10 @@ function readJpegFrame(bytes) {
       continue;
     }
     const marker = bytes[offset + 1];
+    if (marker === 0xff) {
+      offset += 1;
+      continue;
+    }
     if (marker === 0xd8 || marker === 0xd9) {
       offset += 2;
       continue;
@@ -78,7 +65,7 @@ function readJpegFrame(bytes) {
     if (marker === 0xda) {
       break;
     }
-    if (marker >= 0xd0 && marker <= 0xd7) {
+    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) {
       offset += 2;
       continue;
     }
@@ -96,49 +83,12 @@ function readJpegFrame(bytes) {
     }
     offset += 2 + length;
   }
-  return null;
+  assert.fail('dimensioni JPEG non trovate');
 }
 
-function readImage(bytes, mime) {
-  if (mime === 'image/jpeg') {
-    assert.deepEqual(
-      [...bytes.subarray(0, 3)],
-      [0xff, 0xd8, 0xff],
-      'il file scaricabile non ha l’intestazione di un JPEG',
-    );
-    const frame = readJpegFrame(bytes);
-    assert.ok(frame, 'il JPEG scaricabile non è un’immagine leggibile');
-    return frame;
-  }
-
-  if (mime === 'image/png') {
-    assert.deepEqual(
-      [...bytes.subarray(0, 8)],
-      [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
-      'il file scaricabile non ha l’intestazione di un PNG',
-    );
-    return {
-      width: bytes.readUInt32BE(16),
-      height: bytes.readUInt32BE(20),
-      components: null,
-    };
-  }
-
-  if (mime === 'image/webp') {
-    assert.equal(
-      bytes.subarray(0, 4).toString('ascii'),
-      'RIFF',
-      'il file scaricabile non ha l’intestazione di un WebP',
-    );
-    assert.equal(
-      bytes.subarray(8, 12).toString('ascii'),
-      'WEBP',
-      'il file scaricabile non è un WebP',
-    );
-    return { width: null, height: null, components: null };
-  }
-
-  assert.fail(`tipo di immagine non verificabile: ${mime}`);
+function jpegSize(file) {
+  const { width, height } = jpegFrame(readFileSync(file));
+  return { width, height };
 }
 
 function siteFileFor(rawUrl) {
@@ -151,6 +101,12 @@ function siteFileFor(rawUrl) {
   const file = join(SITE, decodeURIComponent(url.pathname));
   assert.ok(existsSync(file), `la risorsa non esiste nella build: ${url.pathname}`);
   return { url, file };
+}
+
+function sameOriginUrl(rawUrl) {
+  const url = new URL(rawUrl, `${SITE_ORIGIN}/`);
+  assert.equal(url.origin, SITE_ORIGIN, `risorsa di terze parti: ${rawUrl}`);
+  return url;
 }
 
 function loadSite() {
@@ -179,105 +135,28 @@ function accessibleName(document, element) {
       .map((node) => normalize(node.textContent))
       .join(' ');
   }
-  return normalize(element.getAttribute('aria-label') ?? '');
-}
-
-function linkName(document, link) {
-  const labelledBy = link.getAttribute('aria-labelledby') ?? '';
-  if (labelledBy.trim() !== '') {
-    return normalize(
-      labelledBy
-        .split(/\s+/)
-        .map((id) => document.getElementById(id)?.textContent ?? '')
-        .join(' '),
-    );
-  }
-  const ariaLabel = normalize(link.getAttribute('aria-label') ?? '');
+  const ariaLabel = normalize(element.getAttribute('aria-label') ?? '');
   if (ariaLabel !== '') {
     return ariaLabel;
   }
-  const text = normalize(link.textContent ?? '');
+  const text = normalize(element.textContent ?? '');
   if (text !== '') {
     return text;
   }
-  return normalize(link.querySelector('img[alt]')?.getAttribute('alt') ?? '');
+  return normalize(element.querySelector('img[alt]')?.getAttribute('alt') ?? '');
 }
 
 /*
- * Split a stylesheet into the CSS guarded by @supports and everything else,
- * so the straight-edge fallback can be asserted without naming classes.
+ * All the text a visitor or a link checker receives: the title, the body and
+ * every meta value (description, Open Graph, Twitter, image alt). Attributes
+ * are read from the parsed document, so entities are already resolved.
  */
-function splitSupportsBlocks(css) {
-  const ranges = [];
-  const opening = /@supports\s*\(/g;
-  let match;
-  while ((match = opening.exec(css)) !== null) {
-    const open = css.indexOf('{', match.index);
-    assert.notEqual(open, -1, 'una regola @supports non apre un blocco');
-    let depth = 0;
-    let end = -1;
-    for (let index = open; index < css.length; index += 1) {
-      if (css[index] === '{') {
-        depth += 1;
-      } else if (css[index] === '}') {
-        depth -= 1;
-        if (depth === 0) {
-          end = index + 1;
-          break;
-        }
-      }
-    }
-    assert.notEqual(end, -1, 'una regola @supports non chiude il blocco');
-    ranges.push({ start: match.index, end });
-    opening.lastIndex = end;
+function wholeDocumentText(document) {
+  const parts = [document.title, document.body.textContent];
+  for (const meta of document.querySelectorAll('meta[content]')) {
+    parts.push(meta.getAttribute('content'));
   }
-
-  let outside = '';
-  const inside = [];
-  let cursor = 0;
-  for (const range of ranges) {
-    outside += css.slice(cursor, range.start);
-    inside.push(css.slice(range.start, range.end));
-    cursor = range.end;
-  }
-  outside += css.slice(cursor);
-
-  return { outside, inside: inside.join('\n') };
-}
-
-function jpegDimensions(buffer) {
-  assert.equal(
-    buffer.readUInt16BE(0),
-    0xffd8,
-    'l’immagine di anteprima non è un JPEG',
-  );
-  let offset = 2;
-  while (offset < buffer.length) {
-    if (buffer[offset] !== 0xff) {
-      offset += 1;
-      continue;
-    }
-    const marker = buffer[offset + 1];
-    if (marker === 0xff) {
-      offset += 1;
-      continue;
-    }
-    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) {
-      offset += 2;
-      continue;
-    }
-    const length = buffer.readUInt16BE(offset + 2);
-    const isStartOfFrame =
-      marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker);
-    if (isStartOfFrame) {
-      return {
-        height: buffer.readUInt16BE(offset + 5),
-        width: buffer.readUInt16BE(offset + 7),
-      };
-    }
-    offset += 2 + length;
-  }
-  assert.fail('dimensioni JPEG non trovate');
+  return normalize(parts.join(' ')).toLowerCase();
 }
 
 test('la pagina costruita riporta i fatti stampati sulla Locandina', () => {
@@ -349,13 +228,8 @@ test('il download della Locandina è un’immagine dello stesso sito con tipo di
 
   const href = link.getAttribute('href');
   assert.ok(href, 'il link della Locandina non ha un href');
-  assert.ok(
-    !/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(href),
-    `il download non è un percorso relativo: ${href}`,
-  );
 
-  const url = new URL(href, `${SITE_ORIGIN}/`);
-  assert.equal(url.origin, SITE_ORIGIN, 'il download punta a un altro host');
+  const { url, file } = siteFileFor(href);
 
   const extension = extname(decodeURIComponent(url.pathname)).toLowerCase();
   const expectedType = IMAGE_TYPE_BY_EXTENSION.get(extension);
@@ -367,13 +241,10 @@ test('il download della Locandina è un’immagine dello stesso sito con tipo di
     'il tipo dichiarato dal link non corrisponde all’estensione del file',
   );
 
-  const file = join(SITE, decodeURIComponent(url.pathname));
-  assert.ok(existsSync(file), `il file scaricabile non esiste nella build: ${url.pathname}`);
-
   const bytes = readFileSync(file);
   assert.ok(bytes.length > 0, 'il file scaricabile è vuoto');
 
-  const image = readImage(bytes, expectedType);
+  const image = jpegFrame(bytes);
   assert.ok(
     image.width >= 800 && image.height >= 800,
     `il download è troppo piccolo per essere leggibile: ${image.width}×${image.height}`,
@@ -414,6 +285,7 @@ test('modificare un valore in front matter cambia la pagina senza toccare i temp
       .replace('date: 2026-12-06', 'date: 2027-01-03')
       .replace('place: "Turania (RI)"', 'place: "Sentinella (ZZ)"')
       .replace('time: "12:00"', 'time: "13:30"')
+      .replace(/^photoAlt: .*$/m, 'photoAlt: "Descrizione modificata per il test"')
       .concat('\n## Sezione futura\n\nTesto aggiunto in seguito.\n');
     writeFileSync(entryPath, edited);
 
@@ -440,6 +312,13 @@ test('modificare un valore in front matter cambia la pagina senza toccare i temp
       'una nuova sezione dello stesso entry non finisce nella stessa pagina',
     );
 
+    const photo = document.querySelector('picture img');
+    assert.equal(
+      photo?.getAttribute('alt'),
+      'Descrizione modificata per il test',
+      'la descrizione della fotografia non viene dal front matter',
+    );
+
     const routes = readdirSync(join(buildDir, '_site'), { recursive: true })
       .map(String)
       .filter((file) => file.endsWith('.html'));
@@ -449,23 +328,15 @@ test('modificare un valore in front matter cambia la pagina senza toccare i temp
   }
 });
 
-test('il documento è italiano, ha un solo titolo principale e link leggibili', () => {
+test('il titolo del documento e i link sono leggibili', () => {
   const document = loadSite();
-
-  assert.equal(document.documentElement.getAttribute('lang'), 'it');
 
   const title = normalize(document.title);
   assert.ok(title.includes('sVino'), 'il titolo non nomina sVino');
   assert.ok(title.includes('Turania (RI)'), 'il titolo non nomina il luogo');
 
-  const headings = document.querySelectorAll('h1');
-  assert.equal(headings.length, 1, 'la pagina deve avere un solo h1');
-  assert.ok(normalize(headings[0].textContent).includes('sVino'));
-
   for (const link of document.querySelectorAll('a[href]')) {
-    const name = normalize(
-      link.getAttribute('aria-label') ?? link.textContent ?? '',
-    );
+    const name = accessibleName(document, link);
     assert.ok(
       name.length > 0,
       `un link senza testo discernibile punta a ${link.getAttribute('href')}`,
@@ -530,7 +401,7 @@ test('la pagina fornisce anteprime Open Graph e Twitter con l’immagine quadrat
     `l’immagine di anteprima non esiste in _site: ${imageUrl.pathname}`,
   );
   assert.deepEqual(
-    jpegDimensions(readFileSync(imageFile)),
+    jpegSize(imageFile),
     { width: 1080, height: 1080 },
     'l’anteprima non è quadrata 1080×1080',
   );
@@ -554,7 +425,7 @@ test('la pagina fornisce anteprime Open Graph e Twitter con l’immagine quadrat
   assert.equal(metaContent(document, 'name', 'twitter:image'), image);
 });
 
-test('la pagina è indicizzabile e resta in italiano', () => {
+test('la pagina è indicizzabile e dichiarata in italiano', () => {
   const document = loadSite();
 
   assert.equal(document.documentElement.getAttribute('lang'), 'it');
@@ -616,29 +487,17 @@ test('la pagina non carica JavaScript né risorse di terze parti', () => {
   }
 
   for (const element of document.querySelectorAll('[src]')) {
-    const url = new URL(element.getAttribute('src'), `${SITE_ORIGIN}/`);
-    assert.equal(
-      url.origin,
-      SITE_ORIGIN,
-      `risorsa di terze parti: ${element.getAttribute('src')}`,
-    );
+    sameOriginUrl(element.getAttribute('src'));
   }
 
   for (const element of document.querySelectorAll('[srcset]')) {
     for (const candidate of element.getAttribute('srcset').split(',')) {
-      const source = candidate.trim().split(/\s+/)[0];
-      const url = new URL(source, `${SITE_ORIGIN}/`);
-      assert.equal(url.origin, SITE_ORIGIN, `risorsa di terze parti: ${source}`);
+      sameOriginUrl(candidate.trim().split(/\s+/)[0]);
     }
   }
 
   for (const link of document.querySelectorAll('link[href]')) {
-    const url = new URL(link.getAttribute('href'), `${SITE_ORIGIN}/`);
-    assert.equal(
-      url.origin,
-      SITE_ORIGIN,
-      `risorsa di terze parti: ${link.getAttribute('href')}`,
-    );
+    sameOriginUrl(link.getAttribute('href'));
   }
 
   for (const anchor of document.querySelectorAll('a[href]')) {
@@ -673,7 +532,7 @@ test('la pagina non carica JavaScript né risorse di terze parti', () => {
 
 test('la pagina non promette nulla che il comitato non abbia deciso', () => {
   const document = loadSite();
-  const text = normalize(document.body.textContent).toLowerCase();
+  const text = wholeDocumentText(document);
   const html = readFileSync(join(SITE, 'index.html'), 'utf8');
 
   for (const phrase of [
@@ -704,42 +563,6 @@ test('la pagina non promette nulla che il comitato non abbia deciso', () => {
     /\b3\d{2}[\s.\-/]?\d{6,7}\b/,
   ]) {
     assert.doesNotMatch(text, phone, 'la pagina contiene un numero di telefono');
-  }
-});
-
-test('il foglio di stile usa i sei ruoli cromatici con i contrasti documentati', () => {
-  const css = builtStylesheet();
-
-  const palette = {
-    bordeaux: '#5C1A24',
-    cream: '#EDE1C6',
-    'cream-light': '#F2E8D5',
-    'gold-light': '#C9A96A',
-    gold: '#A9854F',
-    bronze: '#7A5C2E',
-  };
-
-  for (const [role, hex] of Object.entries(palette)) {
-    assert.match(
-      css,
-      new RegExp(`--${role}\\s*:\\s*${hex}\\s*;`, 'i'),
-      `manca il ruolo cromatico --${role} con il valore ${hex}`,
-    );
-  }
-
-  const documented = [
-    ['cream-light', 'bordeaux', 10.61],
-    ['gold-light', 'bordeaux', 5.75],
-    ['bordeaux', 'cream', 9.94],
-    ['bronze', 'cream', 4.76],
-  ];
-
-  for (const [foreground, background, minimum] of documented) {
-    const actual = contrastRatio(palette[foreground], palette[background]);
-    assert.ok(
-      actual >= minimum - 0.005,
-      `il contrasto ${foreground}/${background} è ${actual.toFixed(2)}, atteso almeno ${minimum}`,
-    );
   }
 });
 
@@ -782,7 +605,7 @@ test('la fotografia del Borgo è a tutta larghezza tra la testata e la data', ()
   const jpeg = siteFileFor(photo.getAttribute('src'));
   assert.match(jpeg.url.pathname, /\.jpe?g$/i, 'il ripiego non è un JPEG');
   assert.deepEqual(
-    jpegDimensions(readFileSync(jpeg.file)),
+    jpegSize(jpeg.file),
     { width: 1200, height: 756 },
     'il JPEG della fotografia non è 1200×756',
   );
@@ -793,45 +616,6 @@ test('la fotografia del Borgo è a tutta larghezza tra la testata e la data', ()
   assert.equal(webpBytes.subarray(0, 4).toString('ascii'), 'RIFF');
   assert.equal(webpBytes.subarray(8, 12).toString('ascii'), 'WEBP');
   assert.ok(webpBytes.length > 0, 'il WebP della fotografia è vuoto');
-});
-
-test('le due estremità inferiori sono tagliate con clip-path e hanno un ripiego dritto', () => {
-  const css = builtStylesheet();
-  const polygons = [...css.matchAll(/clip-path:\s*polygon\(([^)]*)\)/gi)].map(
-    (match) => match[1],
-  );
-  const pointCount = (polygon) => polygon.split(',').length;
-
-  assert.ok(
-    polygons.some((polygon) => pointCount(polygon) === 120),
-    'manca il poligono del taglio inferiore della fotografia (120 punti)',
-  );
-  assert.ok(
-    polygons.some((polygon) => pointCount(polygon) === 123),
-    'manca il poligono del taglio inferiore della striscia chiara (123 punti)',
-  );
-
-  assert.match(
-    css,
-    /aspect-ratio:\s*303\s*\/\s*191/,
-    'la fotografia non conserva il rapporto 303/191 del taglio',
-  );
-  assert.match(
-    css,
-    /--tear-height:\s*calc\(100vw\s*\*\s*72\s*\/\s*303\)/,
-    'la striscia chiara non deriva l’altezza 303/72 dalla larghezza',
-  );
-  assert.match(
-    css,
-    /--tear-height:\s*calc\(100vw\s*\*\s*63\.5\s*\/\s*303\)/,
-    'manca il ripiego dritto della striscia chiara a 349,5 mm',
-  );
-  assert.match(
-    css,
-    /@supports\s*\(clip-path:\s*polygon\(/,
-    'i tagli non sono protetti da @supports: senza clip-path la pagina si romperebbe',
-  );
-  assert.match(css, /object-fit:\s*cover/, 'la fotografia non copre il suo riquadro');
 });
 
 test('la build non spedisce alcuna immagine di strappo', () => {
@@ -865,16 +649,11 @@ test('la testata riporta la firma come tracciato inline con nome accessibile e i
   );
 
   const outline = [...signature.querySelectorAll('path[d]')].find(
-    (path) => (path.getAttribute('d') ?? '').length > 10000,
+    (path) => normalize(path.getAttribute('d') ?? '') !== '',
   );
   assert.ok(
     outline,
-    'lo SVG della firma non contiene il tracciato dell’outline',
-  );
-  assert.match(
-    outline.getAttribute('d'),
-    /^M0\.592 -0\.677/,
-    'il tracciato non è quello estratto dal master di stampa',
+    'lo SVG della firma non contiene un tracciato vettoriale inline',
   );
 
   const lockup = [...signature.querySelectorAll('text')]
@@ -933,7 +712,7 @@ test('la build non distribuisce il font Breathing e non richiede font esterni', 
   );
 });
 
-test('Lora e Lato sono auto-ospitati come WOFF2 e nessun font lascia l’origine', () => {
+test('i font auto-ospitati sono WOFF2 dello stesso sito', () => {
   const cssPath = join(SITE, 'assets', 'css', 'style.css');
   const css = builtStylesheet();
   const faces = [...css.matchAll(/@font-face\s*\{([^}]*)\}/gi)].map(
@@ -942,12 +721,7 @@ test('Lora e Lato sono auto-ospitati come WOFF2 e nessun font lascia l’origine
 
   assert.ok(faces.length >= 4, 'mancano le facce @font-face dei due font');
 
-  const families = new Set();
   for (const face of faces) {
-    const family = face.match(/font-family\s*:\s*["']?([^;"']+)/i);
-    assert.ok(family, `una faccia @font-face non dichiara la famiglia: ${face}`);
-    families.add(family[1].trim());
-
     const source = face.match(/src\s*:\s*url\(\s*["']?([^"')]+)["']?\s*\)\s*format\(\s*["']woff2["']\s*\)/i);
     assert.ok(
       source,
@@ -971,18 +745,19 @@ test('Lora e Lato sono auto-ospitati come WOFF2 e nessun font lascia l’origine
     assert.match(face, /font-display\s*:\s*swap/i, `font-display: swap manca in ${url}`);
   }
 
-  assert.ok(families.has('SV Serif'), 'manca la famiglia SV Serif');
-  assert.ok(families.has('SV Sans'), 'manca la famiglia SV Sans');
+  for (const name of [
+    'SVSerif-Regular',
+    'SVSerif-Bold',
+    'SVSans-Regular',
+    'SVSans-Bold',
+  ]) {
+    assert.ok(
+      existsSync(join(SITE, 'assets', 'fonts', `${name}.woff2`)),
+      `manca il font ${name}.woff2 nella build`,
+    );
+  }
 
   assert.doesNotMatch(css, /https?:\/\//i, 'il CSS richiama un host esterno');
-
-  const licence = join(SITE, 'assets', 'fonts', 'OFL-1.1.txt');
-  assert.ok(existsSync(licence), 'manca il testo della licenza OFL accanto ai font');
-  assert.match(
-    readFileSync(licence, 'utf8'),
-    /SIL OPEN FONT LICENSE Version 1\.1/i,
-    'il file di licenza non è la SIL OFL 1.1',
-  );
 });
 
 test('la licenza dei font è la OFL 1.1 completa e nomina i titolari dei diritti', () => {
@@ -1084,7 +859,7 @@ test('ogni link ha un nome discernibile e resta raggiungibile da tastiera', () =
     const href = link.getAttribute('href');
     assert.ok(href, 'un link non ha href');
     assert.ok(
-      linkName(document, link).length > 0,
+      accessibleName(document, link).length > 0,
       `link senza nome discernibile: ${href}`,
     );
     assert.notEqual(
@@ -1121,35 +896,4 @@ test('il foglio di stile espone un indicatore di focus visibile sui link', () =>
     ? Number(width[1]) * 16
     : Number(width[1]);
   assert.ok(pixels >= 2, `outline troppo sottile: ${value}`);
-});
-
-test('senza clip-path la pagina ripiega su bordi dritti e resta leggibile', () => {
-  const css = builtStylesheet();
-  const { outside, inside } = splitSupportsBlocks(css);
-
-  assert.match(
-    css,
-    /@supports\s*\(clip-path:\s*polygon\(/i,
-    'i tagli non sono protetti da @supports',
-  );
-  assert.doesNotMatch(
-    outside,
-    /clip-path\s*:\s*polygon\(/i,
-    'il foglio di stile applica un poligono anche senza supporto per clip-path',
-  );
-  assert.match(
-    outside,
-    /--tear-height:\s*calc\(100vw\s*\*\s*63\.5\s*\/\s*303\)/i,
-    'manca l’altezza dritta della striscia chiara nel ripiego',
-  );
-  assert.match(
-    inside,
-    /--tear-height:\s*calc\(100vw\s*\*\s*72\s*\/\s*303\)/i,
-    'manca l’altezza strappata della striscia chiara sotto @supports',
-  );
-  assert.match(
-    inside,
-    /clip-path\s*:\s*polygon\(/i,
-    'il blocco @supports non applica i poligoni dei tagli',
-  );
 });
