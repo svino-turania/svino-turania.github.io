@@ -2,8 +2,8 @@
  * Eleventy configuration.
  *
  * Templates hold structure and derived formatting only. All content lives in
- * src/index.md: the date and the five editable values in front matter, the
- * Cantina prose in the Markdown body.
+ * src/index.md: the date, the editable values (including the photograph
+ * description) in front matter, the Cantina prose in the Markdown body.
  */
 
 function asUtcDate(value) {
@@ -22,6 +22,11 @@ const monthIt = new Intl.DateTimeFormat('it-IT', {
   timeZone: 'UTC',
 });
 
+function formatMonthYear(value) {
+  const date = asUtcDate(value);
+  return `${monthIt.format(date)} ${date.getUTCFullYear()}`;
+}
+
 module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ 'src/assets': 'assets' });
 
@@ -36,14 +41,13 @@ module.exports = function (eleventyConfig) {
     weekdayIt.format(asUtcDate(value)).toUpperCase(),
   );
 
-  eleventyConfig.addFilter('monthYearIt', (value) => {
-    const date = asUtcDate(value);
-    return `${monthIt.format(date).toUpperCase()} ${date.getUTCFullYear()}`;
-  });
+  eleventyConfig.addFilter('monthYearIt', (value) =>
+    formatMonthYear(value).toUpperCase(),
+  );
 
   eleventyConfig.addFilter('dateLongIt', (value) => {
     const date = asUtcDate(value);
-    return `${date.getUTCDate()} ${monthIt.format(date)} ${date.getUTCFullYear()}`;
+    return `${date.getUTCDate()} ${formatMonthYear(value)}`;
   });
 
   eleventyConfig.addFilter('isoDate', (value) =>
