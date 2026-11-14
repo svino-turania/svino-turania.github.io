@@ -4,10 +4,12 @@ The one-page Italian site for sVino, II Edizione — 6 dicembre 2026, Turania
 (RI) — published at <https://svino-turania.github.io> from the public
 repository `svino-turania/svino-turania.github.io`.
 
-Status: the page currently carries the Locandina's facts and the map link.
-The signature outlines, photograph, social preview, Locandina download and
-accessibility work are tracked in issues #3–#8. The rules below describe the
-system those tickets must preserve.
+Status: the page carries the Locandina's facts, the Cantina paragraph and
+the map link. The identity (palette and type), the outlined signature with
+the `II EDIZIONE` lockup, the Borgo photograph with its torn edges, the Open
+Graph and Twitter metadata, the square social preview, the Locandina
+download and the accessibility work are all in place. The rules below
+describe the system that work preserves.
 
 ## Local build and preview
 
@@ -47,6 +49,10 @@ The front matter between the two `---` lines holds five short values:
 
 The event date is a separate front-matter value (`date: 2026-12-06`). It is not
 one of the five: change it only if the Comitato moves the event.
+
+The description of the Borgo photograph is also in the front matter
+(`photoAlt`). It is the approved Italian text, editable in the same GitHub web
+editor; change it only when the approved description changes.
 
 Below the second `---` is the Markdown body, currently the approved Cantina
 paragraph. Write plain Markdown — no HTML, no styling. A change cannot break
@@ -95,8 +101,9 @@ master. Do not add Breathing to the repository, and do not re-typeset the
 signature on the site.
 
 The identity type is Lora for dates and numbers and Lato for information, both
-SIL Open Font License. When the identity tickets introduce them, they are
-self-hosted as subsets, never requested from a third-party host. The signature
+SIL Open Font License. They are self-hosted as subsets, renamed SV Serif and
+SV Sans under the OFL Reserved Font Name condition and accompanied by the full
+licence text; they are never requested from a third-party host. The signature
 is the one exception delivered as a path.
 
 ## Derived assets and the print master
@@ -107,7 +114,7 @@ social files define the palette, type, signature, photograph, tear profile and
 wording. The site derives from them, never the reverse.
 
 Site assets are derivatives, regenerated from the master rather than edited
-independently. When each asset lands, it is generated this way:
+independently. Each asset is generated this way:
 
 - the signature outline;
 - the photograph derivative;
