@@ -14,8 +14,10 @@ Spelling and capitalisation fixed by the project:
 
 ## sVino
 
-The event: the tasting of Turania's wine held in the Cantine of the Borgo, on
-6 December 2026, a cura del Comitato Feste Turania. Always written `sVino`.
+The event: a wine tasting held in the Cantine of the Borgo, on 6 December
+2026, a cura del Comitato Feste Turania. Always written `sVino`. The wine is
+not from Turania: do not write "il vino di Turania", nor "vino locale" or
+"del territorio".
 The capital V is deliberate and highlights "Vino"; the signature lettering
 keeps it as a separate gesture, with no ligature and no tracking.
 
@@ -24,22 +26,21 @@ keeps it as a separate gesture, with no ligature and no tracking.
 One edition of sVino. This project covers the second one. In running prose
 write `II Edizione`; on the Locandina and in the `edition` value the lockup is
 set in capitals as `II EDIZIONE`. The Roman numeral is part of the name. The
-approved Cantina paragraph refers to it in words as *la seconda edizione*;
-that is prose, not the lockup.
+Cantina paragraph refers to it in words as *la seconda edizione*; that is
+prose, not the lockup.
 
 ## Cantina
 
 A wine cellar of the Borgo. The event happens inside the Cantine: visitors
-taste the wine of Turania and move from one Cantina to the next. Capitalise
-when naming the event's venues as a set (`le Cantine del Borgo`); the approved
-page prose uses the lower-case form (`nelle cantine del borgo`). Do not infer a
-number of Cantine, food, duration or price from the term; none of those is
-decided.
+taste wine and move from one Cantina to the next. Capitalise when naming the
+event's venues as a set (`le Cantine del Borgo`); the page prose uses the
+lower-case form (`nelle cantine del borgo`). Do not infer a number of Cantine,
+food, duration or price from the term; none of those is decided.
 
 ## Borgo
 
 The village of Turania whose Cantine host the event. It is the Borgo of
-Turania (RI), not a separate place. Lower-case in the approved prose
+Turania (RI), not a separate place. Lower-case in the page prose
 (`il borgo`), capitalised when used as the name of the venue area.
 
 ## Comitato Feste Turania
@@ -52,9 +53,10 @@ details; until it does, none of those appears on the page.
 ## Locandina
 
 The sVino poster. One master produces the A3 print format and the square and
-story social formats. It is the reference for the page's facts, wording and
-identity. The downloadable copy is a web-optimised RGB derivative of the
-Locandina, not the print PDF; the two must never disagree.
+story social formats. It is the reference for the page's facts and identity;
+the Cantina prose is the page's own and is not printed on the Locandina. The
+downloadable copy is a web-optimised RGB derivative of the Locandina, not the
+print PDF; the two must never disagree.
 
 ## Turania (RI)
 

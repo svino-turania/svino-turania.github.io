@@ -4,7 +4,7 @@ The one-page Italian site for sVino, II Edizione — 6 dicembre 2026, Turania
 (RI) — published at <https://svino-turania.github.io> from the public
 repository `svino-turania/svino-turania.github.io`.
 
-Status: the page carries the Locandina's facts, the Cantina paragraph and
+Status: the page carries the Locandina's facts, the Cantina prose and
 the map link. The identity (palette and type), the label composition, the
 outlined signature with the `II EDIZIONE` lockup, the Borgo photograph with its
 torn lower edge, the Open
@@ -19,18 +19,26 @@ beside it. A static server delivers exactly those files; nothing is generated
 locally or in CI. There is one page at one address, and the address printed on
 the Locandina stays the address of the site.
 
-Node is required only to run the tests (see [Tests](#tests)). Editing the page
+Node is required to run the tests and the local preview server (see
+[Tests](#tests) and [Preview locally](#preview-locally)). Editing the page
 needs a browser and the GitHub web editor, nothing else.
 
 ## Preview locally
 
-Serve the repository root with any static server and open the address it
-prints. The page must be requested over HTTP, not opened as a `file:`, so that
-the stylesheet and fonts under `/assets/` load.
+Serve the site and open the address the server prints. The page must be
+requested over HTTP, not opened as a `file:`, so that the stylesheet and fonts
+under `/assets/` load.
 
 ```sh
-python3 -m http.server 8080    # then open http://localhost:8080/
+npm start                      # http://127.0.0.1:8080/ — Ctrl+C to stop
+PORT=3000 npm start            # another port
 ```
+
+`scripts/serve.mjs` is a dependency-free Node server that serves exactly the
+files the deployment publishes — `index.html` and `assets/` — with the right
+type for the fonts and WebP files and no caching, so a refresh picks up an
+edit. Nothing outside those paths is reachable. `python3 -m http.server 8080`
+also works, but it serves the whole repository root.
 
 Check the three compositions before merging, in the browser's responsive mode:
 
@@ -113,9 +121,13 @@ desktop and in the footer after the map link on phone and tablet. They must
 keep the same `href`, `download`, `type` and link text; the stylesheet hides
 the copy that does not belong to the current composition. Change both together.
 
-The Cantina paragraph sits between the `CANTINA — INIZIO REGIONE MODIFICABILE`
-and `CANTINA — FINE REGIONE MODIFICABILE` comments. Keep the paragraph inside
-those markers.
+The Cantina prose sits between the `CANTINA — INIZIO REGIONE MODIFICABILE`
+and `CANTINA — FINE REGIONE MODIFICABILE` comments. Keep it inside those
+markers. It is the page's own prose, not printed on the Locandina: the
+Comitato approves it, the maintainer edits it, and a test pins it verbatim.
+The second paragraph promises that this page will carry the programme and the
+event's news, so add no categories to that promise — no entry, price or
+duration — until the Comitato decides them.
 
 To propose a change:
 
@@ -134,7 +146,7 @@ maintainer instead of editing it alone.
 When the Comitato supplies the programme, add it as a new section of
 `index.html` — not as a new page or route — so the address printed on the
 Locandina stays the address of the programme. Add the section inside the
-Cantina prose region, after the approved paragraph and before the facts
+Cantina prose region, after the Cantina prose and before the facts
 `aside`; it then inherits the prose measure in all three compositions:
 
 ```html
@@ -167,7 +179,7 @@ requests, so preview a pull request locally before merging.
 The test seam is the repository root, as a static server serves it. `npm test`
 runs `node --test tests/*.test.mjs`; there is no build to run first. The tests
 read `index.html`, its assets and its metadata as a visitor or link checker
-would: the printed facts and the Cantina paragraph verbatim, the date literals
+would: the printed facts and the Cantina prose verbatim, the date literals
 against `datetime`, the map destination, the declared language, headings and
 link names, the absence of JavaScript and third-party hosts, and the content
 policy.
