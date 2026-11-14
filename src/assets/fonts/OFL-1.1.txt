@@ -1,8 +1,29 @@
-Copyright (c) <dates>, <Copyright Holder> (<URL|email>),
-with Reserved Font Name <Reserved Font Name>.
-Copyright (c) <dates>, <additional Copyright Holder> (<URL|email>),
-with Reserved Font Name <additional Reserved Font Name>.
-Copyright (c) <dates>, <additional Copyright Holder> (<URL|email>).
+Lora
+Copyright 2011 The Lora Project Authors
+(https://github.com/cyrealtype/Lora-Cyrillic), with Reserved Font Name "Lora".
+
+Lato
+Copyright (c) 2011-2015 by tyPoland Lukasz Dziedzic
+(http://www.typoland.com/) with Reserved Font Name "Lato".
+Licensed under the SIL Open Font License, Version 1.1
+(http://scripts.sil.org/OFL).
+
+The Lora and Lato subsets shipped in this directory are renamed "SV Serif"
+and "SV Sans" because the OFL reserves the names "Lora" and "Lato" for
+unmodified versions (condition 3). The copyright and licence notices above
+and below apply to both the original fonts and these subsets.
+
+Name-table records of the original fonts:
+
+Lora, name ID 13: This Font Software is licensed under the SIL Open Font
+License, Version 1.1. This license is available with a FAQ at:
+https://scripts.sil.org/OFL
+Lora, name ID 14: https://scripts.sil.org/OFL
+
+Lato, name ID 13: Copyright (c) 2011-2015 by tyPoland Lukasz Dziedzic
+(http://www.typoland.com/) with Reserved Font Name "Lato". Licensed under
+the SIL Open Font License, Version 1.1 (http://scripts.sil.org/OFL).
+Lato, name ID 14: http://scripts.sil.org/OFL
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:

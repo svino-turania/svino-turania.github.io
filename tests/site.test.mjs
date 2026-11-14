@@ -544,7 +544,7 @@ test('la pagina fornisce anteprime Open Graph e Twitter con l’immagine quadrat
 
   assert.equal(
     metaContent(document, 'name', 'twitter:card'),
-    'summary_large_image',
+    'summary',
   );
   assert.equal(metaContent(document, 'name', 'twitter:title'), title);
   assert.equal(
@@ -983,6 +983,48 @@ test('Lora e Lato sono auto-ospitati come WOFF2 e nessun font lascia l’origine
     /SIL OPEN FONT LICENSE Version 1\.1/i,
     'il file di licenza non è la SIL OFL 1.1',
   );
+});
+
+test('la licenza dei font è la OFL 1.1 completa e nomina i titolari dei diritti', () => {
+  const licencePath = join(SITE, 'assets', 'fonts', 'OFL-1.1.txt');
+  assert.ok(
+    existsSync(licencePath),
+    'manca il testo della licenza OFL accanto ai font',
+  );
+
+  const licence = readFileSync(licencePath, 'utf8');
+  assert.match(
+    licence,
+    /SIL OPEN FONT LICENSE Version 1\.1/i,
+    'il file di licenza non è la SIL OFL 1.1',
+  );
+  assert.doesNotMatch(
+    licence,
+    /<[^>\n]+>/,
+    'la licenza contiene ancora segnaposto <...>',
+  );
+  assert.match(
+    licence,
+    /The Lora Project Authors/,
+    'la licenza non nomina il titolare dei diritti di Lora',
+  );
+  assert.match(
+    licence,
+    /tyPoland Lukasz Dziedzic/,
+    'la licenza non nomina il titolare dei diritti di Lato',
+  );
+  assert.match(
+    licence,
+    /Reserved Font Name "Lora"/,
+    'la licenza non riporta il nome riservato Lora',
+  );
+  assert.match(
+    licence,
+    /Reserved Font Name "Lato"/,
+    'la licenza non riporta il nome riservato Lato',
+  );
+  assert.match(licence, /SV Serif/, 'la licenza non spiega il nome SV Serif');
+  assert.match(licence, /SV Sans/, 'la licenza non spiega il nome SV Sans');
 });
 
 test('la gerarchia dei titoli segue l’ordine visivo senza saltare livelli', () => {
