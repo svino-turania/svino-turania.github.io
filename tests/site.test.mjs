@@ -118,6 +118,47 @@ function loadSite() {
   return document;
 }
 
+function metaContent(document, attribute, key) {
+  const meta = document.querySelector(`meta[${attribute}="${key}"]`);
+  assert.ok(meta, `manca il meta ${attribute}="${key}"`);
+  return normalize(meta.getAttribute('content') ?? '');
+}
+
+function jpegDimensions(buffer) {
+  assert.equal(
+    buffer.readUInt16BE(0),
+    0xffd8,
+    'l’immagine di anteprima non è un JPEG',
+  );
+  let offset = 2;
+  while (offset < buffer.length) {
+    if (buffer[offset] !== 0xff) {
+      offset += 1;
+      continue;
+    }
+    const marker = buffer[offset + 1];
+    if (marker === 0xff) {
+      offset += 1;
+      continue;
+    }
+    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) {
+      offset += 2;
+      continue;
+    }
+    const length = buffer.readUInt16BE(offset + 2);
+    const isStartOfFrame =
+      marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker);
+    if (isStartOfFrame) {
+      return {
+        height: buffer.readUInt16BE(offset + 5),
+        width: buffer.readUInt16BE(offset + 7),
+      };
+    }
+    offset += 2 + length;
+  }
+  assert.fail('dimensioni JPEG non trovate');
+}
+
 test('la pagina costruita riporta i fatti stampati sulla Locandina', () => {
   const document = loadSite();
   const text = normalize(document.body.textContent);
@@ -307,6 +348,110 @@ test('il documento è italiano, ha un solo titolo principale e link leggibili', 
     assert.ok(
       name.length > 0,
       `un link senza testo discernibile punta a ${link.getAttribute('href')}`,
+    );
+  }
+});
+
+test('la pagina ha titolo, descrizione e indirizzo canonico in italiano', () => {
+  const document = loadSite();
+  const facts = ['sVino', 'II EDIZIONE', '6 dicembre 2026', 'Turania (RI)'];
+
+  const title = normalize(document.title);
+  for (const fact of facts) {
+    assert.ok(title.includes(fact), `il titolo non nomina "${fact}"`);
+  }
+
+  const description = metaContent(document, 'name', 'description');
+  for (const fact of facts) {
+    assert.ok(
+      description.includes(fact),
+      `la descrizione non nomina "${fact}"`,
+    );
+  }
+
+  const canonical = document.querySelector('link[rel="canonical"]');
+  assert.ok(canonical, 'manca il link canonico');
+  assert.equal(canonical.getAttribute('href'), `${SITE_ORIGIN}/`);
+});
+
+test('la pagina fornisce anteprime Open Graph e Twitter con l’immagine quadrata', () => {
+  const document = loadSite();
+  const title = normalize(document.title);
+  const description = metaContent(document, 'name', 'description');
+  const canonical = document
+    .querySelector('link[rel="canonical"]')
+    .getAttribute('href');
+
+  assert.equal(metaContent(document, 'property', 'og:type'), 'website');
+  assert.equal(metaContent(document, 'property', 'og:site_name'), 'sVino');
+  assert.equal(metaContent(document, 'property', 'og:title'), title);
+  assert.equal(
+    metaContent(document, 'property', 'og:description'),
+    description,
+  );
+  assert.equal(metaContent(document, 'property', 'og:url'), canonical);
+  assert.equal(metaContent(document, 'property', 'og:locale'), 'it_IT');
+
+  const image = metaContent(document, 'property', 'og:image');
+  const imageUrl = new URL(image);
+  assert.equal(
+    imageUrl.origin,
+    SITE_ORIGIN,
+    'l’immagine di anteprima non è servita dallo stesso sito',
+  );
+  assert.equal(imageUrl.protocol, 'https:');
+  assert.equal(imageUrl.search, '');
+  assert.equal(imageUrl.hash, '');
+
+  const imageFile = join(SITE, decodeURIComponent(imageUrl.pathname));
+  assert.ok(
+    existsSync(imageFile),
+    `l’immagine di anteprima non esiste in _site: ${imageUrl.pathname}`,
+  );
+  assert.deepEqual(
+    jpegDimensions(readFileSync(imageFile)),
+    { width: 1080, height: 1080 },
+    'l’anteprima non è quadrata 1080×1080',
+  );
+
+  assert.equal(metaContent(document, 'property', 'og:image:type'), 'image/jpeg');
+  assert.equal(metaContent(document, 'property', 'og:image:width'), '1080');
+  assert.equal(metaContent(document, 'property', 'og:image:height'), '1080');
+  const imageAlt = metaContent(document, 'property', 'og:image:alt');
+  assert.match(imageAlt, /sVino/);
+  assert.match(imageAlt, /Turania \(RI\)/);
+
+  assert.equal(
+    metaContent(document, 'name', 'twitter:card'),
+    'summary_large_image',
+  );
+  assert.equal(metaContent(document, 'name', 'twitter:title'), title);
+  assert.equal(
+    metaContent(document, 'name', 'twitter:description'),
+    description,
+  );
+  assert.equal(metaContent(document, 'name', 'twitter:image'), image);
+});
+
+test('la pagina è indicizzabile e resta in italiano', () => {
+  const document = loadSite();
+
+  assert.equal(document.documentElement.getAttribute('lang'), 'it');
+
+  const html = readFileSync(join(SITE, 'index.html'), 'utf8');
+  assert.doesNotMatch(
+    html,
+    /noindex|nofollow|noarchive/i,
+    'la pagina chiede ai motori di ricerca di non indicizzarla',
+  );
+
+  for (const meta of document.querySelectorAll(
+    'meta[name="robots"], meta[name="googlebot"]',
+  )) {
+    assert.doesNotMatch(
+      meta.getAttribute('content') ?? '',
+      /noindex|none/i,
+      'un meta robots blocca l’indicizzazione',
     );
   }
 });
