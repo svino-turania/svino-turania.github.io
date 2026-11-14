@@ -1,11 +1,66 @@
+/*
+ * Identity type, self-hosted. SV Serif and SV Sans are the OFL subsets of
+ * Lora and Lato renamed for the Reserved Font Name condition; the licence
+ * ships beside them as OFL-1.1.txt. No request leaves the origin.
+ */
+@font-face {
+  font-family: "SV Serif";
+  src: url("../fonts/SVSerif-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SV Serif";
+  src: url("../fonts/SVSerif-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SV Sans";
+  src: url("../fonts/SVSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SV Sans";
+  src: url("../fonts/SVSans-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
+ * Palette from the print system. Roles and documented WCAG 2.x contrast
+ * ratios, measured at these rendered colours:
+ *
+ *   --bordeaux     #5C1A24  bands and headings; on cream 9.94:1
+ *   --cream        #EDE1C6  page ground; with bordeaux 9.94:1
+ *   --cream-light  #F2E8D5  text on bordeaux; 10.61:1
+ *   --gold-light   #C9A96A  small text on bordeaux; 5.75:1
+ *   --gold         #A9854F  rules and large text only; 3.78:1 on bordeaux
+ *   --bronze       #7A5C2E  small text on cream; 4.76:1
+ *
+ * Gold is never used for small text on bordeaux; gold-light carries that role.
+ */
 :root {
   --bordeaux: #5c1a24;
   --cream: #ede1c6;
   --cream-light: #f2e8d5;
   --gold-light: #c9a96a;
+  --gold: #a9854f;
   --bronze: #7a5c2e;
-  --serif: Georgia, "Times New Roman", serif;
-  --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --serif: "SV Serif", Georgia, "Times New Roman", serif;
+  --sans: "SV Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --measure: 64rem;
+  --gutter: clamp(1.25rem, 5vw, 3rem);
 }
 
 *,

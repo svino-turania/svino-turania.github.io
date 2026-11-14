@@ -11,7 +11,7 @@ import {
 } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { parseHTML } from 'linkedom';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -24,6 +24,33 @@ const CANTINA_PARAGRAPH =
 
 function normalize(value) {
   return value.replace(/\s+/g, ' ').trim();
+}
+
+function relativeLuminance(hex) {
+  const channels = hex
+    .replace('#', '')
+    .match(/.{2}/g)
+    .map((channel) => parseInt(channel, 16) / 255)
+    .map((channel) =>
+      channel <= 0.03928
+        ? channel / 12.92
+        : ((channel + 0.055) / 1.055) ** 2.4,
+    );
+  return (
+    0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+  );
+}
+
+function contrastRatio(first, second) {
+  const lighter = Math.max(relativeLuminance(first), relativeLuminance(second));
+  const darker = Math.min(relativeLuminance(first), relativeLuminance(second));
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function builtStylesheet() {
+  const file = join(SITE, 'assets', 'css', 'style.css');
+  assert.ok(existsSync(file), 'la build non ha prodotto il foglio di stile');
+  return readFileSync(file, 'utf8');
 }
 
 function loadSite() {
@@ -284,4 +311,92 @@ test('la pagina non promette nulla che il comitato non abbia deciso', () => {
   ]) {
     assert.doesNotMatch(text, phone, 'la pagina contiene un numero di telefono');
   }
+});
+
+test('il foglio di stile usa i sei ruoli cromatici con i contrasti documentati', () => {
+  const css = builtStylesheet();
+
+  const palette = {
+    bordeaux: '#5C1A24',
+    cream: '#EDE1C6',
+    'cream-light': '#F2E8D5',
+    'gold-light': '#C9A96A',
+    gold: '#A9854F',
+    bronze: '#7A5C2E',
+  };
+
+  for (const [role, hex] of Object.entries(palette)) {
+    assert.match(
+      css,
+      new RegExp(`--${role}\\s*:\\s*${hex}\\s*;`, 'i'),
+      `manca il ruolo cromatico --${role} con il valore ${hex}`,
+    );
+  }
+
+  const documented = [
+    ['cream-light', 'bordeaux', 10.61],
+    ['gold-light', 'bordeaux', 5.75],
+    ['bordeaux', 'cream', 9.94],
+    ['bronze', 'cream', 4.76],
+  ];
+
+  for (const [foreground, background, minimum] of documented) {
+    const actual = contrastRatio(palette[foreground], palette[background]);
+    assert.ok(
+      actual >= minimum - 0.005,
+      `il contrasto ${foreground}/${background} è ${actual.toFixed(2)}, atteso almeno ${minimum}`,
+    );
+  }
+});
+
+test('Lora e Lato sono auto-ospitati come WOFF2 e nessun font lascia l’origine', () => {
+  const cssPath = join(SITE, 'assets', 'css', 'style.css');
+  const css = builtStylesheet();
+  const faces = [...css.matchAll(/@font-face\s*\{([^}]*)\}/gi)].map(
+    (match) => match[1],
+  );
+
+  assert.ok(faces.length >= 4, 'mancano le facce @font-face dei due font');
+
+  const families = new Set();
+  for (const face of faces) {
+    const family = face.match(/font-family\s*:\s*["']?([^;"']+)/i);
+    assert.ok(family, `una faccia @font-face non dichiara la famiglia: ${face}`);
+    families.add(family[1].trim());
+
+    const source = face.match(/src\s*:\s*url\(\s*["']?([^"')]+)["']?\s*\)\s*format\(\s*["']woff2["']\s*\)/i);
+    assert.ok(
+      source,
+      `una faccia @font-face non punta a un WOFF2: ${face}`,
+    );
+
+    const url = source[1].trim();
+    assert.ok(
+      !/^(?:[a-z]+:)?\/\//i.test(url),
+      `il font è richiesto da un host esterno: ${url}`,
+    );
+    assert.ok(
+      !url.startsWith('/'),
+      `il font usa un percorso assoluto invece di uno relativo: ${url}`,
+    );
+
+    const asset = resolve(dirname(cssPath), url);
+    assert.ok(existsSync(asset), `il file WOFF2 dichiarato manca: ${url}`);
+    assert.match(asset, /\.woff2$/i);
+
+    assert.match(face, /font-display\s*:\s*swap/i, `font-display: swap manca in ${url}`);
+  }
+
+  assert.ok(families.has('SV Serif'), 'manca la famiglia SV Serif');
+  assert.ok(families.has('SV Sans'), 'manca la famiglia SV Sans');
+
+  assert.doesNotMatch(css, /https?:\/\//i, 'il CSS richiama un host esterno');
+
+  const licence = join(SITE, 'assets', 'fonts', 'OFL-1.1.txt');
+  assert.ok(existsSync(licence), 'manca il testo della licenza OFL accanto ai font');
+  assert.match(
+    readFileSync(licence, 'utf8'),
+    /SIL OPEN FONT LICENSE Version 1\.1/i,
+    'il file di licenza non è la SIL OFL 1.1',
+  );
 });
