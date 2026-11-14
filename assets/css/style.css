@@ -61,6 +61,8 @@
 
   --measure: 64rem;
   --gutter: clamp(1.25rem, 5vw, 3rem);
+  /* Reading measure of the prose and of the facts block on phone and tablet. */
+  --prose-measure: calc(42rem + 2 * var(--gutter));
 }
 
 *,
@@ -129,6 +131,11 @@ body {
   width: 100%;
   height: auto;
   color: var(--cream-light);
+}
+
+/* The lockup uses the site's sans stack, declared once in --sans. */
+.signature text {
+  font-family: var(--sans);
 }
 
 .subtitle {
@@ -333,13 +340,14 @@ body {
 /* -------------------------------------------------- prosa, fatti e locandina */
 
 /*
- * Phone and tablet are one column: the prose, then the facts and the Locandina
- * in the footer region. The facts band bleeds to the screen edges, like the
- * footer beneath it. Desktop is the only composition that changes structure;
- * see the media query at the end of this file.
+ * Phone and tablet are one column: the prose, then the facts (DOVE and
+ * A CURA DI), then the footer with the map link, the Locandina download and
+ * the colophon. The facts band bleeds to the screen edges, like the footer
+ * beneath it. Desktop is the only composition that changes structure; see the
+ * media query at the end of this file.
  */
 .cantina {
-  max-width: calc(42rem + 2 * var(--gutter));
+  max-width: var(--prose-measure);
   margin-block: clamp(2rem, 6vw, 4rem);
   margin-inline: auto;
   padding-inline: var(--gutter);
@@ -363,7 +371,7 @@ body {
 }
 
 .facts-inner {
-  max-width: calc(42rem + 2 * var(--gutter));
+  max-width: var(--prose-measure);
   margin-inline: auto;
   padding: clamp(1.75rem, 4.5vw, 3rem) var(--gutter);
 }
@@ -460,6 +468,16 @@ a:focus-visible {
   font-weight: 700;
 }
 
+/*
+ * The Locandina has one download per composition, never one shared link: the
+ * rail copy is desktop only, the footer copy sits under the map link below
+ * 64rem. display: none keeps the other copy out of the focus order, so a
+ * keyboard visitor reaches exactly one download.
+ */
+.facts .locandina-download {
+  display: none;
+}
+
 .colophon {
   padding-block: clamp(1rem, 2.5vw, 1.5rem);
   color: var(--gold-light);
@@ -484,8 +502,9 @@ a:focus-visible {
 
 /*
  * From 1024 px the prose and the facts share a grid. The rail on the right
- * carries DOVE, A CURA DI and the one Locandina download; the date strip
- * carries the time. The header shrinks and the photograph is height-capped so
+ * carries DOVE, A CURA DI and the Locandina download; the footer keeps only
+ * the map link and the colophon, its download copy being hidden. The date
+ * strip carries the time. The header shrinks and the photograph is capped so
  * that on a 1440×900 first screen the signature, the photograph and the date
  * strip fit without scrolling. The tear's amplitude stays width-relative, so
  * capping the box does not compress its teeth.
@@ -549,6 +568,15 @@ a:focus-visible {
     margin: 0;
     padding: clamp(1rem, 1.8vw, 1.5rem) clamp(1.5rem, 2.4vw, 2.5rem)
       clamp(1.5rem, 2.4vw, 2.5rem);
+  }
+
+  /* The rail owns the download from 64rem; the footer copy leaves the flow. */
+  .facts .locandina-download {
+    display: block;
+  }
+
+  .band--footer .locandina-download {
+    display: none;
   }
 
   .band--footer {
