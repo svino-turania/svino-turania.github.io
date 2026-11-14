@@ -1,11 +1,66 @@
+/*
+ * Identity type, self-hosted. SV Serif and SV Sans are the OFL subsets of
+ * Lora and Lato renamed for the Reserved Font Name condition; the licence
+ * ships beside them as OFL-1.1.txt. No request leaves the origin.
+ */
+@font-face {
+  font-family: "SV Serif";
+  src: url("../fonts/SVSerif-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SV Serif";
+  src: url("../fonts/SVSerif-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SV Sans";
+  src: url("../fonts/SVSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SV Sans";
+  src: url("../fonts/SVSans-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
+ * Palette from the print system. Roles and documented WCAG 2.x contrast
+ * ratios, measured at these rendered colours:
+ *
+ *   --bordeaux     #5C1A24  bands and headings; on cream 9.94:1
+ *   --cream        #EDE1C6  page ground; with bordeaux 9.94:1
+ *   --cream-light  #F2E8D5  text on bordeaux; 10.61:1
+ *   --gold-light   #C9A96A  small text on bordeaux; 5.75:1
+ *   --gold         #A9854F  rules and large text only; 3.78:1 on bordeaux
+ *   --bronze       #7A5C2E  small text on cream; 4.76:1
+ *
+ * Gold is never used for small text on bordeaux; gold-light carries that role.
+ */
 :root {
   --bordeaux: #5c1a24;
   --cream: #ede1c6;
   --cream-light: #f2e8d5;
   --gold-light: #c9a96a;
+  --gold: #a9854f;
   --bronze: #7a5c2e;
-  --serif: Georgia, "Times New Roman", serif;
-  --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --serif: "SV Serif", Georgia, "Times New Roman", serif;
+  --sans: "SV Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --measure: 64rem;
+  --gutter: clamp(1.25rem, 5vw, 3rem);
 }
 
 *,
@@ -14,118 +69,236 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   background: var(--cream);
   color: var(--bordeaux);
   font-family: var(--sans);
+  font-synthesis: none;
   line-height: 1.5;
+  overflow-wrap: break-word;
 }
 
-.header {
-  padding: 2rem 1.25rem 1.5rem;
+.wrap {
+  width: 100%;
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.band {
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------- testata */
+
+.band--header {
   background: var(--bordeaux);
   color: var(--cream-light);
+}
+
+.header-inner {
+  padding-block: clamp(1.5rem, 5vw, 3.5rem);
 }
 
 .lockup {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.5rem 0.75rem;
+  gap: 0.35rem 0.9rem;
   margin: 0;
-  font-weight: normal;
+  font-weight: 400;
 }
 
 .signature {
   font-family: var(--serif);
-  font-size: clamp(3.5rem, 16vw, 8rem);
-  line-height: 1;
+  font-weight: 700;
+  font-size: clamp(3.25rem, 13vw, 7rem);
+  line-height: 0.9;
 }
 
 .edition {
-  font-size: clamp(1rem, 3vw, 1.4rem);
-  letter-spacing: 0.08em;
   color: var(--gold-light);
+  font-family: var(--sans);
+  font-size: clamp(0.95rem, 2.2vw, 1.25rem);
+  font-weight: 700;
+  letter-spacing: 0.22em;
 }
 
 .subtitle {
-  margin: 0.75rem 0 0;
-  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  margin: clamp(0.75rem, 2vw, 1.25rem) 0 0;
+  color: var(--gold-light);
+  font-family: var(--sans);
+  font-size: clamp(1.15rem, 3vw, 1.6rem);
+  line-height: 1.35;
 }
 
-main {
-  max-width: 64rem;
-  margin: 0 auto;
-  padding: 0 1.25rem 2rem;
-}
+/* ------------------------------------------------------------ striscia data */
 
-.date-strip {
-  margin: 0 -1.25rem;
-  padding: 1.5rem 1.25rem;
-  background: var(--cream);
+.band--date {
+  padding-block: clamp(1.5rem, 4vw, 2.75rem);
 }
 
 .date-block {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5rem 1rem;
+  align-items: flex-end;
+  gap: 0.75rem 1.5rem;
   margin: 0;
 }
 
 .date-block time {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5rem 1rem;
+  align-items: flex-end;
+  gap: clamp(0.75rem, 3vw, 2rem);
   font-family: var(--serif);
 }
 
 .date-day {
-  font-size: clamp(4rem, 18vw, 7rem);
-  line-height: 0.9;
+  color: var(--bordeaux);
+  font-family: var(--serif);
+  font-size: clamp(4.5rem, 17vw, 8.5rem);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 700;
+  line-height: 0.78;
 }
 
-.date-weekday,
+.date-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  min-width: 0;
+  padding-block-end: 0.2em;
+}
+
+.date-weekday {
+  color: var(--bronze);
+  font-family: var(--sans);
+  font-size: clamp(0.8rem, 2.2vw, 1rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
 .date-month {
-  font-size: clamp(1.1rem, 4vw, 1.6rem);
-  letter-spacing: 0.06em;
+  color: var(--bordeaux);
+  font-family: var(--serif);
+  font-size: clamp(1.25rem, 5.5vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+  overflow-wrap: break-word;
 }
 
 .date-time {
+  margin-inline-start: auto;
   color: var(--bronze);
+  font-family: var(--sans);
+  font-size: clamp(1rem, 2.6vw, 1.25rem);
 }
 
+/* ------------------------------------------------------------------ cantina */
+
 .cantina {
-  max-width: 38rem;
-  margin: 2rem 0;
-  font-size: 1.125rem;
+  max-width: 42rem;
+  margin-block: clamp(2rem, 6vw, 4rem);
+  font-family: var(--sans);
+  font-size: clamp(1.05rem, 2.4vw, 1.25rem);
+  line-height: 1.65;
+}
+
+.cantina p {
+  margin: 0;
+}
+
+.cantina p + p {
+  margin-top: 1em;
+}
+
+/* ---------------------------------------------------------- fascia footer */
+
+.band--footer {
+  margin-top: clamp(2.5rem, 7vw, 5rem);
+  background: var(--bordeaux);
+  color: var(--cream-light);
+}
+
+.footer-block {
+  padding-block: clamp(1.75rem, 4.5vw, 3rem);
+  border-block: 1px solid var(--gold);
 }
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.25rem;
-  margin: 2rem 0;
-  padding: 1.5rem 0;
-  border-top: 1px solid var(--bronze);
-  border-bottom: 1px solid var(--bronze);
-}
-
-.info-item {
+  grid-template-columns: 1fr 1.32fr 1fr;
+  gap: clamp(1rem, 3vw, 2.5rem);
   margin: 0;
 }
 
+.info-item {
+  min-width: 0;
+  margin: 0;
+}
+
+.info-item--place {
+  border-inline-start: 1px solid var(--gold);
+  padding-inline-start: clamp(1rem, 3vw, 2.5rem);
+}
+
 .info-grid dt {
-  font-size: 0.8rem;
-  letter-spacing: 0.1em;
-  color: var(--bronze);
+  color: var(--gold-light);
+  font-family: var(--sans);
+  font-size: clamp(0.7rem, 1.4vw, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
 }
 
 .info-grid dd {
-  margin: 0.25rem 0 0;
-  font-size: 1.05rem;
+  margin: 0.4rem 0 0;
+  color: var(--cream-light);
+  font-family: var(--sans);
+  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+  font-weight: 400;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+}
+
+.info-item--time dd {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 700;
+}
+
+.info-item--organiser dd {
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
+  font-weight: 700;
+}
+
+.map-link {
+  margin: clamp(1.5rem, 4vw, 2.25rem) 0 0;
+  font-family: var(--sans);
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+}
+
+.map-link a {
+  color: var(--gold-light);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.map-link a:hover {
+  color: var(--cream-light);
+}
+
+a:focus-visible {
+  border-radius: 1px;
+  outline: 3px solid currentColor;
+  outline-offset: 3px;
 }
 
 .locandina-download {
@@ -134,25 +307,46 @@ main {
 }
 
 .locandina-download a {
-  font-weight: bold;
+  color: var(--gold-light);
+  font-weight: 700;
   text-underline-offset: 0.2em;
 }
 
+.locandina-download a:hover {
+  color: var(--cream-light);
+}
+
 .colophon {
-  max-width: 64rem;
-  margin: 0 auto;
-  padding: 1rem 1.25rem 2rem;
-  color: var(--bronze);
-  font-size: 0.9rem;
+  padding-block: clamp(1rem, 2.5vw, 1.5rem);
+  color: var(--gold-light);
+  font-family: var(--sans);
+  font-size: clamp(0.8rem, 1.6vw, 0.9rem);
+  letter-spacing: 0.04em;
 }
 
-.colophon hr {
-  border: 0;
-  border-top: 1px solid var(--bronze);
+.colophon p {
+  margin: 0;
 }
 
-@media (max-width: 40rem) {
+/* --------------------------------------------------------------- telefono */
+
+@media (max-width: 48rem) {
   .info-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1rem, 4vw, 1.5rem);
+  }
+
+  .info-item--place {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+  }
+
+  .info-item + .info-item {
+    border-block-start: 1px solid var(--gold);
+    padding-block-start: clamp(1rem, 4vw, 1.5rem);
+  }
+
+  .date-time {
+    margin-inline-start: 0;
   }
 }
