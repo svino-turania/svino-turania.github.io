@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
+import { inflateSync } from 'node:zlib';
 import { parseHTML } from 'linkedom';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -30,6 +31,68 @@ function builtStylesheet() {
   const file = join(SITE, 'assets', 'css', 'style.css');
   assert.ok(existsSync(file), 'manca il foglio di stile nel sito');
   return readFileSync(file, 'utf8');
+}
+
+function paletteToken(name) {
+  const source = builtStylesheet().match(
+    new RegExp(`--${name}\\s*:\\s*(#[0-9a-fA-F]{6})\\s*;`),
+  );
+  assert.ok(source, `manca il token --${name} nel foglio di stile`);
+  return source[1].toLowerCase();
+}
+
+function rgb(hexColour) {
+  return {
+    r: Number.parseInt(hexColour.slice(1, 3), 16),
+    g: Number.parseInt(hexColour.slice(3, 5), 16),
+    b: Number.parseInt(hexColour.slice(5, 7), 16),
+  };
+}
+
+/*
+ * Read the IHDR of a PNG and the first decoded pixel, as a browser drawing the
+ * touch icon would: its size, its colour model and the colour of its corner.
+ */
+function pngFrame(bytes) {
+  assert.equal(
+    bytes.subarray(0, 8).toString('hex'),
+    '89504e470d0a1a0a',
+    'il file non è un PNG',
+  );
+  assert.equal(bytes.subarray(12, 16).toString('ascii'), 'IHDR');
+  return {
+    width: bytes.readUInt32BE(16),
+    height: bytes.readUInt32BE(20),
+    bitDepth: bytes[24],
+    colorType: bytes[25],
+  };
+}
+
+function pngTopLeftPixel(bytes) {
+  const { bitDepth, colorType } = pngFrame(bytes);
+  assert.equal(bitDepth, 8, `profondità PNG non attesa: ${bitDepth}`);
+  assert.ok(
+    colorType === 2 || colorType === 6,
+    `modello di colore PNG non atteso: ${colorType}`,
+  );
+
+  const chunks = [];
+  let offset = 8;
+  while (offset + 12 <= bytes.length) {
+    const length = bytes.readUInt32BE(offset);
+    const type = bytes.subarray(offset + 4, offset + 8).toString('ascii');
+    if (type === 'IDAT') {
+      chunks.push(bytes.subarray(offset + 8, offset + 8 + length));
+    }
+    if (type === 'IEND') {
+      break;
+    }
+    offset += 12 + length;
+  }
+  const scanlines = inflateSync(Buffer.concat(chunks));
+  // For the first pixel of the first row every filter predictor is zero, so
+  // the stored samples are the pixel's RGB values.
+  return { r: scanlines[1], g: scanlines[2], b: scanlines[3] };
 }
 
 /*
@@ -123,6 +186,26 @@ function loadSite() {
   assert.ok(existsSync(file), 'manca index.html alla radice del sito');
   const { document } = parseHTML(readFileSync(file, 'utf8'));
   return document;
+}
+
+/*
+ * Read the candidates a browser sees in a srcset: each one is a URL and the
+ * width descriptor that lets it choose against the layout width.
+ */
+function parseSrcset(value) {
+  return value
+    .split(',')
+    .map((candidate) => candidate.trim())
+    .filter(Boolean)
+    .map((candidate) => {
+      const [url, descriptor] = candidate.split(/\s+/);
+      return {
+        url,
+        width: descriptor && /^\d+w$/.test(descriptor)
+          ? Number.parseInt(descriptor, 10)
+          : null,
+      };
+    });
 }
 
 function metaContent(document, attribute, key) {
@@ -446,6 +529,124 @@ test('la pagina fornisce anteprime Open Graph e Twitter con l’immagine quadrat
   assert.equal(metaContent(document, 'name', 'twitter:image'), image);
 });
 
+test('la pagina dichiara un’icona, un’icona touch e il colore del tema della palette', () => {
+  const document = loadSite();
+
+  const icon = document.querySelector('link[rel="icon"]');
+  assert.ok(icon, 'manca il link rel="icon"');
+  assert.equal(
+    icon.getAttribute('type'),
+    'image/svg+xml',
+    'l’icona dichiarata non è un SVG',
+  );
+  const iconUrl = sameOriginUrl(icon.getAttribute('href'));
+  assert.match(iconUrl.pathname, /\.svg$/i, 'l’icona non è un file SVG');
+
+  const touch = document.querySelector('link[rel="apple-touch-icon"]');
+  assert.ok(touch, 'manca il link rel="apple-touch-icon"');
+  const touchUrl = sameOriginUrl(touch.getAttribute('href'));
+  assert.match(touchUrl.pathname, /\.png$/i, 'l’icona touch non è un PNG');
+
+  const theme = document.querySelector('meta[name="theme-color"]');
+  assert.ok(theme, 'manca il meta theme-color');
+  assert.equal(
+    normalize(theme.getAttribute('content') ?? '').toLowerCase(),
+    paletteToken('bordeaux'),
+    'il colore del tema non è il bordeaux della palette',
+  );
+});
+
+test('le due icone esistono nel sito e sono l’unico patrimonio iconografico', () => {
+  const document = loadSite();
+
+  for (const rel of ['icon', 'apple-touch-icon']) {
+    const link = document.querySelector(`link[rel="${rel}"]`);
+    assert.ok(link, `manca il link rel="${rel}"`);
+    siteFileFor(link.getAttribute('href'));
+  }
+
+  const icons = shippedFiles()
+    .filter((file) => file.startsWith('assets/icons/'))
+    .sort();
+  assert.deepEqual(
+    icons,
+    ['assets/icons/apple-touch-icon.png', 'assets/icons/favicon.svg'],
+    `il sito distribuisce altri file di identità: ${icons.join(', ')}`,
+  );
+});
+
+test('l’icona vettoriale è il tracciato della firma su fondo bordeaux', () => {
+  const document = loadSite();
+  const href = document.querySelector('link[rel="icon"]').getAttribute('href');
+  const { file } = siteFileFor(href);
+  const svg = readFileSync(file, 'utf8');
+
+  assert.match(svg, /<svg\b[^>]*\bviewBox="[^"]+"/, 'l’icona SVG non ha un viewBox');
+  const outline = svg.match(/<path\b[^>]*\bd="([^"]+)"/);
+  assert.ok(
+    outline && outline[1].trim().length > 1000,
+    'l’icona SVG non contiene il tracciato della firma',
+  );
+  assert.doesNotMatch(
+    svg,
+    /<text\b/i,
+    'l’icona contiene il lockup testuale invece del solo marchio',
+  );
+
+  const ground = paletteToken('bordeaux');
+  const mark = paletteToken('cream-light');
+  assert.match(
+    svg,
+    new RegExp(`fill="${ground}"`, 'i'),
+    'l’icona non ha il fondo bordeaux della palette',
+  );
+  assert.match(
+    svg,
+    new RegExp(`fill="${mark}"`, 'i'),
+    'il marchio dell’icona non è in crema chiaro',
+  );
+});
+
+test('l’icona touch è un PNG 180×180 sul fondo bordeaux', () => {
+  const document = loadSite();
+  const href = document
+    .querySelector('link[rel="apple-touch-icon"]')
+    .getAttribute('href');
+  const { file } = siteFileFor(href);
+  const bytes = readFileSync(file);
+
+  const frame = pngFrame(bytes);
+  assert.equal(frame.width, 180, 'l’icona touch non è larga 180 px');
+  assert.equal(frame.height, 180, 'l’icona touch non è alta 180 px');
+  assert.equal(frame.bitDepth, 8, 'l’icona touch non è un PNG a 8 bit');
+  assert.deepEqual(
+    pngTopLeftPixel(bytes),
+    rgb(paletteToken('bordeaux')),
+    'l’angolo dell’icona touch non è sul fondo bordeaux',
+  );
+});
+
+test('le icone restano nella testata e non diventano immagini del corpo', () => {
+  const document = loadSite();
+  const sources = [
+    ...document.querySelectorAll(
+      'body img[src], body source[srcset], body object[data], body embed[src]',
+    ),
+  ].map(
+    (element) =>
+      element.getAttribute('src') ??
+      element.getAttribute('srcset') ??
+      element.getAttribute('data') ??
+      '',
+  );
+
+  assert.deepEqual(
+    sources.filter((source) => /assets\/icons\//.test(source)),
+    [],
+    'un’icona è usata come immagine nel corpo della pagina',
+  );
+});
+
 test('la pagina è indicizzabile e dichiarata in italiano', () => {
   const document = loadSite();
 
@@ -637,6 +838,71 @@ test('la fotografia del Borgo è a tutta larghezza tra la testata e la data', ()
   assert.equal(webpBytes.subarray(0, 4).toString('ascii'), 'RIFF');
   assert.equal(webpBytes.subarray(8, 12).toString('ascii'), 'WEBP');
   assert.ok(webpBytes.length > 0, 'il WebP della fotografia è vuoto');
+});
+
+test('la fotografia offre una sorgente di almeno 2048 px per gli schermi larghi', () => {
+  const document = loadSite();
+  const picture = document.querySelector('picture');
+  const photo = picture?.querySelector('img');
+  assert.ok(picture, 'la fotografia non è servita dentro un elemento picture');
+  assert.ok(photo, 'manca la fotografia');
+
+  const jpegCandidates = parseSrcset(photo.getAttribute('srcset') ?? '');
+  const largeJpeg = jpegCandidates.filter(
+    (candidate) => candidate.width !== null && candidate.width >= 2048,
+  );
+  assert.ok(
+    largeJpeg.length > 0,
+    'la fotografia non offre un JPEG di almeno 2048 px',
+  );
+
+  for (const candidate of largeJpeg) {
+    const { file, url } = siteFileFor(candidate.url);
+    assert.match(url.pathname, /\.jpe?g$/i, 'la sorgente grande non è un JPEG');
+    const frame = jpegFrame(readFileSync(file));
+    assert.ok(
+      frame.width >= 2048,
+      `il JPEG grande dichiara ${candidate.width}w ma misura ${frame.width} px`,
+    );
+    assert.equal(
+      frame.components,
+      3,
+      'il JPEG grande non è RGB: la fotografia è un’immagine CMYK',
+    );
+    assert.ok(
+      Math.abs(frame.width / frame.height - 1200 / 756) < 0.002,
+      'il JPEG grande non mantiene l’inquadratura approvata',
+    );
+  }
+
+  const webp = picture.querySelector('source[type="image/webp"][srcset]');
+  assert.ok(webp, 'manca la sorgente WebP della fotografia');
+  const largeWebp = parseSrcset(webp.getAttribute('srcset')).filter(
+    (candidate) => candidate.width !== null && candidate.width >= 2048,
+  );
+  assert.ok(
+    largeWebp.length > 0,
+    'la sorgente WebP non offre un candidato di almeno 2048 px',
+  );
+  for (const candidate of largeWebp) {
+    const bytes = readFileSync(siteFileFor(candidate.url).file);
+    assert.equal(bytes.subarray(0, 4).toString('ascii'), 'RIFF');
+    assert.equal(bytes.subarray(8, 12).toString('ascii'), 'WEBP');
+    assert.ok(bytes.length > 0, 'il WebP grande della fotografia è vuoto');
+  }
+
+  assert.equal(webp.getAttribute('sizes'), '100vw', 'manca sizes sulla sorgente');
+  assert.equal(photo.getAttribute('sizes'), '100vw', 'manca sizes sul ripiego');
+
+  assert.deepEqual(
+    jpegSize(siteFileFor(photo.getAttribute('src')).file),
+    { width: 1200, height: 756 },
+    'il ripiego stretto non è più la copia 1200×756',
+  );
+  assert.ok(
+    jpegCandidates.some((candidate) => candidate.width === 1200),
+    'la copia 1200 non è più offerta come candidato stretto',
+  );
 });
 
 test('il sito non spedisce alcuna immagine di strappo', () => {

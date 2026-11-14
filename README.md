@@ -172,10 +172,47 @@ Site assets under `assets/` are derivatives, regenerated from the master rather
 than edited independently. They are:
 
 - the signature outline, inlined in `index.html`;
+- the tab icon and the touch icon, under `assets/icons/`, derived from that
+  inline outline;
 - the photograph derivative, under `assets/img/`;
 - the square social preview image, under `assets/img/`;
 - the Locandina download, under `assets/download/`, rendered from the print
   master.
+
+### The photograph
+
+The photograph derives from the print master's photograph crop,
+`/Users/angelo/svino/images/build/svino_a3.jpg`: 2048 × 1291, RGB, already
+cropped to the approved framing. The site's 1200 × 756 copy is that same crop
+scaled — the two differ only by resampling, so the framing cannot drift between
+them. `images/svino.jpg` (2048 × 1359) is the photograph before the print crop;
+do not use it for the site, or the edges will disagree with the poster.
+
+The page offers the crop at its native 2048 px width for laptop screens and the
+1200 px copy for narrow screens and slower connections, through `srcset` and
+`sizes="100vw"` on the WebP source and on the JPEG fallback. Never upscale: the
+wide candidate is the crop itself, not a larger render of the 1200 px copy.
+
+Regenerate all four files from the crop with:
+
+```sh
+# 1200 px narrow copy: JPEG and WebP
+sips --resampleWidth 1200 /Users/angelo/svino/images/build/svino_a3.jpg \
+  --out assets/img/svino-borgo-1200.jpg
+cwebp -q 78 -resize 1200 756 /Users/angelo/svino/images/build/svino_a3.jpg \
+  -o assets/img/svino-borgo-1200.webp
+
+# 2048 px wide candidate: JPEG and WebP
+magick /Users/angelo/svino/images/build/svino_a3.jpg \
+  -strip -sampling-factor 2x2,1x1,1x1 -quality 93 \
+  assets/img/svino-borgo-2048.jpg
+cwebp -q 78 /Users/angelo/svino/images/build/svino_a3.jpg \
+  -o assets/img/svino-borgo-2048.webp
+```
+
+Keep both variants RGB — never CMYK — and keep the two widths in step: they are
+the same crop, and the `<img>` keeps the approved 1200 × 756 intrinsic size. The
+1200 px JPEG stays the `<img>` fallback for browsers that read no `srcset`.
 
 The printable Locandina and the downloadable copy must never disagree. When a
 print master carries the QR code (a future v12), regenerate the download from
@@ -187,6 +224,41 @@ a 1240 × 1744 RGB JPEG rendered from `Svino_A3_master_v11.svg` with
 `rsvg-convert -w 1240`, then converted with `sips` at JPEG quality 78. Regenerate
 it with the same recipe from the QR-bearing master once v12 exists; never edit
 the JPEG independently of the master it derives from.
+
+### Icons for the tab and home screen
+
+`assets/icons/favicon.svg` and `assets/icons/apple-touch-icon.png` are both
+derived from the signature outline already inlined in `index.html`. They are not
+new artwork: the print's bordeaux `#5c1a24` is the ground and cream-light
+`#f2e8d5` is the mark, the same pairing the signature uses. The page declares
+them, and that ground as `theme-color`, in its `<head>`.
+
+The page SVG's viewBox keeps room below the outline for the `II EDIZIONE`
+lockup. The icon crops to the outline's own bounds instead —
+`x −0.0243333333 … 2.521`, `y −1.313 … 0.1348571429` — so the tab shows the
+mark and not the empty lockup band. The icon's square viewBox is 2.82 units
+wide, which leaves about 5 % of the wider axis as padding and centres the mark
+vertically.
+
+Regenerate both if the signature outline changes:
+
+1. Replace the `d` of the inline path in `index.html` with the new outline.
+2. Recompute its bounds. A browser reports them with
+   `document.querySelector('path').getBBox()`; the outline is the only path, so
+   the bounding box is the mark. Update the crop numbers if they moved.
+3. Rebuild `assets/icons/favicon.svg`: a square `viewBox` centred on those
+   bounds, a full-square `<rect fill="#5c1a24">`, then the same path with
+   `fill="#f2e8d5"` and no `<text>` lockup.
+4. Render the touch icon from that vector, never from a copy:
+
+   ```sh
+   rsvg-convert -w 180 -h 180 \
+     -o assets/icons/apple-touch-icon.png assets/icons/favicon.svg
+   ```
+
+Keep `theme-color` equal to the stylesheet's `--bordeaux` token. The test suite
+checks the declarations, the two files, the touch icon's 180 × 180 size and its
+bordeaux corner, so a regeneration that misses a step fails before publishing.
 
 The print workspace is separate and must not be modified from this repository.
 Do not commit print sources, print build scripts or generated print artefacts

@@ -22,6 +22,10 @@
     <meta name="twitter:title" content="sVino — II EDIZIONE · 6 dicembre 2026 — Turania (RI)">
     <meta name="twitter:description" content="sVino, II EDIZIONE, 6 dicembre 2026 — Turania (RI).">
     <meta name="twitter:image" content="https://svino-turania.github.io/assets/img/svino-quadrato-og.jpg">
+    <!-- ICONE: derivate dal tracciato della firma; vedi README, "Icons for the tab and home screen". -->
+    <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+    <meta name="theme-color" content="#5c1a24">
     <link rel="stylesheet" href="/assets/css/style.css">
   </head>
   <body>
@@ -83,9 +87,15 @@
         <figure class="photo-band">
           <!-- DESCRIZIONE DELLA FOTOGRAFIA: l'attributo alt dell'immagine qui sotto. -->
           <picture>
-            <source srcset="/assets/img/svino-borgo-1200.webp" type="image/webp">
+            <source
+              srcset="/assets/img/svino-borgo-1200.webp 1200w, /assets/img/svino-borgo-2048.webp 2048w"
+              sizes="100vw"
+              type="image/webp"
+            >
             <img
               src="/assets/img/svino-borgo-1200.jpg"
+              srcset="/assets/img/svino-borgo-1200.jpg 1200w, /assets/img/svino-borgo-2048.jpg 2048w"
+              sizes="100vw"
               width="1200"
               height="756"
               alt="Strada acciottolata di un borgo italiano, con case in pietra e intonaco chiaro, balconi, persiane e una torre con orologio sullo sfondo; in primo piano, su una botte di legno, un grappolo d&#39;uva nera, una bottiglia di vino scuro e un calice di vino rosso."
