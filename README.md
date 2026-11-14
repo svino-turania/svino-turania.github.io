@@ -177,6 +177,41 @@ than edited independently. They are:
 - the Locandina download, under `assets/download/`, rendered from the print
   master.
 
+### The photograph
+
+The photograph derives from the print master's photograph crop,
+`/Users/angelo/svino/images/build/svino_a3.jpg`: 2048 × 1291, RGB, already
+cropped to the approved framing. The site's 1200 × 756 copy is that same crop
+scaled — the two differ only by resampling, so the framing cannot drift between
+them. `images/svino.jpg` (2048 × 1359) is the photograph before the print crop;
+do not use it for the site, or the edges will disagree with the poster.
+
+The page offers the crop at its native 2048 px width for laptop screens and the
+1200 px copy for narrow screens and slower connections, through `srcset` and
+`sizes="100vw"` on the WebP source and on the JPEG fallback. Never upscale: the
+wide candidate is the crop itself, not a larger render of the 1200 px copy.
+
+Regenerate all four files from the crop with:
+
+```sh
+# 1200 px narrow copy: JPEG and WebP
+sips --resampleWidth 1200 /Users/angelo/svino/images/build/svino_a3.jpg \
+  --out assets/img/svino-borgo-1200.jpg
+cwebp -q 78 -resize 1200 756 /Users/angelo/svino/images/build/svino_a3.jpg \
+  -o assets/img/svino-borgo-1200.webp
+
+# 2048 px wide candidate: JPEG and WebP
+magick /Users/angelo/svino/images/build/svino_a3.jpg \
+  -strip -sampling-factor 2x2,1x1,1x1 -quality 93 \
+  assets/img/svino-borgo-2048.jpg
+cwebp -q 78 /Users/angelo/svino/images/build/svino_a3.jpg \
+  -o assets/img/svino-borgo-2048.webp
+```
+
+Keep both variants RGB — never CMYK — and keep the two widths in step: they are
+the same crop, and the `<img>` keeps the approved 1200 × 756 intrinsic size. The
+1200 px JPEG stays the `<img>` fallback for browsers that read no `srcset`.
+
 The printable Locandina and the downloadable copy must never disagree. When a
 print master carries the QR code (a future v12), regenerate the download from
 that same master — not from an earlier one — so the poster on paper and the
