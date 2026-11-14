@@ -44,8 +44,9 @@
       - Edizione: "II EDIZIONE" (lockup nella firma, colophon e metadati).
       - Descrizione della fotografia: l'attributo alt dell'immagine.
       - Paragrafo delle Cantine: la regione tra i commenti CANTINA.
-      - Locandina: il link di download nella regione "facts" (il rail a
-        destra della prosa su desktop, la fascia del footer su telefono).
+      - Locandina: due link di download, uno nel rail "facts" (solo desktop)
+        e uno nel footer dopo la mappa (solo telefono e tablet); puntano allo
+        stesso file e solo uno è visibile per composizione.
 
       Non serve alcuna build: la pagina è servita così com'è scritta.
     -->
@@ -72,7 +73,6 @@
             <text
               x="0.8405"
               y="0.1648571429"
-              font-family="SV Sans, Lato, sans-serif"
               font-weight="700"
               font-size="0.1221675"
               letter-spacing="0.026601"
@@ -137,21 +137,25 @@
           <!-- CANTINA — FINE REGIONE MODIFICABILE -->
         </div>
 
-        <!-- FATTI E LOCANDINA: il rail a destra della prosa su desktop, la fascia
-             del footer su telefono e tablet. Un solo link di download. -->
+        <!-- FATTI: il rail a destra della prosa su desktop e la fascia sopra il
+             footer su telefono e tablet. La Locandina qui è solo per desktop:
+             sotto 64rem è il footer a offrirne il download. -->
         <aside class="facts" aria-label="Informazioni">
           <div class="facts-inner">
             <dl class="info-grid">
+              <!-- LUOGO: "Turania (RI)" sotto DOVE, una sola volta nel corpo. -->
               <div class="info-item">
                 <dt>DOVE</dt>
                 <dd>Turania (RI)</dd>
               </div>
+              <!-- ORGANIZZATORE: "Comitato Feste Turania" sotto A CURA DI. -->
               <div class="info-item info-item--organiser">
                 <dt>A CURA DI</dt>
                 <dd>Comitato Feste Turania</dd>
               </div>
             </dl>
 
+            <!-- LOCANDINA (RAIL): visibile solo da 64rem; sotto è nel footer. -->
             <p class="locandina-download">
               <a
                 href="/assets/download/locandina-svino-ii-edizione.jpg"
@@ -172,6 +176,16 @@
             target="_blank"
             rel="noopener noreferrer"
           >Apri la mappa</a>
+        </p>
+
+        <!-- LOCANDINA (FOOTER): visibile sotto 64rem, dopo il link alla mappa;
+             su desktop è nel rail e questa copia è nascosta. -->
+        <p class="locandina-download">
+          <a
+            href="/assets/download/locandina-svino-ii-edizione.jpg"
+            download
+            type="image/jpeg"
+          >Scarica la Locandina (immagine JPEG)</a>
         </p>
       </div>
 

@@ -27,14 +27,14 @@ function normalize(value) {
   return value.replace(/\s+/g, ' ').trim();
 }
 
-function builtStylesheet() {
+function servedStylesheet() {
   const file = join(SITE, 'assets', 'css', 'style.css');
   assert.ok(existsSync(file), 'manca il foglio di stile nel sito');
   return readFileSync(file, 'utf8');
 }
 
 function paletteToken(name) {
-  const source = builtStylesheet().match(
+  const source = servedStylesheet().match(
     new RegExp(`--${name}\\s*:\\s*(#[0-9a-fA-F]{6})\\s*;`),
   );
   assert.ok(source, `manca il token --${name} nel foglio di stile`);
@@ -208,6 +208,13 @@ function parseSrcset(value) {
     });
 }
 
+/* The candidates wide enough for a laptop screen: 2048 px and up. */
+function wideCandidates(value) {
+  return parseSrcset(value).filter(
+    (candidate) => candidate.width !== null && candidate.width >= 2048,
+  );
+}
+
 function metaContent(document, attribute, key) {
   const meta = document.querySelector(`meta[${attribute}="${key}"]`);
   assert.ok(meta, `manca il meta ${attribute}="${key}"`);
@@ -352,25 +359,25 @@ test('le literal della data concordano con l’attributo datetime', () => {
     'giorno, giorno della settimana, mese o anno non concordano con datetime',
   );
 
-  // The time beside the date and the DALLE ORE value are the same clock time,
-  // and the label sits in the same block as the date.
-  const clock = normalize(time.parentElement?.textContent ?? '').match(
-    /(\d{2}:\d{2})/,
-  );
-  assert.ok(clock, 'manca l’orario accanto alla data');
+  // The date strip is the time's single home: the DALLE ORE label and its
+  // clock value sit inside the strip, beside the date. The exactly-once test
+  // proves no other visible copy of the time exists on the page.
+  const strip = document.querySelector('section[aria-label="Data e ora"]');
+  assert.ok(strip, 'manca la striscia della data e ora');
+  assert.ok(strip.contains(time), 'la data non è nella striscia della data');
 
-  const label = [...document.querySelectorAll('dt')].find(
+  const label = [...strip.querySelectorAll('dt')].find(
     (node) => normalize(node.textContent) === 'DALLE ORE',
   );
-  assert.ok(label, 'manca il fatto DALLE ORE');
+  assert.ok(label, 'manca il fatto DALLE ORE nella striscia della data');
   assert.ok(
     time.parentElement?.contains(label),
     'il fatto DALLE ORE non è accanto alla data',
   );
-  assert.equal(
+  assert.match(
     normalize(label.nextElementSibling?.textContent ?? ''),
-    clock[1],
-    'l’orario accanto alla data e quello sotto DALLE ORE divergono',
+    /^\d{2}:\d{2}$/,
+    'il valore sotto DALLE ORE non è un orario',
   );
 });
 
@@ -421,44 +428,87 @@ test('il link alla mappa porta a Turania (RI) e si apre in un nuovo contesto sic
 
 test('il download della Locandina è un’immagine dello stesso sito con tipo dichiarato', () => {
   const document = loadSite();
-  const downloads = [...document.querySelectorAll('a[download]')];
+  const rail = document.querySelector('aside[aria-label="Informazioni"]');
+  const footer = document.querySelector('footer');
+  assert.ok(rail, 'manca il rail dei fatti');
+  assert.ok(footer, 'manca il footer della pagina');
 
+  const downloads = [...document.querySelectorAll('a[download]')];
   assert.equal(
     downloads.length,
-    1,
-    'la pagina deve offrire un solo link per scaricare la Locandina',
-  );
-  const link = downloads[0];
-
-  assert.ok(link, 'manca il link per scaricare la Locandina');
-  assert.notEqual(
-    link.getAttribute('download'),
-    null,
-    'il link della Locandina non ha l’attributo download',
+    2,
+    'la pagina deve offrire un link per scaricare la Locandina nel rail e uno nel footer',
   );
 
-  const name = normalize(
-    link.getAttribute('aria-label') ?? link.textContent ?? '',
+  const railLink = rail.querySelector('a[download]');
+  const footerLink = footer.querySelector('a[download]');
+  assert.ok(railLink, 'manca il link della Locandina nel rail dei fatti');
+  assert.ok(footerLink, 'manca il link della Locandina nel footer');
+
+  const railName = accessibleName(document, railLink);
+  const footerName = accessibleName(document, footerLink);
+  assert.ok(
+    railName.length > 0,
+    'il link della Locandina nel rail non ha testo discernibile',
   );
-  assert.ok(name.length > 0, 'il link della Locandina non ha testo discernibile');
-  assert.match(name, /Scarica la Locandina/i, 'il link non dice che scarica la Locandina');
+  assert.ok(
+    footerName.length > 0,
+    'il link della Locandina nel footer non ha testo discernibile',
+  );
+  assert.equal(
+    railName,
+    footerName,
+    'i due link della Locandina non hanno lo stesso nome discernibile',
+  );
+  assert.match(
+    railName,
+    /Scarica la Locandina/i,
+    'il link non dice che scarica la Locandina',
+  );
 
-  const href = link.getAttribute('href');
-  assert.ok(href, 'il link della Locandina non ha un href');
+  // On phone and tablet the footer reads map link, download, colophon.
+  const mapLink = footer.querySelector('a[href*="openstreetmap"]');
+  assert.ok(mapLink, 'manca il link alla mappa nel footer');
+  const footerLinks = [...footer.querySelectorAll('a[href]')];
+  assert.ok(
+    footerLinks.indexOf(footerLink) > footerLinks.indexOf(mapLink),
+    'il download nel footer non segue il link alla mappa',
+  );
 
-  const { url, file } = siteFileFor(href);
+  const railHref = railLink.getAttribute('href');
+  const footerHref = footerLink.getAttribute('href');
+  assert.ok(railHref, 'il link della Locandina nel rail non ha un href');
+  assert.ok(footerHref, 'il link della Locandina nel footer non ha un href');
 
-  const extension = extname(decodeURIComponent(url.pathname)).toLowerCase();
+  const railFile = siteFileFor(railHref);
+  const footerFile = siteFileFor(footerHref);
+  assert.equal(
+    decodeURIComponent(railFile.url.pathname),
+    decodeURIComponent(footerFile.url.pathname),
+    'i due download non puntano allo stesso file',
+  );
+
+  const extension = extname(decodeURIComponent(railFile.url.pathname)).toLowerCase();
   const expectedType = IMAGE_TYPE_BY_EXTENSION.get(extension);
   assert.ok(expectedType, `il download non è un’immagine web: ${extension}`);
 
-  assert.equal(
-    link.getAttribute('type'),
-    expectedType,
-    'il tipo dichiarato dal link non corrisponde all’estensione del file',
-  );
+  for (const [where, link] of [
+    ['rail', railLink],
+    ['footer', footerLink],
+  ]) {
+    assert.notEqual(
+      link.getAttribute('download'),
+      null,
+      `il link della Locandina nel ${where} non ha l’attributo download`,
+    );
+    assert.equal(
+      link.getAttribute('type'),
+      expectedType,
+      `il tipo dichiarato dal link nel ${where} non corrisponde all’estensione del file`,
+    );
+  }
 
-  const bytes = readFileSync(file);
+  const bytes = readFileSync(railFile.file);
   assert.ok(bytes.length > 0, 'il file scaricabile è vuoto');
 
   const image = jpegFrame(bytes);
@@ -637,10 +687,19 @@ test('l’icona vettoriale è il tracciato della firma su fondo bordeaux', () =>
   const svg = readFileSync(file, 'utf8');
 
   assert.match(svg, /<svg\b[^>]*\bviewBox="[^"]+"/, 'l’icona SVG non ha un viewBox');
-  const outline = svg.match(/<path\b[^>]*\bd="([^"]+)"/);
+  const signaturePath = document.querySelector('h1 svg[role="img"] path[d]');
   assert.ok(
-    outline && outline[1].trim().length > 1000,
-    'l’icona SVG non contiene il tracciato della firma',
+    signaturePath,
+    'la firma inline non contiene il tracciato vettoriale',
+  );
+  const outline = svg.match(/<path\b[^>]*\bd="([^"]+)"/);
+  assert.ok(outline, 'l’icona SVG non contiene il tracciato della firma');
+  // The icon crops the inline path but must not redraw or reflow it: the
+  // two path data strings stay identical, so they cannot drift silently.
+  assert.equal(
+    normalize(outline[1]),
+    normalize(signaturePath.getAttribute('d')),
+    'il tracciato dell’icona non è esattamente quello della firma inline',
   );
   assert.doesNotMatch(
     svg,
@@ -907,9 +966,7 @@ test('la fotografia offre una sorgente di almeno 2048 px per gli schermi larghi'
   assert.ok(photo, 'manca la fotografia');
 
   const jpegCandidates = parseSrcset(photo.getAttribute('srcset') ?? '');
-  const largeJpeg = jpegCandidates.filter(
-    (candidate) => candidate.width !== null && candidate.width >= 2048,
-  );
+  const largeJpeg = wideCandidates(photo.getAttribute('srcset') ?? '');
   assert.ok(
     largeJpeg.length > 0,
     'la fotografia non offre un JPEG di almeno 2048 px',
@@ -936,9 +993,7 @@ test('la fotografia offre una sorgente di almeno 2048 px per gli schermi larghi'
 
   const webp = picture.querySelector('source[type="image/webp"][srcset]');
   assert.ok(webp, 'manca la sorgente WebP della fotografia');
-  const largeWebp = parseSrcset(webp.getAttribute('srcset')).filter(
-    (candidate) => candidate.width !== null && candidate.width >= 2048,
-  );
+  const largeWebp = wideCandidates(webp.getAttribute('srcset'));
   assert.ok(
     largeWebp.length > 0,
     'la sorgente WebP non offre un candidato di almeno 2048 px',
@@ -1060,7 +1115,7 @@ test('il sito non distribuisce il font Breathing e non richiede font esterni', (
 
 test('i font auto-ospitati sono WOFF2 dello stesso sito', () => {
   const cssPath = join(SITE, 'assets', 'css', 'style.css');
-  const css = builtStylesheet();
+  const css = servedStylesheet();
   const faces = [...css.matchAll(/@font-face\s*\{([^}]*)\}/gi)].map(
     (match) => match[1],
   );
@@ -1217,7 +1272,7 @@ test('ogni link ha un nome discernibile e resta raggiungibile da tastiera', () =
 });
 
 test('il foglio di stile espone un indicatore di focus visibile sui link', () => {
-  const css = builtStylesheet();
+  const css = servedStylesheet();
   const rules = [...css.matchAll(/([^{}]+:focus-visible[^{}]*)\{([^}]*)\}/g)];
   const linkRule = rules.find((rule) =>
     /(?:^|,)\s*a\s*:focus-visible/i.test(rule[1]),
