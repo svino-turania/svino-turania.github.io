@@ -251,6 +251,23 @@ function wholeDocumentText(document) {
   return normalize(parts.join(' ')).toLowerCase();
 }
 
+/*
+ * The text a visitor reads in the body, with metadata out of scope. Comments
+ * are not part of textContent; scripts, styles, templates and hidden nodes are
+ * removed so the count reflects what is on the page.
+ */
+function visibleBodyText(document) {
+  const body = document.body.cloneNode(true);
+  for (const node of body.querySelectorAll('script, style, template, [hidden]')) {
+    node.remove();
+  }
+  return normalize(body.textContent);
+}
+
+function occurrences(text, fact) {
+  return text.split(fact).length - 1;
+}
+
 test('la pagina servita riporta i fatti stampati sulla Locandina', () => {
   const document = loadSite();
   const text = normalize(document.body.textContent);
@@ -276,6 +293,27 @@ test('la pagina servita riporta i fatti stampati sulla Locandina', () => {
     text.includes(CANTINA_PARAGRAPH),
     'il paragrafo delle Cantine non è riportato alla lettera',
   );
+});
+
+test('ogni fatto compare una sola volta nel testo visibile della pagina', () => {
+  const document = loadSite();
+  const text = visibleBodyText(document);
+
+  for (const fact of ['12:00', 'Turania (RI)', 'Comitato Feste Turania']) {
+    assert.equal(
+      occurrences(text, fact),
+      1,
+      `il fatto "${fact}" compare ${occurrences(text, fact)} volte, non una`,
+    );
+  }
+
+  for (const label of ['DALLE ORE', 'DOVE', 'A CURA DI']) {
+    assert.equal(
+      occurrences(text, label),
+      1,
+      `l’etichetta "${label}" compare ${occurrences(text, label)} volte, non una`,
+    );
+  }
 });
 
 test('le literal della data concordano con l’attributo datetime', () => {
@@ -314,17 +352,21 @@ test('le literal della data concordano con l’attributo datetime', () => {
     'giorno, giorno della settimana, mese o anno non concordano con datetime',
   );
 
-  // The time phrase beside the date and the DALLE ORE value must state the
-  // same clock time.
+  // The time beside the date and the DALLE ORE value are the same clock time,
+  // and the label sits in the same block as the date.
   const clock = normalize(time.parentElement?.textContent ?? '').match(
-    /dalle ore (\d{2}:\d{2})/,
+    /(\d{2}:\d{2})/,
   );
-  assert.ok(clock, 'manca la frase dell’orario accanto alla data');
+  assert.ok(clock, 'manca l’orario accanto alla data');
 
   const label = [...document.querySelectorAll('dt')].find(
     (node) => normalize(node.textContent) === 'DALLE ORE',
   );
   assert.ok(label, 'manca il fatto DALLE ORE');
+  assert.ok(
+    time.parentElement?.contains(label),
+    'il fatto DALLE ORE non è accanto alla data',
+  );
   assert.equal(
     normalize(label.nextElementSibling?.textContent ?? ''),
     clock[1],
@@ -363,7 +405,13 @@ test('il link alla mappa porta a Turania (RI) e si apre in un nuovo contesto sic
     'la ricerca sulla mappa non punta a Turania (RI)',
   );
 
-  assert.match(normalize(link.textContent), /Turania \(RI\)/);
+  // The destination is the place; the link text need not repeat it, because
+  // the place is stated once under DOVE.
+  assert.match(
+    normalize(link.textContent),
+    /mappa/i,
+    'il link non dice che apre la mappa',
+  );
   assert.equal(link.getAttribute('target'), '_blank');
 
   const rel = (link.getAttribute('rel') ?? '').split(/\s+/);
@@ -373,7 +421,14 @@ test('il link alla mappa porta a Turania (RI) e si apre in un nuovo contesto sic
 
 test('il download della Locandina è un’immagine dello stesso sito con tipo dichiarato', () => {
   const document = loadSite();
-  const link = document.querySelector('a[download]');
+  const downloads = [...document.querySelectorAll('a[download]')];
+
+  assert.equal(
+    downloads.length,
+    1,
+    'la pagina deve offrire un solo link per scaricare la Locandina',
+  );
+  const link = downloads[0];
 
   assert.ok(link, 'manca il link per scaricare la Locandina');
   assert.notEqual(
@@ -673,16 +728,20 @@ test('la pagina è indicizzabile e dichiarata in italiano', () => {
 test('le sezioni compaiono nell’ordine della Locandina', () => {
   const document = loadSite();
   const text = normalize(document.body.textContent);
+  // The strip's time precedes the prose; the facts follow it; the map link and
+  // the colophon close the page. "sVino — II EDIZIONE" names the colophon
+  // without matching the signature's lockup earlier in the page.
   const order = [
     'sVino',
     'Per le cantine di Turania',
     'DICEMBRE 2026',
-    'Per la seconda edizione',
     'DALLE ORE',
+    'Per la seconda edizione',
     'DOVE',
     'A CURA DI',
-    'nella mappa',
     'Scarica la Locandina',
+    'mappa',
+    'sVino — II EDIZIONE',
   ];
 
   let previous = -1;
