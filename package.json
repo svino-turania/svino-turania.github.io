@@ -1,0 +1,15 @@
+{
+  "name": "svino-turania.github.io",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Sito dell'evento sVino, II edizione — 6 dicembre 2026, Turania (RI).",
+  "scripts": {
+    "build": "eleventy",
+    "start": "eleventy --serve",
+    "test": "npm run build && node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "3.1.8",
+    "linkedom": "0.18.15"
+  }
+}

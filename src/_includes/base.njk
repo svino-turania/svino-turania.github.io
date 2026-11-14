@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>sVino — {{ edition }} · {{ date | dateLongIt }} — {{ place }}</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+  </head>
+  <body>
+    <header class="header">
+      <h1 class="lockup">
+        <span class="signature">sVino</span>
+        <span class="edition">{{ edition }}</span>
+      </h1>
+      <p class="subtitle">{{ subtitle }}</p>
+    </header>
+
+    <main>
+      <section class="date-strip" aria-label="Data e ora">
+        <p class="date-block">
+          <time datetime="{{ date | isoDate }}">
+            <span class="date-day">{{ date | dayNumber }}</span>
+            <span class="date-weekday">{{ date | weekdayIt }}</span>
+            <span class="date-month">{{ date | monthYearIt }}</span>
+          </time>
+          <span class="date-time">dalle ore {{ time }}</span>
+        </p>
+      </section>
+
+      <div class="cantina">
+        {{ content | safe }}
+      </div>
+
+      <dl class="info-grid">
+        <div class="info-item">
+          <dt>DALLE ORE</dt>
+          <dd>{{ time }}</dd>
+        </div>
+        <div class="info-item">
+          <dt>DOVE</dt>
+          <dd>{{ place }}</dd>
+        </div>
+        <div class="info-item">
+          <dt>A CURA DI</dt>
+          <dd>{{ organiser }}</dd>
+        </div>
+      </dl>
+
+      <p class="map-link">
+        <a
+          href="https://www.openstreetmap.org/search?query={{ place | urlencode }}"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Apri {{ place }} nella mappa</a>
+      </p>
+    </main>
+
+    <footer class="colophon">
+      <hr>
+      <p>sVino — {{ edition }} · {{ place }}</p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,148 @@
+:root {
+  --bordeaux: #5c1a24;
+  --cream: #ede1c6;
+  --cream-light: #f2e8d5;
+  --gold-light: #c9a96a;
+  --bronze: #7a5c2e;
+  --serif: Georgia, "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--bordeaux);
+  font-family: var(--sans);
+  line-height: 1.5;
+}
+
+.header {
+  padding: 2rem 1.25rem 1.5rem;
+  background: var(--bordeaux);
+  color: var(--cream-light);
+}
+
+.lockup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 0.75rem;
+  margin: 0;
+  font-weight: normal;
+}
+
+.signature {
+  font-family: var(--serif);
+  font-size: clamp(3.5rem, 16vw, 8rem);
+  line-height: 1;
+}
+
+.edition {
+  font-size: clamp(1rem, 3vw, 1.4rem);
+  letter-spacing: 0.08em;
+  color: var(--gold-light);
+}
+
+.subtitle {
+  margin: 0.75rem 0 0;
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+}
+
+main {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0 1.25rem 2rem;
+}
+
+.date-strip {
+  margin: 0 -1.25rem;
+  padding: 1.5rem 1.25rem;
+  background: var(--cream);
+}
+
+.date-block {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.date-block time {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  font-family: var(--serif);
+}
+
+.date-day {
+  font-size: clamp(4rem, 18vw, 7rem);
+  line-height: 0.9;
+}
+
+.date-weekday,
+.date-month {
+  font-size: clamp(1.1rem, 4vw, 1.6rem);
+  letter-spacing: 0.06em;
+}
+
+.date-time {
+  color: var(--bronze);
+}
+
+.cantina {
+  max-width: 38rem;
+  margin: 2rem 0;
+  font-size: 1.125rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin: 2rem 0;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--bronze);
+  border-bottom: 1px solid var(--bronze);
+}
+
+.info-item {
+  margin: 0;
+}
+
+.info-grid dt {
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  color: var(--bronze);
+}
+
+.info-grid dd {
+  margin: 0.25rem 0 0;
+  font-size: 1.05rem;
+}
+
+.colophon {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 2rem;
+  color: var(--bronze);
+  font-size: 0.9rem;
+}
+
+.colophon hr {
+  border: 0;
+  border-top: 1px solid var(--bronze);
+}
+
+@media (max-width: 40rem) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
