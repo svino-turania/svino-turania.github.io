@@ -128,6 +128,16 @@ main {
   font-size: 1.05rem;
 }
 
+.locandina-download {
+  margin: 2rem 0;
+  font-size: 1.125rem;
+}
+
+.locandina-download a {
+  font-weight: bold;
+  text-underline-offset: 0.2em;
+}
+
 .colophon {
   max-width: 64rem;
   margin: 0 auto;
