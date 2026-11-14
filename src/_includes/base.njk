@@ -7,57 +7,68 @@
     <link rel="stylesheet" href="/assets/css/style.css">
   </head>
   <body>
-    <header class="header">
-      <h1 class="lockup">
-        <span class="signature">sVino</span>
-        <span class="edition">{{ edition }}</span>
-      </h1>
-      <p class="subtitle">{{ subtitle }}</p>
+    <header class="band band--header">
+      <div class="wrap header-inner">
+        <h1 class="lockup">
+          <span class="signature">sVino</span>
+          <span class="edition">{{ edition }}</span>
+        </h1>
+        <p class="subtitle">{{ subtitle }}</p>
+      </div>
     </header>
 
     <main>
-      <section class="date-strip" aria-label="Data e ora">
-        <p class="date-block">
-          <time datetime="{{ date | isoDate }}">
-            <span class="date-day">{{ date | dayNumber }}</span>
-            <span class="date-weekday">{{ date | weekdayIt }}</span>
-            <span class="date-month">{{ date | monthYearIt }}</span>
-          </time>
-          <span class="date-time">dalle ore {{ time }}</span>
-        </p>
+      <section class="band band--date" aria-label="Data e ora">
+        <div class="wrap">
+          <p class="date-block">
+            <time datetime="{{ date | isoDate }}">
+              <span class="date-day">{{ date | dayNumber }}</span>
+              <span class="date-labels">
+                <span class="date-weekday">{{ date | weekdayIt }}</span>
+                <span class="date-month">{{ date | monthYearIt }}</span>
+              </span>
+            </time>
+            <span class="date-time">dalle ore {{ time }}</span>
+          </p>
+        </div>
       </section>
 
-      <div class="cantina">
-        {{ content | safe }}
+      <div class="wrap">
+        <div class="cantina">
+          {{ content | safe }}
+        </div>
       </div>
-
-      <dl class="info-grid">
-        <div class="info-item">
-          <dt>DALLE ORE</dt>
-          <dd>{{ time }}</dd>
-        </div>
-        <div class="info-item">
-          <dt>DOVE</dt>
-          <dd>{{ place }}</dd>
-        </div>
-        <div class="info-item">
-          <dt>A CURA DI</dt>
-          <dd>{{ organiser }}</dd>
-        </div>
-      </dl>
-
-      <p class="map-link">
-        <a
-          href="https://www.openstreetmap.org/search?query={{ place | urlencode }}"
-          target="_blank"
-          rel="noopener noreferrer"
-        >Apri {{ place }} nella mappa</a>
-      </p>
     </main>
 
-    <footer class="colophon">
-      <hr>
-      <p>sVino — {{ edition }} · {{ place }}</p>
+    <footer class="band band--footer">
+      <div class="wrap footer-block">
+        <dl class="info-grid">
+          <div class="info-item info-item--time">
+            <dt>DALLE ORE</dt>
+            <dd>{{ time }}</dd>
+          </div>
+          <div class="info-item info-item--place">
+            <dt>DOVE</dt>
+            <dd>{{ place }}</dd>
+          </div>
+          <div class="info-item info-item--organiser">
+            <dt>A CURA DI</dt>
+            <dd>{{ organiser }}</dd>
+          </div>
+        </dl>
+
+        <p class="map-link">
+          <a
+            href="https://www.openstreetmap.org/search?query={{ place | urlencode }}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Apri {{ place }} nella mappa</a>
+        </p>
+      </div>
+
+      <div class="wrap colophon">
+        <p>sVino — {{ edition }} · {{ place }}</p>
+      </div>
     </footer>
   </body>
 </html>
