@@ -1,21 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  cpSync,
-  existsSync,
-  mkdtempSync,
-  readFileSync,
-  readdirSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
-import { execFileSync } from 'node:child_process';
-import { tmpdir } from 'node:os';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
 import { parseHTML } from 'linkedom';
 
 const ROOT = resolve(import.meta.dirname, '..');
-const SITE = join(ROOT, '_site');
+
+// The single seam: the repository root, as a static server serves it.
+const SITE = ROOT;
 const SITE_ORIGIN = 'https://svino-turania.github.io';
 const MAP_ORIGIN = 'https://www.openstreetmap.org';
 
@@ -36,8 +28,25 @@ function normalize(value) {
 
 function builtStylesheet() {
   const file = join(SITE, 'assets', 'css', 'style.css');
-  assert.ok(existsSync(file), 'la build non ha prodotto il foglio di stile');
+  assert.ok(existsSync(file), 'manca il foglio di stile nel sito');
   return readFileSync(file, 'utf8');
+}
+
+/*
+ * Everything a static server publishes from the repository root: the page
+ * document and the assets tree. This is an allowlist, so node_modules, the
+ * tests, the repository documents and .git are never in scope for the
+ * directory-walking assertions below.
+ */
+function shippedFiles() {
+  const files = ['index.html'];
+  const assets = join(SITE, 'assets');
+  if (existsSync(assets)) {
+    for (const name of readdirSync(assets, { recursive: true })) {
+      files.push(join('assets', String(name)));
+    }
+  }
+  return files;
 }
 
 /*
@@ -99,7 +108,7 @@ function siteFileFor(rawUrl) {
   const url = new URL(rawUrl, `${SITE_ORIGIN}/`);
   assert.equal(url.origin, SITE_ORIGIN, `la risorsa punta a un altro host: ${rawUrl}`);
   const file = join(SITE, decodeURIComponent(url.pathname));
-  assert.ok(existsSync(file), `la risorsa non esiste nella build: ${url.pathname}`);
+  assert.ok(existsSync(file), `la risorsa non esiste nel sito: ${url.pathname}`);
   return { url, file };
 }
 
@@ -111,7 +120,7 @@ function sameOriginUrl(rawUrl) {
 
 function loadSite() {
   const file = join(SITE, 'index.html');
-  assert.ok(existsSync(file), 'la build non ha prodotto _site/index.html');
+  assert.ok(existsSync(file), 'manca index.html alla radice del sito');
   const { document } = parseHTML(readFileSync(file, 'utf8'));
   return document;
 }
@@ -159,7 +168,7 @@ function wholeDocumentText(document) {
   return normalize(parts.join(' ')).toLowerCase();
 }
 
-test('la pagina costruita riporta i fatti stampati sulla Locandina', () => {
+test('la pagina servita riporta i fatti stampati sulla Locandina', () => {
   const document = loadSite();
   const text = normalize(document.body.textContent);
 
@@ -183,6 +192,76 @@ test('la pagina costruita riporta i fatti stampati sulla Locandina', () => {
   assert.ok(
     text.includes(CANTINA_PARAGRAPH),
     'il paragrafo delle Cantine non è riportato alla lettera',
+  );
+});
+
+test('le literal della data concordano con l’attributo datetime', () => {
+  const document = loadSite();
+  const time = document.querySelector('time[datetime]');
+  assert.ok(time, 'manca un elemento time con un attributo datetime');
+
+  const iso = time.getAttribute('datetime');
+  assert.match(
+    iso,
+    /^\d{4}-\d{2}-\d{2}$/,
+    `datetime non è una data ISO: ${iso}`,
+  );
+  const date = new Date(`${iso}T00:00:00Z`);
+
+  // Recompute the date independently of the page with the same locale the
+  // printed date uses; the literals must not drift away from datetime.
+  const weekday = new Intl.DateTimeFormat('it-IT', {
+    weekday: 'long',
+    timeZone: 'UTC',
+  })
+    .format(date)
+    .toUpperCase();
+  const month = new Intl.DateTimeFormat('it-IT', {
+    month: 'long',
+    timeZone: 'UTC',
+  })
+    .format(date)
+    .toUpperCase();
+  const day = String(date.getUTCDate());
+  const year = String(date.getUTCFullYear());
+
+  assert.equal(
+    normalize(time.textContent),
+    `${day} ${weekday} ${month} ${year}`,
+    'giorno, giorno della settimana, mese o anno non concordano con datetime',
+  );
+
+  // The time phrase beside the date and the DALLE ORE value must state the
+  // same clock time.
+  const clock = normalize(time.parentElement?.textContent ?? '').match(
+    /dalle ore (\d{2}:\d{2})/,
+  );
+  assert.ok(clock, 'manca la frase dell’orario accanto alla data');
+
+  const label = [...document.querySelectorAll('dt')].find(
+    (node) => normalize(node.textContent) === 'DALLE ORE',
+  );
+  assert.ok(label, 'manca il fatto DALLE ORE');
+  assert.equal(
+    normalize(label.nextElementSibling?.textContent ?? ''),
+    clock[1],
+    'l’orario accanto alla data e quello sotto DALLE ORE divergono',
+  );
+});
+
+test('la pagina spedita è solo index.html e non contiene sintassi di template', () => {
+  const pages = shippedFiles().filter((file) => file.endsWith('.html'));
+  assert.deepEqual(
+    pages,
+    ['index.html'],
+    `il sito spedisce più di una pagina HTML: ${pages.join(', ')}`,
+  );
+
+  const html = readFileSync(join(SITE, 'index.html'), 'utf8');
+  assert.doesNotMatch(
+    html,
+    /\{\{|\{%|\{#/,
+    'la pagina contiene sintassi di template non risolta',
   );
 });
 
@@ -256,75 +335,17 @@ test('il download della Locandina è un’immagine dello stesso sito con tipo di
   );
 });
 
-test('la build non distribuisce PDF, file CMYK o master di stampa', () => {
-  const files = readdirSync(SITE, { recursive: true }).map(String);
+test('il sito non distribuisce PDF, file CMYK o master di stampa', () => {
+  const files = shippedFiles();
 
   for (const name of files) {
     const base = name.split('/').pop().toLowerCase();
-    assert.ok(!base.endsWith('.pdf'), `la build contiene un PDF: ${name}`);
-    assert.ok(!base.includes('cmyk'), `la build contiene un file CMYK: ${name}`);
+    assert.ok(!base.endsWith('.pdf'), `il sito contiene un PDF: ${name}`);
+    assert.ok(!base.includes('cmyk'), `il sito contiene un file CMYK: ${name}`);
     assert.ok(
       !/(svino_a3|print[-_]?ready|(?:^|[-_.])master(?:[-_.]|$))/.test(base),
-      `la build contiene un master di stampa: ${name}`,
+      `il sito contiene un master di stampa: ${name}`,
     );
-  }
-});
-
-test('modificare un valore in front matter cambia la pagina senza toccare i template', () => {
-  const buildDir = mkdtempSync(join(tmpdir(), 'svino-build-'));
-
-  try {
-    cpSync(join(ROOT, 'src'), join(buildDir, 'src'), { recursive: true });
-    cpSync(
-      join(ROOT, 'eleventy.config.js'),
-      join(buildDir, 'eleventy.config.js'),
-    );
-
-    const entryPath = join(buildDir, 'src', 'index.md');
-    const edited = readFileSync(entryPath, 'utf8')
-      .replace('date: 2026-12-06', 'date: 2027-01-03')
-      .replace('place: "Turania (RI)"', 'place: "Sentinella (ZZ)"')
-      .replace('time: "12:00"', 'time: "13:30"')
-      .replace(/^photoAlt: .*$/m, 'photoAlt: "Descrizione modificata per il test"')
-      .concat('\n## Sezione futura\n\nTesto aggiunto in seguito.\n');
-    writeFileSync(entryPath, edited);
-
-    execFileSync(
-      process.execPath,
-      [join(ROOT, 'node_modules', '@11ty', 'eleventy', 'cmd.cjs'), '--quiet'],
-      { cwd: buildDir, stdio: 'pipe' },
-    );
-
-    const { document } = parseHTML(
-      readFileSync(join(buildDir, '_site', 'index.html'), 'utf8'),
-    );
-    const text = normalize(document.body.textContent);
-
-    assert.ok(text.includes('Sentinella (ZZ)'), 'il nuovo luogo non appare');
-    assert.ok(text.includes('13:30'), 'il nuovo orario non appare');
-    assert.ok(text.includes('GENNAIO 2027'), 'la nuova data non appare');
-    assert.ok(
-      !text.includes('Turania (RI)') && !text.includes('DICEMBRE 2026'),
-      'un vecchio valore di front matter è rimasto nella pagina',
-    );
-    assert.ok(
-      text.includes('Sezione futura') && text.includes('Testo aggiunto in seguito.'),
-      'una nuova sezione dello stesso entry non finisce nella stessa pagina',
-    );
-
-    const photo = document.querySelector('picture img');
-    assert.equal(
-      photo?.getAttribute('alt'),
-      'Descrizione modificata per il test',
-      'la descrizione della fotografia non viene dal front matter',
-    );
-
-    const routes = readdirSync(join(buildDir, '_site'), { recursive: true })
-      .map(String)
-      .filter((file) => file.endsWith('.html'));
-    assert.deepEqual(routes, ['index.html'], 'la nuova sezione ha creato una rotta');
-  } finally {
-    rmSync(buildDir, { recursive: true, force: true });
   }
 });
 
@@ -398,7 +419,7 @@ test('la pagina fornisce anteprime Open Graph e Twitter con l’immagine quadrat
   const imageFile = join(SITE, decodeURIComponent(imageUrl.pathname));
   assert.ok(
     existsSync(imageFile),
-    `l’immagine di anteprima non esiste in _site: ${imageUrl.pathname}`,
+    `l’immagine di anteprima non esiste nel sito: ${imageUrl.pathname}`,
   );
   assert.deepEqual(
     jpegSize(imageFile),
@@ -513,11 +534,11 @@ test('la pagina non carica JavaScript né risorse di terze parti', () => {
     );
   }
 
-  const files = readdirSync(SITE, { recursive: true }).map(String);
+  const files = shippedFiles();
   assert.deepEqual(
     files.filter((file) => file.endsWith('.js')),
     [],
-    'la build contiene file JavaScript',
+    'il sito contiene file JavaScript',
   );
 
   for (const file of files.filter((name) => name.endsWith('.css'))) {
@@ -618,8 +639,8 @@ test('la fotografia del Borgo è a tutta larghezza tra la testata e la data', ()
   assert.ok(webpBytes.length > 0, 'il WebP della fotografia è vuoto');
 });
 
-test('la build non spedisce alcuna immagine di strappo', () => {
-  const files = readdirSync(SITE, { recursive: true }).map(String);
+test('il sito non spedisce alcuna immagine di strappo', () => {
+  const files = shippedFiles();
   const tearImages = files.filter(
     (file) =>
       /\.(?:png|jpe?g|webp|gif|avif|svg)$/i.test(file) &&
@@ -629,7 +650,7 @@ test('la build non spedisce alcuna immagine di strappo', () => {
   assert.deepEqual(
     tearImages,
     [],
-    `la build contiene un'immagine di strappo: ${tearImages.join(', ')}`,
+    `il sito contiene un'immagine di strappo: ${tearImages.join(', ')}`,
   );
 });
 
@@ -674,14 +695,14 @@ test('la testata riporta la firma come tracciato inline con nome accessibile e i
   }
 });
 
-test('la build non distribuisce il font Breathing e non richiede font esterni', () => {
-  const files = readdirSync(SITE, { recursive: true }).map(String);
+test('il sito non distribuisce il font Breathing e non richiede font esterni', () => {
+  const files = shippedFiles();
 
   for (const file of files) {
     assert.doesNotMatch(
       file,
       /breathing/i,
-      `la build contiene il font Breathing: ${file}`,
+      `il sito contiene il font Breathing: ${file}`,
     );
   }
   assert.deepEqual(
@@ -695,7 +716,7 @@ test('la build non distribuisce il font Breathing e non richiede font esterni', 
     assert.match(
       file,
       /(?:^|\/)assets\/fonts\/(?:SVSerif|SVSans)-(?:Regular|Bold)\.woff2$/,
-      `la build contiene un font non ammesso: ${file}`,
+      `il sito contiene un font non ammesso: ${file}`,
     );
   }
 
@@ -753,7 +774,7 @@ test('i font auto-ospitati sono WOFF2 dello stesso sito', () => {
   ]) {
     assert.ok(
       existsSync(join(SITE, 'assets', 'fonts', `${name}.woff2`)),
-      `manca il font ${name}.woff2 nella build`,
+      `manca il font ${name}.woff2 nel sito`,
     );
   }
 
