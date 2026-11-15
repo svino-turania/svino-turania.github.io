@@ -430,30 +430,36 @@
 
   /* ----------------------------------------------------------------- data */
   /*
-   * The vertical lockup: weekday in tracked small caps, the numeral at display
-   * scale, the month beneath, the time under DALLE ORE. The DOM keeps the
-   * printed order (day, weekday, month) so the time element reads as one date;
-   * grid areas put the weekday above the numeral on screen. Type stays
-   * left-aligned, like the print's margin.
+   * The page's two strong surfaces share one home: the date block and the
+   * closing band read the same base and ink, so a colour change has one place
+   * to go and no third surface can declare them.
    */
+  .band,
+  .date {
+    background: var(--strong);
+    color: var(--strong-ink);
+  }
+
   /*
-   * The date is the page's second strong surface, so it reads the same roles
-   * as the closing band: bordeaux ground, cream ink.
+   * The date distributes its own interior: the lockup at the top and the time
+   * at the bottom. It consumes one role — the muted ink its weekday and DALLE
+   * ORE labels read — so it remaps only that one.
    */
   .date {
     display: grid;
     align-content: space-between;
     gap: var(--space-4);
     text-align: start;
-    background: var(--strong);
-    color: var(--strong-ink);
-    --ink: var(--strong-ink);
     --ink-muted: var(--strong-ink-muted);
-    --link: var(--strong-ink);
-    --link-hover: var(--strong-ink-muted);
-    --rule: var(--strong-rule);
   }
 
+  /*
+   * The vertical lockup: weekday in tracked small caps, the numeral at display
+   * scale, the month beneath, the time under DALLE ORE. The DOM keeps the
+   * printed order (day, weekday, month) so the time element reads as one date;
+   * grid areas put the weekday above the numeral on screen. Type stays
+   * left-aligned, like the print's margin.
+   */
   .date-lockup {
     display: grid;
     grid-template-areas:
@@ -576,12 +582,11 @@
   /* --------------------------------------------------------- banda finale */
   /*
    * One bordeaux band closes the page. Cream carries the text and gold-light
-   * the secondary tone; both clear AA on the strong surface. The band and the
-   * date are the page's two strong surfaces, and both read the same roles.
+   * the secondary tone; both clear AA on the strong surface. The band shares
+   * the strong surface's base and ink with the date, and adds the link and
+   * rule roles its actions read.
    */
   .band {
-    background: var(--strong);
-    color: var(--strong-ink);
     --ink: var(--strong-ink);
     --ink-muted: var(--strong-ink-muted);
     --link: var(--strong-ink);

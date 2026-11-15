@@ -672,7 +672,8 @@ test('la data è un campo a tutta larghezza e, da 64 rem, un blocco nelle colonn
   // The interior uses the height the row gives it: lockup at the top, time
   // at the bottom.
   const components = layerBlock(css, 'components');
-  const dateComponent = components.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
+  const dateComponent =
+    components.match(/\.date\s*\{([^{}]*display:\s*grid[^{}]*)\}/s)?.[1] ?? '';
   assert.match(
     dateComponent,
     /display:\s*grid\s*;/,
@@ -1489,7 +1490,7 @@ test('sul telefono la fotografia si avvicina alla data e a 48 rem torna la dista
   );
 });
 
-test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', () => {
+test('la banda bordeaux chiude la pagina con fatti, azioni e colophon e la superficie forte appare solo su data e banda', () => {
   const document = loadSite();
   const bands = [...document.querySelectorAll('.band')];
   assert.equal(bands.length, 1, 'la pagina non ha una sola banda');
@@ -1539,28 +1540,43 @@ test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', ()
     'la riga della superficie forte non è oro chiaro',
   );
   // The strong surface is no longer the band's alone: the date is the page's
-  // second dark surface, and no third one exists.
-  const strongSurfaces =
-    css.match(/background(?:-color)?:\s*var\(--strong\)/g) ?? [];
+  // second dark surface. It has one home — one rule, two consumers — and no
+  // third surface declares it.
+  const strongRules = [
+    ...css.matchAll(
+      /([^{}]+)\{\s*([^{}]*background:\s*var\(--strong\)\s*;[^{}]*)\}/gs,
+    ),
+  ];
   assert.equal(
-    strongSurfaces.length,
-    2,
-    'la superficie forte non appare due volte: la data è la seconda superficie della pagina',
+    strongRules.length,
+    1,
+    'la superficie forte non ha una sola casa: data e banda devono condividerne la dichiarazione',
+  );
+  const [, strongSelector, strongBody] = strongRules[0];
+  assert.equal(
+    normalize(strongSelector),
+    '.band, .date',
+    'la superficie forte non è dichiarata su data e banda insieme, e solo su quelle',
+  );
+  assert.match(
+    strongBody,
+    /background:\s*var\(--strong\)\s*;/,
+    'la superficie forte non dichiara il fondo bordeaux semantico',
+  );
+  assert.match(
+    strongBody,
+    /color:\s*var\(--strong-ink\)\s*;/,
+    'la superficie forte non dichiara il testo crema semantico',
+  );
+  assert.doesNotMatch(
+    strongBody,
+    /#[0-9a-fA-F]{3,8}\b/,
+    'la superficie forte dichiara un colore grezzo invece di un ruolo',
   );
   assert.match(
     css,
-    /\.date\s*\{[^}]*background:\s*var\(--strong\)/s,
-    'la data non dichiara il fondo della superficie forte',
-  );
-  assert.match(
-    css,
-    /\.band\s*\{[^}]*background:\s*var\(--strong\)/s,
-    'la banda non dichiara il fondo della superficie forte',
-  );
-  assert.match(
-    css,
-    /\.band\s*\{[^}]*color:\s*var\(--strong-ink\)/s,
-    'la banda non dichiara il testo della superficie forte',
+    /\.date\s*\{[^{}]*--ink-muted:\s*var\(--strong-ink-muted\)\s*;/s,
+    'la data non legge l’inchiostro attenuato della superficie forte',
   );
   // The band reads the strong-surface vocabulary, never a raw colour and
   // never a role named after itself.
@@ -1588,41 +1604,31 @@ test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', ()
 });
 
 /*
- * Both dark surfaces share one type vocabulary. Inside the date the role
- * overrides resolve the muted labels (weekday, DALLE ORE) to the strong
- * surface's gold-light, while the day, the month and the time inherit the
+ * Both dark surfaces share one type vocabulary. The date reads the strong
+ * surface's base and ink from the rule it shares with the band, and the one
+ * role it consumes — the muted ink its weekday and DALLE ORE labels use — is
+ * remapped on the dark ground. The day, the month and the time inherit the
  * strong ink. No raw colour and no role named after the band is involved.
  */
 test('la data legge i ruoli della superficie forte come la banda che chiude la pagina', () => {
   const css = stripCssComments(servedStylesheet());
   const components = layerBlock(css, 'components');
-  const dateRule = components.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.ok(dateRule, 'manca la regola della data');
+  const dateRule =
+    components.match(/\.date\s*\{([^{}]*--ink-muted[^{}]*)\}/s)?.[1] ?? '';
+  assert.ok(dateRule, 'manca la regola dei ruoli della data');
 
+  // The date contains no link and no rule pseudo-element, so muted ink is the
+  // only role it consumes; the shared rule already carries base and ink.
   assert.match(
     dateRule,
-    /background:\s*var\(--strong\)\s*;/,
-    'la data non dichiara il fondo della superficie forte',
+    /--ink-muted:\s*var\(--strong-ink-muted\)\s*;/,
+    'la data non rimappa l’inchiostro attenuato sulla superficie forte',
   );
-  assert.match(
-    dateRule,
-    /color:\s*var\(--strong-ink\)\s*;/,
-    'la data non dichiara l’inchiostro della superficie forte',
-  );
-
-  // The same overrides the band declares, so every descendant role resolves
-  // on the dark ground instead of on the cream page.
-  for (const [role, value] of [
-    ['ink', '--strong-ink'],
-    ['ink-muted', '--strong-ink-muted'],
-    ['rule', '--strong-rule'],
-    ['link', '--strong-ink'],
-    ['link-hover', '--strong-ink-muted'],
-  ]) {
-    assert.match(
+  for (const role of ['ink', 'link', 'link-hover', 'rule']) {
+    assert.doesNotMatch(
       dateRule,
-      new RegExp(`--${role}:\\s*var\\(${value}\\)\\s*;`),
-      `la data non rimappa --${role} sull’inchiostro della superficie forte`,
+      new RegExp(`--${role}\\s*:`),
+      `la data rimappa --${role}, che non consuma`,
     );
   }
 
