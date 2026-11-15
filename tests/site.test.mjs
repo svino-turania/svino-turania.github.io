@@ -565,6 +565,140 @@ test('la data è un lockup verticale allineato a sinistra con un solo luogo per 
 
 });
 
+/*
+ * The date is the page's second dark surface. Below 64 rem it is a bordeaux
+ * field that gives the page's inline padding back at both edges, exactly as
+ * the photograph does, and pads its content back in by the same gutters. From
+ * 64 rem it becomes a flush block in columns 9–12 that fills the masthead
+ * row, so it adds no row and no height. It is a colour field, not a panel:
+ * no radius, no shadow and no border.
+ */
+test('la data è un campo a tutta larghezza e, da 64 rem, un blocco nelle colonne 9–12', () => {
+  const css = stripCssComments(servedStylesheet());
+  const layout = layerBlock(css, 'layout');
+
+  // Below the block threshold the field follows the photograph's bleed: it
+  // gives the page padding back at both edges and pads the content in again.
+  const phoneDate = layout.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(phoneDate, 'manca la regola della data sul telefono');
+  assert.match(
+    phoneDate,
+    /margin-inline:\s*calc\(\s*-1\s*\*\s*var\(--page-pad\)\s*\)/,
+    'sotto 64 rem la data non annulla il margine interno della pagina e non arriva ai bordi',
+  );
+  assert.match(
+    phoneDate,
+    /padding-inline:\s*var\(--page-pad\)/,
+    'la data non riporta il contenuto sui margini della pagina',
+  );
+  assert.doesNotMatch(
+    phoneDate,
+    /\d(?:vw|vmin|vmax)\b/,
+    'la data si dimensiona con il viewport e può scorrere in orizzontale',
+  );
+  assert.match(
+    phoneDate,
+    /min-inline-size:\s*0\s*;/,
+    'la data non può restringersi dentro la griglia e spinge la pagina di lato al 200% di zoom',
+  );
+
+  // From 48 rem the grid is twelve columns; until 64 rem the date spans all
+  // of them, so `DICEMBRE 2026` never has to wrap inside a narrow block.
+  const spread = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)');
+  assert.equal(spread.length, 1, 'manca il blocco della misura da 48 rem');
+  const spreadBody = css.slice(
+    css.indexOf('{', spread[0].start) + 1,
+    spread[0].end,
+  );
+  const spreadDate = spreadBody.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(spreadDate, 'la data non è collocata nella griglia da 48 rem');
+  assert.match(
+    spreadDate,
+    /grid-column:\s*1\s*\/\s*-1\s*;/,
+    'tra 48 e 64 rem la data non occupa tutta la larghezza della griglia',
+  );
+
+  // From 64 rem the field is the block: columns 9–12, flush to the grid and
+  // stretched to the masthead row's height.
+  const wide = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*64rem\\)');
+  assert.equal(wide.length, 1, 'manca la soglia della data da 64 rem');
+  const wideBody = css.slice(css.indexOf('{', wide[0].start) + 1, wide[0].end);
+  const wideDate = wideBody.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(wideDate, 'da 64 rem la data non diventa un blocco');
+  assert.match(
+    wideDate,
+    /grid-column:\s*9\s*\/\s*-1\s*;/,
+    'da 64 rem la data non occupa le colonne 9–12',
+  );
+  assert.match(
+    wideDate,
+    /align-self:\s*stretch\s*;/,
+    'da 64 rem la data non si distende sull’altezza della riga della testata',
+  );
+  assert.match(
+    wideDate,
+    /justify-self:\s*stretch\s*;/,
+    'da 64 rem il blocco non riempie le colonne che occupa',
+  );
+  assert.match(
+    wideDate,
+    /margin-inline:\s*0\s*;/,
+    'da 64 rem il blocco non è a filo della griglia',
+  );
+  assert.match(
+    wideDate,
+    /margin-block-start:\s*0\s*;/,
+    'da 64 rem la data aggiunge una riga invece di stare in quella della testata',
+  );
+
+  // The interior uses the height the row gives it: lockup at the top, time
+  // at the bottom.
+  const components = layerBlock(css, 'components');
+  const dateComponent = components.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(
+    dateComponent,
+    /display:\s*grid\s*;/,
+    'la data non è una griglia che può distribuire il proprio interno',
+  );
+  assert.match(
+    dateComponent,
+    /align-content:\s*space-between\s*;/,
+    'la data non tiene il lockup in alto e l’orario in basso usando l’altezza del blocco',
+  );
+
+  // At 200% text zoom the date's words wrap inside the block and never push
+  // the page sideways: the block is constrained and its words may break.
+  assert.match(
+    components,
+    /\.date-lockup\s*>\s*\*,\s*\.date-time\s*>\s*\*\s*\{[^}]*max-inline-size:\s*100%/s,
+    'le parole della data non sono limitate alla larghezza del blocco',
+  );
+  assert.match(
+    components,
+    /\.date-lockup\s*>\s*\*,\s*\.date-time\s*>\s*\*\s*\{[^}]*overflow-wrap:\s*anywhere/s,
+    'le parole della data non possono andare a capo dentro il blocco',
+  );
+
+  // A colour field, not a panel: sharp edges only.
+  for (const [, block] of css.matchAll(/\.date\s*\{([^}]*)\}/gs)) {
+    assert.doesNotMatch(
+      block,
+      /\bborder(?:-[a-z-]+)?\s*:/,
+      'il campo della data disegna un bordo: è un pannello',
+    );
+    assert.doesNotMatch(
+      block,
+      /\bbox-shadow\s*:/,
+      'il campo della data proietta un’ombra: è un pannello',
+    );
+    assert.doesNotMatch(
+      block,
+      /\bborder-radius\s*:/,
+      'il campo della data ha angoli arrotondati: è un pannello',
+    );
+  }
+});
+
 test('la pagina spedita è solo index.html e non contiene sintassi di template', () => {
   const pages = shippedFiles().filter((file) => file.endsWith('.html'));
   assert.deepEqual(
@@ -1192,10 +1326,19 @@ test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', ()
     /--strong-rule:\s*var\(--gold-light\)\s*;/,
     'la riga della superficie forte non è oro chiaro',
   );
+  // The strong surface is no longer the band's alone: the date is the page's
+  // second dark surface, and no third one exists.
+  const strongSurfaces =
+    css.match(/background(?:-color)?:\s*var\(--strong\)/g) ?? [];
   assert.equal(
-    (css.match(/background(?:-color)?:\s*var\(--strong\)/g) ?? []).length,
-    1,
-    'la superficie forte non appare una volta sola: la data non è ancora una seconda superficie',
+    strongSurfaces.length,
+    2,
+    'la superficie forte non appare due volte: la data è la seconda superficie della pagina',
+  );
+  assert.match(
+    css,
+    /\.date\s*\{[^}]*background:\s*var\(--strong\)/s,
+    'la data non dichiara il fondo della superficie forte',
   );
   assert.match(
     css,
@@ -1229,6 +1372,83 @@ test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', ()
   assert.ok(
     contrastRatio(paletteToken('gold-light'), paletteToken('bordeaux')) >= 4.5,
     'l’oro chiaro sulla superficie forte non raggiunge il rapporto 4.5:1',
+  );
+});
+
+/*
+ * Both dark surfaces share one type vocabulary. Inside the date the role
+ * overrides resolve the muted labels (weekday, DALLE ORE) to the strong
+ * surface's gold-light, while the day, the month and the time inherit the
+ * strong ink. No raw colour and no role named after the band is involved.
+ */
+test('la data legge i ruoli della superficie forte come la banda che chiude la pagina', () => {
+  const css = stripCssComments(servedStylesheet());
+  const components = layerBlock(css, 'components');
+  const dateRule = components.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(dateRule, 'manca la regola della data');
+
+  assert.match(
+    dateRule,
+    /background:\s*var\(--strong\)\s*;/,
+    'la data non dichiara il fondo della superficie forte',
+  );
+  assert.match(
+    dateRule,
+    /color:\s*var\(--strong-ink\)\s*;/,
+    'la data non dichiara l’inchiostro della superficie forte',
+  );
+
+  // The same overrides the band declares, so every descendant role resolves
+  // on the dark ground instead of on the cream page.
+  for (const [role, value] of [
+    ['ink', '--strong-ink'],
+    ['ink-muted', '--strong-ink-muted'],
+    ['rule', '--strong-rule'],
+    ['link', '--strong-ink'],
+    ['link-hover', '--strong-ink-muted'],
+  ]) {
+    assert.match(
+      dateRule,
+      new RegExp(`--${role}:\\s*var\\(${value}\\)\\s*;`),
+      `la data non rimappa --${role} sull’inchiostro della superficie forte`,
+    );
+  }
+
+  // The labels carry the muted ink…
+  assert.match(
+    components,
+    /\.date-weekday\s*\{[^}]*color:\s*var\(--ink-muted\)/s,
+    'il giorno della settimana non legge l’inchiostro attenuato della superficie forte',
+  );
+  assert.match(
+    components,
+    /\.date-time dt\s*\{[^}]*color:\s*var\(--ink-muted\)/s,
+    'DALLE ORE non legge l’inchiostro attenuato della superficie forte',
+  );
+
+  // …while the day, the month and the time inherit the date's ink, so they
+  // must not declare a colour of their own on the cream page.
+  for (const [selector, label] of [
+    ['.date-day', 'il giorno'],
+    ['.date-month', 'il mese'],
+    ['.date-time dd', 'l’orario'],
+  ]) {
+    const rule =
+      components.match(
+        new RegExp(`${selector.replace(/\./g, '\\.')}\\s*\\{([^}]*)\\}`, 's'),
+      )?.[1] ?? '';
+    assert.ok(rule, `manca la regola di ${label}`);
+    assert.doesNotMatch(
+      rule,
+      /\bcolor\s*:/,
+      `${label} dichiara un colore proprio invece di ereditare l’inchiostro della data`,
+    );
+  }
+
+  assert.doesNotMatch(
+    css,
+    /var\(--band(?:-[a-z-]+)?\)/,
+    'la data legge un ruolo intitolato alla banda invece della superficie forte',
   );
 });
 
