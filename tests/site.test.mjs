@@ -67,6 +67,46 @@ function atRuleBlocks(css, header) {
   return blocks;
 }
 
+/*
+ * The selector of the rule that owns the declaration at `index`. The nearest
+ * `{` backwards opens the rule; the previous `{` or `}` is the edge of the
+ * surrounding at-rule (or of the previous rule).
+ */
+function selectorAt(css, index) {
+  const open = css.lastIndexOf('{', index);
+  assert.ok(open !== -1, 'dichiarazione fuori da una regola');
+  const start = Math.max(
+    css.lastIndexOf('}', open - 1),
+    css.lastIndexOf('{', open - 1),
+  );
+  return normalize(css.slice(start + 1, open));
+}
+
+/* The selectors whose rules carry animation-timeline: view(). */
+function viewTimelines(css) {
+  const supports = atRuleBlocks(
+    css,
+    '@supports\\s*\\(animation-timeline:\\s*view\\(\\)\\)',
+  );
+  const selectors = [];
+  for (const block of supports) {
+    const open = css.indexOf('{', block.start);
+    const body = css.slice(open + 1, block.end);
+    for (const use of body.matchAll(/animation-timeline\s*:\s*view\(\)/g)) {
+      selectors.push(selectorAt(css, open + 1 + use.index));
+    }
+  }
+  return selectors;
+}
+
+function withoutBlocks(css, blocks) {
+  let result = css;
+  for (const { start, end } of [...blocks].sort((a, b) => b.start - a.start)) {
+    result = result.slice(0, start) + result.slice(end + 1);
+  }
+  return result;
+}
+
 function paletteToken(name) {
   const source = servedStylesheet().match(
     new RegExp(`--${name}\\s*:\\s*(#[0-9a-fA-F]{6})\\s*;`),
@@ -1346,11 +1386,6 @@ test('la mappa e la Locandina sono azioni tipografiche con riga e freccia, non b
   assert.ok(actionRule, 'le azioni della banda non hanno una regola');
   assert.match(
     actionRule,
-    /border-block-end\s*:\s*1px\s+solid\s+var\(--rule\)/,
-    'le azioni non portano una riga tipografica',
-  );
-  assert.match(
-    actionRule,
     /text-decoration\s*:\s*none/,
     'le azioni conservano la sottolineatura invece della riga',
   );
@@ -1363,6 +1398,28 @@ test('la mappa e la Locandina sono azioni tipografiche con riga e freccia, non b
     actionRule,
     /border-radius\s*:/,
     'un’azione ha un angolo arrotondato da bottone',
+  );
+
+  /*
+   * The rule is a pseudo-line, not a border, so it can be ruled from the left
+   * without moving the link's text or its focus indicator.
+   */
+  const ruleLine = css.match(/\.band__actions\s+a::before\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(ruleLine, 'le azioni non portano una riga tipografica');
+  assert.match(
+    ruleLine,
+    /(?:block-size|height)\s*:\s*1px/,
+    'la riga non ha lo spessore di un pixel',
+  );
+  assert.match(
+    ruleLine,
+    /background(?:-color)?\s*:\s*var\(--rule\)/,
+    'la riga non usa il colore delle righe',
+  );
+  assert.match(
+    ruleLine,
+    /(?:inset-block-end|bottom)\s*:\s*0/,
+    'la riga non è appoggiata al piede dell’azione',
   );
 
   const arrowRule = css.match(/\.band__actions\s+a::after\s*\{([^}]*)\}/s)?.[1] ?? '';
@@ -2012,7 +2069,7 @@ test('il foglio di stile espone un indicatore di focus visibile sui link', () =>
   assert.ok(pixels >= 2, `outline troppo sottile: ${value}`);
 });
 
-test('il movimento è CSS, usa i token e ha una via per chi riduce il movimento', () => {
+test('il movimento del spread usa i token, lascia fermo l’eroe e ha una via per chi riduce il movimento', () => {
   const css = servedStylesheet();
 
   assert.doesNotMatch(
@@ -2050,6 +2107,11 @@ test('il movimento è CSS, usa i token e ha una via per chi riduce il movimento'
       /var\(--motion-/,
       `l’animazione non usa un token di durata: ${normalize(animation[1])}`,
     );
+    assert.doesNotMatch(
+      animation[1],
+      /(?:^|\s)\d+(?:\.\d+)?m?s(?:\s|$)/,
+      `l’animazione contiene una durata magica: ${normalize(animation[1])}`,
+    );
   }
 
   const supports = atRuleBlocks(
@@ -2064,6 +2126,77 @@ test('il movimento è CSS, usa i token e ha una via per chi riduce il movimento'
       'animation-timeline: view() è fuori dal blocco @supports',
     );
   }
+
+  /*
+   * The spread reveals only the prose and the band as they enter the viewport.
+   * The hero — the signature, its lockup and subtitle, and the date — is
+   * present on the first screen and never waits for the scroll.
+   */
+  const reveals = viewTimelines(css);
+  assert.ok(reveals.length > 0, 'manca il reveal scroll della prosa e della banda');
+  assert.ok(
+    reveals.some((selector) => /\.cantina\b/.test(selector)),
+    'la prosa non si rivela entrando nel viewport',
+  );
+  assert.ok(
+    reveals.some((selector) => /\.facts\b/.test(selector)),
+    'i fatti non si rivelano entrando nel viewport',
+  );
+  for (const selector of reveals) {
+    assert.doesNotMatch(
+      selector,
+      /(?:\.masthead|\.signature|\.lockup|\.subtitle|\.date)\b/,
+      `l’eroe ha un reveal scroll: ${selector}`,
+    );
+    assert.match(
+      selector,
+      /\.cantina\b|\.facts\b|\.band__actions\b/,
+      `il reveal scroll è fuori dalla prosa e dalla banda: ${selector}`,
+    );
+    assert.doesNotMatch(
+      selector,
+      /\.band__inner\b/,
+      'la banda intera sfuma: le due azioni non devono stare in un contenitore che sfuma',
+    );
+  }
+
+  /*
+   * Nothing waits for an animation to be usable: the band that holds the two
+   * actions never fades as a whole, and focus is immediate.
+   */
+  const clean = stripCssComments(css);
+  assert.doesNotMatch(
+    clean,
+    /\.band(?:__inner|__actions)?\s*\{[^}]*\banimation\s*:/s,
+    'la banda o le sue azioni sfumano: le due azioni devono essere subito visibili',
+  );
+  for (const [, selector, body] of clean.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (/:focus(?:-visible|-within)?\b/.test(selector)) {
+      assert.doesNotMatch(
+        body,
+        /\b(?:animation|transition)\s*:/,
+        `il focus anima: ${normalize(selector)}`,
+      );
+    }
+  }
+
+  /*
+   * With motion off, the served page is the finished spread: no element is
+   * left invisible or shrunk by the base stylesheet. Only the keyframes and
+   * the no-preference blocks may hold an entrance's first frame.
+   */
+  const keyframes = atRuleBlocks(css, '@keyframes\\s+[\\w-]+\\s*\\{');
+  const base = withoutBlocks(css, [...noPreference, ...keyframes]);
+  assert.doesNotMatch(
+    base,
+    /\bopacity\s*:\s*0(?:[;\s}]|$)/,
+    'un elemento parte invisibile fuori dal movimento',
+  );
+  assert.doesNotMatch(
+    base,
+    /\btransform\s*:[^;]*\bscale[XY]?\(\s*0\s*\)/,
+    'un elemento parte rimpicciolito fuori dal movimento',
+  );
 
   const reduce = atRuleBlocks(
     css,
