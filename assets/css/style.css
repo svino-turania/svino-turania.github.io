@@ -218,6 +218,15 @@
     margin-block-start: var(--photo-rise);
   }
 
+  /*
+   * On the phone the date is a block under the masthead, so it needs a
+   * separation of its own: without one the tracked weekday reads as a
+   * continuation of the subtitle. On the spread the grid hangs it instead.
+   */
+  .date {
+    margin-block-start: var(--space-6);
+  }
+
   .cantina {
     max-inline-size: 36rem;
   }
@@ -237,6 +246,7 @@
       grid-column: 9 / -1;
       align-self: end;
       justify-self: start;
+      margin-block-start: 0;
     }
 
     .photo-band {
