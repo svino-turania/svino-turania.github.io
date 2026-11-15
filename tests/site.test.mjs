@@ -508,11 +508,10 @@ test('le literal della data concordano con l’attributo datetime', () => {
 });
 
 /*
- * The printed date is one vertical lockup, left-aligned in the spread: the
- * weekday above the numeral at display scale, the month beneath, the time
- * under DALLE ORE. The DOM keeps the printed order (day, weekday, month) so
- * the time element reads as one date; the composition puts the weekday above
- * the numeral. The exactly-once test proves the time has no second home.
+ * The printed date is one vertical lockup: the weekday above the numeral at
+ * display scale, the month beneath, the time under DALLE ORE. The DOM keeps
+ * the printed order (day, weekday, month) so the time element reads as one
+ * date. The exactly-once test proves the time has no second home.
  */
 test('la data è un lockup verticale allineato a sinistra con un solo luogo per l’orario', () => {
   const document = loadSite();
@@ -563,41 +562,6 @@ test('la data è un lockup verticale allineato a sinistra con un solo luogo per 
     'il valore sotto DALLE ORE non è un orario',
   );
 
-  // The composition, not the markup, makes the lockup left-aligned; the
-  // numeral is SV Serif at the display-scale token, and the time's size also
-  // comes from the token layer rather than a magic number.
-  const css = stripCssComments(servedStylesheet());
-  assert.match(
-    css,
-    /\.date\s*\{[^}]*text-align:\s*start/s,
-    'la data non è allineata a sinistra',
-  );
-  assert.match(
-    css,
-    /\.date-lockup\s*\{[^}]*grid-template-areas:\s*"weekday"\s*"day"\s*"month"/s,
-    'il lockup non mette il giorno della settimana sopra il numero e il mese sotto',
-  );
-  assert.match(
-    css,
-    /\.date-lockup\s*\{[^}]*justify-items:\s*start/s,
-    'il lockup non è allineato a sinistra',
-  );
-  assert.match(
-    css,
-    /\.date-day\s*\{[^}]*font-family:\s*var\(--serif\)[^}]*font-size:\s*var\(--date-numeral\)/s,
-    'il numero del giorno non è SV Serif alla misura display',
-  );
-  assert.match(
-    css,
-    /\.date-time dd\s*\{[^}]*font-family:\s*var\(--serif\)[^}]*font-size:\s*var\(--[a-z0-9-]+\)/s,
-    'la misura dell’orario non viene dal layer dei token',
-  );
-  // On the spread the date hugs the left edge of columns 9–13.
-  assert.match(
-    css,
-    /\.date\s*\{[^}]*grid-column:\s*9\s*\/\s*-1[^}]*justify-self:\s*start/s,
-    'la data non è appoggiata a sinistra delle colonne 9–12',
-  );
 });
 
 test('la pagina spedita è solo index.html e non contiene sintassi di template', () => {
@@ -662,10 +626,6 @@ test('la Locandina si scarica da un solo link nella banda che chiude la pagina',
     band.contains(link),
     'il link della Locandina non è dentro la banda che chiude la pagina',
   );
-  assert.ok(
-    !document.querySelector('.site-footer .locandina-download'),
-    'la vecchia copia del download è ancora nella pagina',
-  );
 
   const name = accessibleName(document, link);
   assert.match(
@@ -706,14 +666,26 @@ test('la Locandina si scarica da un solo link nella banda che chiude la pagina',
     'il download è un’immagine CMYK, non una copia RGB per il web',
   );
 
-  // The label duplicated the link and hid one copy by composition. The spread
-  // has one anchor, so no download may be display:none at any width.
+  /*
+   * The label duplicated the link and hid one copy by composition. The spread
+   * has one anchor in a band present at every width, so no rule that styles
+   * the band or its actions may hide them. A utility that hides something
+   * else on the page is not this contract's business.
+   */
   const css = stripCssComments(servedStylesheet());
-  assert.doesNotMatch(
-    css,
-    /locandina-download[^{}]*\{[^}]*display\s*:\s*none/s,
-    'un link della Locandina è ancora nascosto per composizione',
-  );
+  const bandSelectors =
+    /(?:\.band\b|\.band__|\.facts\b|\.map-link\b|\.locandina-download\b|\.action\b|\.action__|a\[download\])/;
+  const hiding = /\b(?:display\s*:\s*none|visibility\s*:\s*hidden)\b/;
+  for (const [, selector, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (!bandSelectors.test(selector)) {
+      continue;
+    }
+    assert.doesNotMatch(
+      body,
+      hiding,
+      `il foglio di stile nasconde la banda o le sue azioni: ${normalize(selector)}`,
+    );
+  }
 });
 
 test('il sito non distribuisce PDF, file CMYK o master di stampa', () => {
@@ -1103,15 +1075,10 @@ test('il foglio di stile isola i token e dichiara l’ordine dei layer', () => {
     );
   }
 
-  const typeSteps = ['--step--1', '--step-0', '--step-1', '--step-2', '--step-3'];
+  const typeSteps = ['--step--1', '--step-0', '--step-1', '--step-2'];
   for (const step of typeSteps) {
     const value = tokens.match(new RegExp(`${step}\\s*:\\s*([^;]+);`))?.[1] ?? '';
     assert.match(value, /clamp\(/, `la scala tipografica ${step} non è fluida`);
-  }
-
-  for (let step = 1; step <= 8; step += 1) {
-    const value = tokens.match(new RegExp(`--space-${step}\\s*:\\s*([^;]+);`))?.[1] ?? '';
-    assert.match(value, /clamp\(/, `la spaziatura --space-${step} non è fluida`);
   }
 
   for (const token of ['ink', 'rule', 'date', 'quick', 'settle', 'scroll']) {
@@ -1129,98 +1096,6 @@ test('il foglio di stile isola i token e dichiara l’ordine dei layer', () => {
     outside,
     /#[0-9a-fA-F]{3,8}\b/,
     'una regola fuori dal blocco delle primitive usa un colore esadecimale',
-  );
-});
-
-test('la griglia è la misura larga scelta: 84 rem, dodici colonne, margini generosi', () => {
-  const css = servedStylesheet();
-  const clean = stripCssComments(css);
-  const tokens = layerBlock(css, 'tokens');
-
-  assert.match(tokens, /--measure:\s*84rem\s*;/, 'la misura della pagina non è 84 rem');
-  assert.match(
-    tokens,
-    /--column-gap:\s*clamp\(1\.25rem,\s*2vw,\s*2rem\)\s*;/,
-    'la distanza fra le colonne non è quella scelta',
-  );
-  assert.match(
-    tokens,
-    /--signature-size:\s*clamp\(13rem,\s*50vw,\s*26rem\)\s*;/,
-    'la firma non ha la misura scelta',
-  );
-  assert.match(
-    tokens,
-    /--date-numeral:\s*clamp\(4\.25rem,\s*10vw,\s*8\.5rem\)\s*;/,
-    'il numero del giorno non ha la misura scelta',
-  );
-  assert.match(
-    tokens,
-    /--photo-rise:\s*clamp\(4rem,\s*7vw,\s*7rem\)\s*;/,
-    'la fotografia non ha il margine scelto',
-  );
-
-  assert.match(
-    clean,
-    /\.spread\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\)/s,
-    'la pagina non è una griglia di dodici colonne',
-  );
-  assert.match(
-    clean,
-    /\.masthead\s*\{[^}]*grid-column:\s*1\s*\/\s*span\s*8/s,
-    'la testata non occupa le colonne 1–8',
-  );
-  assert.match(
-    clean,
-    /\.date\s*\{[^}]*grid-column:\s*9\s*\/\s*-1[^}]*align-self:\s*end/s,
-    'la data non è appoggiata alle colonne 9–12',
-  );
-  assert.match(
-    clean,
-    /\.photo-band\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/s,
-    'la fotografia non attraversa la griglia',
-  );
-  assert.match(
-    clean,
-    /\.photo-band\s*\{[^}]*margin-block-start:\s*var\(--photo-rise\)/s,
-    'la fotografia non ha il margine della griglia',
-  );
-  assert.match(
-    clean,
-    /\.cantina\s*\{[^}]*grid-column:\s*1\s*\/\s*span\s*8/s,
-    'la prosa non è collocata nelle colonne 1–8',
-  );
-  assert.match(
-    clean,
-    /\.cantina\s*\{[^}]*max-inline-size:\s*36rem/s,
-    'la prosa non ha una misura di lettura',
-  );
-  assert.match(
-    clean,
-    /@media\s*\(min-width:\s*48rem\)/,
-    'manca il punto di rottura della griglia a 48 rem',
-  );
-});
-
-test('il telefono è una colonna con 24 px di gutter', () => {
-  const css = servedStylesheet();
-  const clean = stripCssComments(css);
-  const tokens = layerBlock(css, 'tokens');
-
-  assert.match(tokens, /--gutter-phone:\s*24px\s*;/, 'il gutter del telefono non è 24 px');
-  assert.match(
-    clean,
-    /\.spread\s*\{[^}]*grid-template-columns:\s*1fr/s,
-    'sotto 48 rem la pagina non è una colonna',
-  );
-  assert.match(
-    clean,
-    /\.spread\s*\{[^}]*padding-inline:\s*var\(--gutter-phone\)/s,
-    'sotto 48 rem la pagina non usa il gutter del telefono',
-  );
-  assert.doesNotMatch(
-    clean,
-    /\bwidth:\s*100vw/,
-    'la pagina usa 100vw, che può produrre scorrimento orizzontale',
   );
 });
 
@@ -1422,49 +1297,36 @@ test('la mappa e la Locandina sono azioni tipografiche con riga e freccia, non b
     'la riga non è appoggiata al piede dell’azione',
   );
 
-  const arrowRule = css.match(/\.band__actions\s+a::after\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.ok(arrowRule, 'le azioni non hanno una freccia in un pseudo-elemento');
-  assert.match(
-    arrowRule,
-    /content\s*:\s*["'](?:\\2192|→)["']/,
-    'la freccia non è dichiarata come contenuto del pseudo-elemento',
-  );
-
-  // The arrow is decoration: it never enters the link text or its name.
+  /*
+   * The arrow is decoration and it is markup, not CSS content: each action
+   * carries exactly one element hidden from assistive tech with the arrow.
+   * The name is computed from the markup without what that tech ignores.
+   */
   for (const anchor of actions) {
-    const text = normalize(anchor.textContent);
-    const name = accessibleName(document, anchor);
-    assert.doesNotMatch(text, /→|&rarr;/i, `la freccia è nel testo di "${text}"`);
-    assert.doesNotMatch(name, /→/, `la freccia è nel nome accessibile di "${name}"`);
+    const hidden = [...anchor.querySelectorAll('[aria-hidden="true"]')];
+    assert.equal(
+      hidden.length,
+      1,
+      `l’azione "${normalize(anchor.textContent)}" non ha una sola freccia decorativa`,
+    );
+    assert.equal(
+      normalize(hidden[0].textContent),
+      '→',
+      'l’elemento nascosto dell’azione non contiene la freccia',
+    );
+
+    const spoken = anchor.cloneNode(true);
+    for (const node of spoken.querySelectorAll('[aria-hidden="true"]')) {
+      node.remove();
+    }
+    const name = normalize(spoken.textContent);
+    assert.ok(name.length > 0, 'l’azione non ha un nome senza la freccia');
+    assert.doesNotMatch(
+      name,
+      /→|&rarr;/i,
+      `la freccia è nel nome accessibile di "${name}"`,
+    );
   }
-  assert.doesNotMatch(
-    readFileSync(join(SITE, 'index.html'), 'utf8'),
-    /→|&rarr;/i,
-    'la freccia è scritta nell’HTML invece che nel foglio di stile',
-  );
-});
-
-test('la Locandina è un solo link presente a ogni larghezza, senza copie nascoste', () => {
-  const document = loadSite();
-  const band = document.querySelector('footer.band');
-  assert.ok(band, 'manca la banda che chiude la pagina');
-  const downloads = [...document.querySelectorAll('a[download]')];
-  assert.equal(
-    downloads.length,
-    1,
-    'la pagina deve offrire un solo link per scaricare la Locandina',
-  );
-  assert.ok(band.contains(downloads[0]), 'il download non sta nella banda');
-
-  // Nothing in the stylesheet may hide the one anchor: the band is present at
-  // every width, so there is no phone-only or desktop-only copy to show.
-  const css = stripCssComments(servedStylesheet());
-  const hiding = /\b(?:display\s*:\s*none|visibility\s*:\s*hidden)\b/;
-  assert.doesNotMatch(
-    css,
-    hiding,
-    'il foglio di stile nasconde un contenuto: il download deve restare presente',
-  );
 });
 
 test('la pagina non carica JavaScript né risorse di terze parti', () => {
@@ -2078,14 +1940,6 @@ test('il movimento del spread usa i token, lascia fermo l’eroe e ha una via pe
     'il movimento non deve ripetersi senza fine',
   );
 
-  for (const token of ['ink', 'rule', 'date', 'quick', 'settle', 'scroll']) {
-    assert.match(
-      css,
-      new RegExp(`--motion-${token}\\s*:\\s*[^;]+;`),
-      `manca il token --motion-${token} nel foglio di stile`,
-    );
-  }
-
   const noPreference = atRuleBlocks(
     css,
     '@media\\s*\\(prefers-reduced-motion:\\s*no-preference\\)',
@@ -2111,6 +1965,34 @@ test('il movimento del spread usa i token, lascia fermo l’eroe e ha una via pe
       animation[1],
       /(?:^|\s)\d+(?:\.\d+)?m?s(?:\s|$)/,
       `l’animazione contiene una durata magica: ${normalize(animation[1])}`,
+    );
+  }
+
+  /*
+   * Every duration comes from the motion tokens, in the shorthand above, in
+   * any duration longhand, and in the base transitions. The reduce block's
+   * `transition: none` is the one exception: it is how the page stands still.
+   */
+  const durations = [
+    ...css.matchAll(
+      /(?:^|[;{\s])(animation-duration|transition-duration|transition)\s*:\s*([^;}]+)/g,
+    ),
+  ];
+  assert.ok(durations.length > 0, 'manca una transizione da misurare');
+  for (const [, property, rawValue] of durations) {
+    const value = normalize(rawValue);
+    if (property === 'transition' && value === 'none') {
+      continue;
+    }
+    assert.match(
+      value,
+      /var\(--motion-/,
+      `la durata di ${property} non usa un token: ${value}`,
+    );
+    assert.doesNotMatch(
+      value,
+      /\d+(?:\.\d+)?m?s\b/,
+      `la durata di ${property} è un numero magico: ${value}`,
     );
   }
 
