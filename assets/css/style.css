@@ -118,9 +118,10 @@
      * primitives still have one home and no raw colour is declared here.
      *
      * Measured on the served palette with the grain composited at its 0.03
-     * opacity over each end of the field:
-     *   lightest ground  #e9dec9  luminance 0.7391
-     *   darkest ground   #e3d6bc  luminance 0.6816
+     * opacity over each end of the field. The hex is the rounded byte of each
+     * end; the luminance is computed from the unrounded mix:
+     *   lightest ground  ≈ #e9dec9  luminance 0.7391
+     *   darkest ground   ≈ #e3d6bc  luminance 0.6816
      *   total delta      5.75 percentage points, under the 6% cap.
      * Bordeaux on the lightest ground 9.69:1, on the darkest ground 8.99:1;
      * both clear AA (4.5:1) for body text.

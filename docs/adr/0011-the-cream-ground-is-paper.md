@@ -40,13 +40,21 @@ The cream ground is paper: the body's own background gains two image layers.
   it carries no palette colour, and it is laid down at 0.03 opacity. It is a
   `data:` URI: no file and no request. The tile repeats every 240 px; the seam
   is stitched, so no join is visible at any captured width.
+- **The grain's opacity is two statements of one number.** An SVG loaded
+  through `url()` is its own document and cannot read this page's custom
+  properties, so `--grain-opacity` cannot parametrise the data URI. The token
+  and the tile's `opacity` literal therefore state the same number twice, held
+  equal by a test.
 - **The light is one continuous field, not a wash per section.** A single
   vertical gradient runs over the whole document: near the date it holds close
   to the print's light paper, settles to the cream surface through the prose,
   and deepens slightly at the foot before the bordeaux band closes the page.
   Both tones are `color-mix`es of existing roles — `--cream-light` and
   `--surface` at the head, `--surface` and `--bronze` at the foot — so no new
-  primitive and no raw colour enter the palette.
+  primitive and no raw colour enter the palette. The light end is a 60/40
+  blend rather than `--cream-light` itself because the same spec's 6%
+  total-delta cap governs: the unblended light paper would put the span from
+  the head to the deep foot well past the cap.
 - **The caps are measured.** On the served palette, with the grain composited
   at its declared opacity over each end of the field:
 
@@ -59,12 +67,17 @@ The cream ground is paper: the body's own background gains two image layers.
   reads 9.69:1 on the lightest ground and 8.99:1 on the darkest; both clear AA
   for normal text. The measurement is recorded beside the rule and asserted in
   the suite.
-- **Muted ink stays in the light.** Bronze (`--ink-muted`) reads 4.64:1 on the
-  lightest ground and 4.76:1 on the cream surface, but only 4.31:1 on the
-  darkest ground, which is under AA. The only muted ink painted on the ground
-  is the date's tracked weekday and `DALLE ORE` label, and the date band sits
-  between 31% and 50% of the document at phone, tablet and desktop widths —
-  inside the field's light hold. No bronze text is painted on the deep tone.
+- **Muted ink stays in the light, as reviewed.** Bronze (`--ink-muted`) reads
+  4.64:1 on the lightest ground and 4.76:1 on the cream surface, but only
+  4.31:1 on the darkest ground, which is under AA. The only muted ink painted
+  on the ground is the date's tracked weekday and `DALLE ORE` label. That it
+  stays clear of the deep tone rests on the review captures at 390 × 844,
+  768 × 1024 and 1440 × 900, where the date band falls inside the field's
+  light hold (about 31–50% of the document). No test checks element positions —
+  the static seam cannot — so this is a property of the composition, not a
+  guarantee the suite enforces. Muted ink moved onto the deep tone would read
+  4.31:1: a latent hazard if a future composition ever put muted text at the
+  foot.
 - **The date band does not change.** It keeps its rules and positions and adds
   no background, shadow or radius; the field flows behind it. The photographs
   and the closing band are untouched.
@@ -96,8 +109,10 @@ and produces no horizontal scroll.
   part of a tiled texture, not a defect; the stitched seam and the low,
   neutral opacity keep it from reading as a halftone or a screen.
 - **Muted ink on the ground is limited to the light hold.** The date's bronze
-  labels must stay in the upper half of the document. A future composition that
-  moved muted-ink text into the foot would put it below AA on the deep tone.
+  labels must stay in the upper half of the document. This is held by the
+  composition and the review captures, not by a test: the static seam cannot
+  assert element positions. A future composition that moved muted-ink text
+  into the foot would put it at 4.31:1, below AA on the deep tone.
 - **README changes with the implementation**, as ADR-0005 established:
   *Composition* states the ground and names this ADR.
 - **`GLOSSARY.md` is unchanged.** "Ground", "grain" and "field" are
