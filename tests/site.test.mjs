@@ -660,6 +660,14 @@ test('la data è un campo a tutta larghezza e, da 64 rem, un blocco nelle colonn
     /margin-block-start:\s*0\s*;/,
     'da 64 rem la data aggiunge una riga invece di stare in quella della testata',
   );
+  // The block is about 290 px at 64 rem and `DICEMBRE 2026` needs about
+  // 269 px there, so the inline inset must stay a hairline: a larger one
+  // forces the month onto two lines inside the narrow dark box.
+  assert.match(
+    wideDate,
+    /padding-inline:\s*var\(--space-1\)\s*;/,
+    'l’imbottitura orizzontale del blocco fa andare DICEMBRE 2026 a capo già a 64 rem',
+  );
 
   // The interior uses the height the row gives it: lockup at the top, time
   // at the bottom.
