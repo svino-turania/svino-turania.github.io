@@ -209,7 +209,11 @@
     max-inline-size: var(--measure);
     margin-inline: auto;
     padding-inline: var(--gutter-phone);
-    padding-block: var(--space-7) var(--space-8);
+    /*
+     * Top and bottom use the same step: at 1024x768 the larger closing step
+     * pushed the page just past two screens, and the band closes it anyway.
+     */
+    padding-block: var(--space-7);
     column-gap: var(--column-gap);
     text-align: start;
   }
@@ -247,6 +251,12 @@
       align-self: end;
       justify-self: start;
       margin-block-start: 0;
+      /*
+       * A grid item that is not stretched takes its max-content size, so at
+       * 200% text zoom the month could run past the columns and the viewport.
+       * The date stays inside its own columns; its words wrap there instead.
+       */
+      max-inline-size: 100%;
     }
 
     .photo-band {
@@ -314,6 +324,18 @@
       "month";
     justify-items: start;
     gap: var(--space-1);
+  }
+
+  /*
+   * At 200% text zoom the date's columns can be narrower than the month's
+   * max-content width. The lockup follows the date's width and breaks inside
+   * a word only when that word alone is still too wide, so the date never
+   * forces the page to scroll sideways.
+   */
+  .date-lockup > *,
+  .date-time > * {
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
   }
 
   .date-weekday {
