@@ -1209,10 +1209,13 @@ test('la carta del corpo posa la grana come un tassello SVG in linea', () => {
     Number(tile[1]) >= 128,
     `il tassello della grana è troppo piccolo: ${tile[1]} px`,
   );
+  // The grain is the first background layer, so its repeat value comes
+  // first; later ground layers may extend the list.
+  const repeat = body.match(/background-repeat:\s*([^;]+);/)?.[1].trim() ?? '';
   assert.match(
-    body,
-    /background-repeat:\s*repeat\s*;/,
-    'la grana non è dichiarata a tasselli',
+    repeat,
+    /^repeat(?:\s*,|$)/,
+    `la grana non è il primo strato a tasselli: ${repeat}`,
   );
 });
 
