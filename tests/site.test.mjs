@@ -12,19 +12,19 @@ const SITE = ROOT;
 const SITE_ORIGIN = 'https://svino-turania.github.io';
 const MAP_ORIGIN = 'https://www.google.com';
 
-// The photograph's slot: edge to edge on the phone; from 48 rem up, the 84 rem
-// spread measure less its inline padding. Above 84 rem the page is capped at
-// 84 rem and the gutters are 5.5vw a side; between 48 and 84 rem the page is
-// the viewport less the same gutters. On the phone the band bleeds past the
-// 24px gutters, so the slot is the whole viewport.
-const PHOTO_SIZES =
-  '(min-width: 84rem) calc(84rem - 2 * min(5.5vw, 96px)), (min-width: 48rem) calc(100vw - 11vw), 100vw';
+// Both photographs run edge to edge at every width: they are full-bleed
+// sections of the cover, so the browser sizes them against the viewport.
+const PHOTO_SIZES = '100vw';
+const HERO_SIZES = '100vw';
 
 const CANTINA_PARAGRAPH =
   "Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva, con il bicchiere in mano. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio. Questa pagina sarà aggiornata con tutte le novità dell'evento. Il programma e gli aggiornamenti arriveranno qui presto. Vi aspettiamo.";
 
 const PHOTO_ALT =
   "Interno di una cantina scavata nella roccia: soffitto e pareti di pietra grezza, una lampadina nuda appesa a un filo, damigiane di vetro anche dentro cesti di vimini, una botte coricata e un grande tino chiaro con il coperchio; un palo di legno regge la volta.";
+
+const HERO_ALT =
+  "Vicolo di un borgo in luce dorata: in primo piano una botte di legno con un grappolo d'uva nera, una bottiglia di vino rosso e un bicchiere colmo; dietro, case in pietra con balconi, una torre con l'orologio e il selciato del vicolo, fuori fuoco.";
 
 const IMAGE_TYPE_BY_EXTENSION = new Map([
   ['.jpg', 'image/jpeg'],
@@ -129,16 +129,28 @@ function layerBlock(css, name, source = servedStylesheet()) {
 }
 
 /*
- * The declarations of every 48 rem override: the deliberate large-format
- * spread, as opposed to the phone the base rules describe. The threshold has
- * one home, stated here once: callers that need the override also assert it.
+ * The page has one base composition and one desktop composition at 64 rem.
+ * No 48 rem override may return, and the 64 rem block is the only threshold:
+ * the helper is the suite's single statement of that contract.
  */
-function wideSpread(css) {
-  const blocks = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)');
-  assert.equal(blocks.length, 1, 'manca il blocco della misura da 48 rem');
-  return blocks
-    .map(({ start, end }) => css.slice(css.indexOf('{', start) + 1, end))
-    .join('\n');
+function assertDesktopComposition(css) {
+  assert.equal(
+    atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)').length,
+    0,
+    'il foglio di stile conserva un blocco da 48 rem: la pagina ha ancora due soglie',
+  );
+  assert.equal(
+    atRuleBlocks(css, '@media\\s*\\(min-width:\\s*64rem\\)').length,
+    1,
+    'la pagina non ha una sola composizione desktop a 64 rem',
+  );
+}
+
+/* The body of the one desktop block, for the rules that only exist there. */
+function desktopComposition(css) {
+  const block = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*64rem\\)')[0];
+  assert.ok(block, 'manca la composizione desktop a 64 rem');
+  return css.slice(block.start, block.end);
 }
 
 function rgb(hexColour) {
@@ -522,29 +534,29 @@ test('le literal della data concordano con l’attributo datetime', () => {
 });
 
 /*
- * The printed date is one vertical lockup: the weekday above the numeral at
- * display scale, the month beneath, the time under DALLE ORE. The DOM keeps
- * the printed order (day, weekday, month) so the time element reads as one
- * date. The exactly-once test proves the time has no second home.
+ * The printed date is one lockup: the weekday above the numeral at display
+ * scale on a phone, on one line from 64 rem, with the time under DALLE ORE.
+ * The DOM keeps the printed order (day, weekday, month) so the time element
+ * reads as one date. The exactly-once test proves the time has no second home.
  */
-test('la data è un lockup verticale allineato a sinistra con un solo luogo per l’orario', () => {
+test('la data è un lockup orizzontale allineato a sinistra con un solo luogo per l’orario', () => {
   const document = loadSite();
-  const spread = document.querySelector('main.spread');
-  assert.ok(spread, 'manca la griglia della pagina');
+  const page = document.querySelector('main.page');
+  assert.ok(page, 'manca la pagina');
 
-  const date = spread.querySelector('section.date');
+  const date = page.querySelector('section.date');
   assert.ok(date, 'manca il blocco della data');
   assert.equal(
     date.parentElement,
-    spread,
-    'la data non è un blocco della griglia',
+    page,
+    'la data non è un blocco della pagina',
   );
 
   const lockup = date.querySelector('time.date-lockup[datetime="2026-12-06"]');
   assert.ok(lockup, 'il lockup non è un <time> con datetime="2026-12-06"');
 
   // The markup keeps the printed order; the grid areas, not the DOM, put the
-  // weekday above the numeral on screen.
+  // weekday above the numeral on a phone and on one line from 64 rem.
   const parts = [...lockup.children];
   assert.deepEqual(
     parts.map((node) => node.getAttribute('class')),
@@ -579,89 +591,37 @@ test('la data è un lockup verticale allineato a sinistra con un solo luogo per 
 });
 
 /*
- * The date is the page's second dark surface. Below 64 rem it is a bordeaux
- * field that gives the page's inline padding back at both edges, exactly as
- * the photograph does, and pads its content back in by the same gutters. From
- * 64 rem it becomes a flush block in columns 9–12 that fills the masthead
- * row, so it adds no row and no height. It is a colour field, not a panel:
- * no radius, no shadow and no border.
+ * The date is a band on cream between two gold hairlines. It runs edge to edge
+ * and pads its content back onto the shell. It is no longer a dark surface:
+ * the closing band is the page's only strong one. The rules are the print's,
+ * not a panel's edge, so the band carries hairlines but still no shadow and no
+ * radius.
  */
-test('la data è un campo a tutta larghezza e, da 64 rem, un blocco nelle colonne 9–12', () => {
+test('la data è una banda a tutta larghezza fra due filetti d’oro', () => {
   const css = stripCssComments(servedStylesheet());
+  assertDesktopComposition(css);
   const layout = layerBlock(css, 'layout');
+  const components = layerBlock(css, 'components');
 
-  // Below the block threshold the field follows the photograph's bleed: it
-  // gives the page padding back at both edges and pads the content in again.
-  const phoneDate = layout.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.ok(phoneDate, 'manca la regola della data sul telefono');
+  const date = layout.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(date, 'manca la regola della data');
   assert.match(
-    phoneDate,
-    /margin-inline:\s*calc\(\s*-1\s*\*\s*var\(--page-pad\)\s*\)/,
-    'sotto 64 rem la data non annulla il margine interno della pagina e non arriva ai bordi',
+    date,
+    /padding-inline:\s*var\(--shell-pad\)/,
+    'la data non riporta il contenuto sulla shell della pagina',
   );
   assert.match(
-    phoneDate,
-    /padding-inline:\s*var\(--page-pad\)/,
-    'la data non riporta il contenuto sui margini della pagina',
+    date,
+    /min-inline-size:\s*0\s*;/,
+    'la data non può restringersi e spinge la pagina di lato al 200% di zoom',
   );
   assert.doesNotMatch(
-    phoneDate,
+    date,
     /\d(?:vw|vmin|vmax)\b/,
     'la data si dimensiona con il viewport e può scorrere in orizzontale',
   );
-  assert.match(
-    phoneDate,
-    /min-inline-size:\s*0\s*;/,
-    'la data non può restringersi dentro la griglia e spinge la pagina di lato al 200% di zoom',
-  );
 
-  // From 48 rem the grid is twelve columns; until 64 rem the date spans all
-  // of them, so `DICEMBRE 2026` never has to wrap inside a narrow block.
-  const spreadBody = wideSpread(css);
-  const spreadDate = spreadBody.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.ok(spreadDate, 'la data non è collocata nella griglia da 48 rem');
-  assert.match(
-    spreadDate,
-    /grid-column:\s*1\s*\/\s*-1\s*;/,
-    'tra 48 e 64 rem la data non occupa tutta la larghezza della griglia',
-  );
-
-  // From 64 rem the field is the block: columns 9–12, flush to the grid and
-  // stretched to the masthead row's height.
-  const wide = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*64rem\\)');
-  assert.equal(wide.length, 1, 'manca la soglia della data da 64 rem');
-  const wideBody = css.slice(css.indexOf('{', wide[0].start) + 1, wide[0].end);
-  const wideDate = wideBody.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.ok(wideDate, 'da 64 rem la data non diventa un blocco');
-  assert.match(
-    wideDate,
-    /grid-column:\s*9\s*\/\s*-1\s*;/,
-    'da 64 rem la data non occupa le colonne 9–12',
-  );
-  assert.match(
-    wideDate,
-    /align-self:\s*stretch\s*;/,
-    'da 64 rem la data non si distende sull’altezza della riga della testata',
-  );
-  assert.match(
-    wideDate,
-    /justify-self:\s*stretch\s*;/,
-    'da 64 rem il blocco non riempie le colonne che occupa',
-  );
-  assert.match(
-    wideDate,
-    /margin-inline:\s*0\s*;/,
-    'da 64 rem il blocco non è a filo della griglia',
-  );
-  assert.match(
-    wideDate,
-    /margin-block-start:\s*0\s*;/,
-    'da 64 rem la data aggiunge una riga invece di stare in quella della testata',
-  );
-
-  // The interior uses the height the row gives it: lockup at the top, time
-  // at the bottom.
-  const components = layerBlock(css, 'components');
+  // A band, not a dark field: ruled top and bottom, on the page's cream.
   const dateComponent =
     components.match(/\.date\s*\{([^{}]*display:\s*grid[^{}]*)\}/s)?.[1] ?? '';
   assert.match(
@@ -671,41 +631,39 @@ test('la data è un campo a tutta larghezza e, da 64 rem, un blocco nelle colonn
   );
   assert.match(
     dateComponent,
-    /align-content:\s*space-between\s*;/,
-    'la data non tiene il lockup in alto e l’orario in basso usando l’altezza del blocco',
+    /border-block:\s*1px solid var\(--rule\)/,
+    'la data non è una banda fra due filetti d’oro',
   );
-
-  // At 200% text zoom the date's words wrap inside the block and never push
-  // the page sideways: the block is constrained and its words may break.
-  assert.match(
-    components,
-    /\.date-lockup\s*>\s*\*,\s*\.date-time\s*>\s*\*\s*\{[^}]*max-inline-size:\s*100%/s,
-    'le parole della data non sono limitate alla larghezza del blocco',
-  );
-  assert.match(
-    components,
-    /\.date-lockup\s*>\s*\*,\s*\.date-time\s*>\s*\*\s*\{[^}]*overflow-wrap:\s*anywhere/s,
-    'le parole della data non possono andare a capo dentro il blocco',
-  );
-
-  // A colour field, not a panel: sharp edges only.
   for (const [, block] of css.matchAll(/\.date\s*\{([^}]*)\}/gs)) {
     assert.doesNotMatch(
       block,
-      /\bborder(?:-[a-z-]+)?\s*:/,
-      'il campo della data disegna un bordo: è un pannello',
+      /background:\s*var\(--strong\)/,
+      'la data è ancora una superficie forte',
     );
     assert.doesNotMatch(
       block,
       /\bbox-shadow\s*:/,
-      'il campo della data proietta un’ombra: è un pannello',
+      'la data proietta un’ombra: è un pannello',
     );
     assert.doesNotMatch(
       block,
       /\bborder-radius\s*:/,
-      'il campo della data ha angoli arrotondati: è un pannello',
+      'la data ha angoli arrotondati: è un pannello',
     );
   }
+
+  // At 200% text zoom the band's words wrap inside it and never push the page
+  // sideways.
+  assert.match(
+    components,
+    /\.date-lockup\s*>\s*\*,\s*\.date-time\s*>\s*\*\s*\{[^}]*max-inline-size:\s*100%/s,
+    'le parole della data non sono limitate alla larghezza della banda',
+  );
+  assert.match(
+    components,
+    /\.date-lockup\s*>\s*\*,\s*\.date-time\s*>\s*\*\s*\{[^}]*overflow-wrap:\s*anywhere/s,
+    'le parole della data non possono andare a capo dentro la banda',
+  );
 });
 
 test('la pagina spedita è solo index.html e non contiene sintassi di template', () => {
@@ -1158,12 +1116,27 @@ test('la pagina è la carta: nessun pannello, nessuna ombra, nessun foglio', () 
     !document.querySelector('.sheet'),
     'la pagina contiene ancora il pannello .sheet',
   );
-  assert.ok(
-    !document.querySelector('.page'),
-    'la pagina contiene ancora il contenitore .page',
-  );
   assert.doesNotMatch(css, /\.sheet\b/, 'il foglio di stile conserva .sheet');
-  assert.doesNotMatch(css, /\.page\b/, 'il foglio di stile conserva .page');
+
+  // The page is the viewport: the cover runs edge to edge and each section
+  // insets its own content on the shell. There is no sheet and no column.
+  const page = document.querySelector('main.page');
+  assert.ok(page, 'manca la pagina');
+  assert.match(
+    css,
+    /\.page\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s,
+    'la pagina non è una griglia a piena larghezza',
+  );
+  assert.doesNotMatch(
+    css,
+    /\.page\s*\{[^}]*max-inline-size/s,
+    'la pagina conserva una misura: è ancora una colonna',
+  );
+  assert.match(
+    css,
+    /\.page\s*\{[^}]*padding:\s*0/s,
+    'la pagina conserva un margine interno: le sezioni non arrivano ai bordi',
+  );
   assert.doesNotMatch(
     css,
     /box-shadow/i,
@@ -1254,10 +1227,10 @@ test('il foglio di stile isola i token e dichiara l’ordine dei layer', () => {
 
 test('la testata apre la pagina: firma grande a sinistra e sottotitolo sotto', () => {
   const document = loadSite();
-  const spread = document.querySelector('main.spread');
-  assert.ok(spread, 'manca la griglia della pagina');
+  const page = document.querySelector('main.page');
+  assert.ok(page, 'manca la pagina');
 
-  const header = spread.firstElementChild;
+  const header = page.firstElementChild;
   assert.equal(header?.tagName, 'HEADER', 'la testata non apre la pagina');
   assert.equal(
     header.getAttribute('class'),
@@ -1286,52 +1259,59 @@ test('la testata apre la pagina: firma grande a sinistra e sottotitolo sotto', (
   );
 });
 
-test('sul telefono la firma occupa la larghezza della misura e a 48 rem torna alla sua dimensione', () => {
+test('la firma occupa la larghezza della sua colonna a ogni larghezza', () => {
   const css = stripCssComments(servedStylesheet());
+  assertDesktopComposition(css);
 
-  const lockup = css.match(/\.lockup\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.ok(lockup, 'manca la regola del titolo della testata');
-  assert.match(
-    lockup,
-    /(?:^|;)\s*(?:inline-size|width)\s*:\s*100%/,
-    'sul telefono il titolo della testata non dà alla firma la larghezza della misura',
-  );
-
-  const signature = css.match(/\.signature\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.ok(signature, 'manca la regola della firma');
-  assert.match(
-    signature,
-    /(?:^|;)\s*(?:inline-size|width)\s*:\s*100%/,
-    'sul telefono la firma non occupa la larghezza della misura',
-  );
-
-  const wide = wideSpread(css);
-  const wideSignature = wide.match(/\.signature\s*\{([^}]*)\}/s)?.[1] ?? '';
+  const layout = layerBlock(css, 'layout');
+  const shared =
+    layout.match(/\.lockup,\s*\.signature\s*\{([^}]*)\}/s)?.[1] ?? '';
   assert.ok(
-    wideSignature,
-    'a 48 rem la firma non torna alla dimensione dello spread',
+    shared,
+    'manca la regola che dà alla firma la larghezza della sua colonna',
   );
   assert.match(
-    wideSignature,
-    /(?:^|;)\s*(?:inline-size|width)\s*:\s*var\(--signature-size\)/,
-    'a 48 rem la firma non torna alla dimensione --signature-size',
+    shared,
+    /(?:^|;)\s*inline-size\s*:\s*100%/,
+    'la firma e il titolo non occupano la larghezza della loro colonna',
+  );
+
+  // The masthead's content box is the shell on a phone; from 64 rem the
+  // signature is capped so the cover keeps a third of the photograph.
+  const masthead = layout.match(/\.masthead\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(
+    masthead,
+    /padding-inline:\s*var\(--shell-pad\)/,
+    'la testata non sta sulla shell della pagina',
+  );
+  assert.match(
+    desktopComposition(css),
+    /\.signature\s*\{[^}]*max-inline-size:\s*36rem/s,
+    'la firma non è limitata a 36 rem sulla composizione desktop',
+  );
+
+  assert.doesNotMatch(
+    css,
+    /--signature-size/,
+    'la firma conserva un tetto fisso per un layout che non esiste più',
   );
 });
 
-test('sul telefono i due fatti stanno su due colonne e ognuno va a capo dentro la sua', () => {
+test('i due fatti stanno su due colonne e ognuno va a capo dentro la sua', () => {
   const css = stripCssComments(servedStylesheet());
+  assertDesktopComposition(css);
 
   const facts = css.match(/\.facts\s*\{([^}]*)\}/s)?.[1] ?? '';
   assert.ok(facts, 'manca la regola dei fatti');
   assert.match(
     facts,
     /(?:^|;)\s*display\s*:\s*grid/,
-    'sul telefono i fatti non sono una lista composta',
+    'i fatti non sono una lista composta',
   );
   assert.match(
     facts,
     /(?:^|;)\s*grid-template-columns\s*:\s*repeat\(\s*2\s*,\s*minmax\(\s*0\s*,\s*1fr\s*\)\s*\)/,
-    'sul telefono i due fatti non stanno su due colonne',
+    'i due fatti non stanno su due colonne',
   );
 
   const fact = css.match(/\.fact\s*\{([^}]*)\}/s)?.[1] ?? '';
@@ -1340,29 +1320,11 @@ test('sul telefono i due fatti stanno su due colonne e ognuno va a capo dentro l
     /(?:^|;)\s*min-inline-size\s*:\s*0/,
     'un fatto non può restringersi e andare a capo dentro la sua colonna',
   );
-
-  const wide = wideSpread(css);
-  const wideFacts = wide.match(/\.facts\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.ok(wideFacts, 'a 48 rem i fatti non tornano allo spread');
-  assert.match(
-    wideFacts,
-    /(?:^|;)\s*display\s*:\s*flex/,
-    'a 48 rem i fatti non tornano in linea',
-  );
-  assert.match(
-    wideFacts,
-    /(?:^|;)\s*flex-wrap\s*:\s*wrap/,
-    'a 48 rem i fatti non possono andare a capo',
-  );
-  assert.match(
-    wideFacts,
-    /(?:^|;)\s*gap\s*:\s*var\(--space-6\)\s+var\(--space-8\)/,
-    'a 48 rem i fatti non conservano la distanza dello spread',
-  );
 });
 
-test('sul telefono le due azioni stanno una sopra l’altra a tutta riga, con la riga che attraversa il fondo', () => {
+test('le due azioni stanno una sopra l’altra a tutta riga, con la riga che attraversa il fondo', () => {
   const css = stripCssComments(servedStylesheet());
+  assertDesktopComposition(css);
 
   const inner = css.match(/\.band__inner\s*\{([^}]*)\}/s)?.[1] ?? '';
   assert.ok(inner, 'manca la regola interna della banda');
@@ -1403,84 +1365,54 @@ test('sul telefono le due azioni stanno una sopra l’altra a tutta riga, con la
     'la riga dell’azione non attraversa la riga della banda',
   );
 
-  const wide = wideSpread(css);
-  const wideInner = wide.match(/\.band__inner\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.ok(wideInner, 'a 48 rem la banda non torna allo spread');
+  // On the desktop composition the band splits: facts left, actions right.
+  // The actions stay stacked in their column — pairing them would shrink or
+  // wrap the Locandina label — and each rule still crosses its action.
+  const desktop = desktopComposition(css);
   assert.match(
-    wideInner,
-    /(?:^|;)\s*display\s*:\s*flex/,
-    'a 48 rem la banda non torna in linea',
+    desktop,
+    /\.band__inner\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*7fr\)\s*minmax\(0,\s*5fr\)/s,
+    'la banda desktop non divide fatti e azioni in due colonne',
   );
   assert.match(
-    wideInner,
-    /(?:^|;)\s*justify-content\s*:\s*space-between/,
-    'a 48 rem i fatti e le azioni non tornano ai due lati della banda',
-  );
-  assert.match(
-    wideInner,
-    /(?:^|;)\s*gap\s*:\s*var\(--space-4\)\s+var\(--space-8\)/,
-    'a 48 rem la banda non conserva la distanza dello spread',
-  );
-
-  const wideActions = wide.match(/\.band__actions\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.ok(wideActions, 'a 48 rem le azioni non tornano allo spread');
-  assert.match(
-    wideActions,
-    /(?:^|;)\s*display\s*:\s*flex/,
-    'a 48 rem le due azioni non tornano in linea',
-  );
-  assert.match(
-    wideActions,
-    /(?:^|;)\s*gap\s*:\s*var\(--space-3\)\s+var\(--space-5\)/,
-    'a 48 rem le azioni non conservano la distanza dello spread',
-  );
-
-  const wideAction =
-    wide.match(/\.band__actions\s*>\s*p\s*>\s*a\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.match(
-    wideAction,
-    /(?:^|;)\s*inline-size\s*:\s*auto/,
-    'a 48 rem un’azione non torna alla larghezza del suo testo',
+    desktop,
+    /\.band__actions\s*\{[^}]*grid-column:\s*2/s,
+    'le azioni non stanno nella colonna di destra della banda',
   );
 });
 
-test('sul telefono la fotografia si avvicina alla data e a 48 rem torna la distanza dello spread', () => {
+/*
+ * The Cantina photograph follows the date's lower hairline directly: the band
+ * is the separation, not a margin. It runs edge to edge at every width and
+ * declares no measure of its own.
+ */
+test('la fotografia segue la data e esce dai margini a ogni larghezza', () => {
   const css = stripCssComments(servedStylesheet());
+  assertDesktopComposition(css);
+  const layout = layerBlock(css, 'layout');
 
-  const band = css.match(/\.photo-band\s*\{([^}]*)\}/s)?.[1] ?? '';
+  const band = layout.match(/\.photo-band\s*\{([^}]*)\}/s)?.[1] ?? '';
   assert.ok(band, 'manca la regola della banda della fotografia');
-  const phone = band
-    .match(/(?:^|;)\s*margin-block-start\s*:\s*([^;]+);/)?.[1]
-    ?.trim();
-  assert.ok(phone, 'sul telefono la fotografia non dichiara il margine superiore');
-
-  const rem = phone.match(/^([\d.]+)rem$/);
-  assert.ok(rem, `il margine superiore della fotografia non è in rem: ${phone}`);
-  const value = Number(rem[1]);
-  assert.ok(
-    Math.abs(value - 2.5) <= 0.5,
-    `sul telefono la fotografia è a ${value} rem dalla data, non circa 2.5`,
-  );
-
-  const tokens = layerBlock(css, 'tokens');
-  const photoSpace = tokens.match(/--photo-space\s*:\s*clamp\(\s*([\d.]+)rem/)?.[1];
-  assert.ok(photoSpace, 'manca il valore desktop --photo-space');
-  assert.ok(
-    value < Number(photoSpace),
-    `sul telefono la fotografia (${value} rem) non si avvicina alla data più dello spread (${photoSpace} rem)`,
-  );
-
-  const wide = wideSpread(css);
-  const wideBand = wide.match(/\.photo-band\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.ok(wideBand, 'a 48 rem la fotografia non torna allo spread');
   assert.match(
-    wideBand,
-    /(?:^|;)\s*margin-block-start\s*:\s*var\(--photo-space\)/,
-    'a 48 rem la fotografia non torna alla distanza --photo-space',
+    band,
+    /margin:\s*0\s*;/,
+    'la fotografia conserva un margine che la stacca dalla data',
+  );
+  assert.match(
+    band,
+    /inline-size:\s*100%/,
+    'la fotografia non occupa la larghezza della pagina',
+  );
+
+  // There is no larger block margin for a wider layout to restore.
+  assert.doesNotMatch(
+    css,
+    /--photo-space/,
+    'la fotografia conserva un margine per un layout che non esiste più',
   );
 });
 
-test('la banda bordeaux chiude la pagina con fatti, azioni e colophon e la superficie forte appare solo su data e banda', () => {
+test('la banda bordeaux chiude la pagina con fatti, azioni e colophon ed è l’unica superficie forte', () => {
   const document = loadSite();
   const bands = [...document.querySelectorAll('.band')];
   assert.equal(bands.length, 1, 'la pagina non ha una sola banda');
@@ -1529,9 +1461,9 @@ test('la banda bordeaux chiude la pagina con fatti, azioni e colophon e la super
     /--strong-rule:\s*var\(--gold-light\)\s*;/,
     'la riga della superficie forte non è oro chiaro',
   );
-  // The strong surface is no longer the band's alone: the date is the page's
-  // second dark surface. It has one home — one rule, two consumers — and no
-  // third surface declares it.
+  // The closing band is the page's only strong surface. The date is a band on
+  // cream now, so one rule declares the bordeaux ground and one consumer
+  // reads it.
   const strongRules = [
     ...css.matchAll(
       /([^{}]+)\{\s*([^{}]*background:\s*var\(--strong\)\s*;[^{}]*)\}/gs,
@@ -1540,13 +1472,13 @@ test('la banda bordeaux chiude la pagina con fatti, azioni e colophon e la super
   assert.equal(
     strongRules.length,
     1,
-    'la superficie forte non ha una sola casa: data e banda devono condividerne la dichiarazione',
+    'la superficie forte non ha una sola casa',
   );
   const [, strongSelector, strongBody] = strongRules[0];
   assert.equal(
     normalize(strongSelector),
-    '.band, .date',
-    'la superficie forte non è dichiarata su data e banda insieme, e solo su quelle',
+    '.band',
+    'la superficie forte non è la sola banda che chiude la pagina',
   );
   assert.match(
     strongBody,
@@ -1563,10 +1495,10 @@ test('la banda bordeaux chiude la pagina con fatti, azioni e colophon e la super
     /#[0-9a-fA-F]{3,8}\b/,
     'la superficie forte dichiara un colore grezzo invece di un ruolo',
   );
-  assert.match(
+  assert.doesNotMatch(
     css,
-    /\.date\s*\{[^{}]*--ink-muted:\s*var\(--strong-ink-muted\)\s*;/s,
-    'la data non legge l’inchiostro attenuato della superficie forte',
+    /\.date\s*\{[^{}]*background:\s*var\(--strong\)/s,
+    'la data è ancora una superficie forte',
   );
   // The band reads the strong-surface vocabulary, never a raw colour and
   // never a role named after itself.
@@ -1594,44 +1526,24 @@ test('la banda bordeaux chiude la pagina con fatti, azioni e colophon e la super
 });
 
 /*
- * Both dark surfaces share one type vocabulary. The date reads the strong
- * surface's base and ink from the rule it shares with the band, and the one
- * role it consumes — the muted ink its weekday and DALLE ORE labels use — is
- * remapped on the dark ground. The day, the month and the time inherit the
- * strong ink. No raw colour and no role named after the band is involved.
+ * The date is a band on cream: it reads the page's ordinary ink and muted ink,
+ * and the day, the month and the time inherit the band's ink rather than
+ * declaring a colour of their own.
  */
-test('la data legge i ruoli della superficie forte come la banda che chiude la pagina', () => {
+test('la data legge l’inchiostro della pagina, non la superficie forte', () => {
   const css = stripCssComments(servedStylesheet());
   const components = layerBlock(css, 'components');
-  const dateRule =
-    components.match(/\.date\s*\{([^{}]*--ink-muted[^{}]*)\}/s)?.[1] ?? '';
-  assert.ok(dateRule, 'manca la regola dei ruoli della data');
-
-  // The date contains no link and no rule pseudo-element, so muted ink is the
-  // only role it consumes; the shared rule already carries base and ink.
-  assert.match(
-    dateRule,
-    /--ink-muted:\s*var\(--strong-ink-muted\)\s*;/,
-    'la data non rimappa l’inchiostro attenuato sulla superficie forte',
-  );
-  for (const role of ['ink', 'link', 'link-hover', 'rule']) {
-    assert.doesNotMatch(
-      dateRule,
-      new RegExp(`--${role}\\s*:`),
-      `la data rimappa --${role}, che non consuma`,
-    );
-  }
 
   // The labels carry the muted ink…
   assert.match(
     components,
     /\.date-weekday\s*\{[^}]*color:\s*var\(--ink-muted\)/s,
-    'il giorno della settimana non legge l’inchiostro attenuato della superficie forte',
+    'il giorno della settimana non legge l’inchiostro attenuato della pagina',
   );
   assert.match(
     components,
     /\.date-time dt\s*\{[^}]*color:\s*var\(--ink-muted\)/s,
-    'DALLE ORE non legge l’inchiostro attenuato della superficie forte',
+    'DALLE ORE non legge l’inchiostro attenuato della pagina',
   );
 
   // …while the day, the month and the time inherit the date's ink, so they
@@ -1656,7 +1568,7 @@ test('la data legge i ruoli della superficie forte come la banda che chiude la p
   assert.doesNotMatch(
     css,
     /var\(--band(?:-[a-z-]+)?\)/,
-    'la data legge un ruolo intitolato alla banda invece della superficie forte',
+    'la data legge un ruolo intitolato alla banda',
   );
 });
 
@@ -1901,34 +1813,41 @@ test('la pagina non promette nulla che il comitato non abbia deciso', () => {
   }
 });
 
-test('la fotografia segue la data e precede la prosa nella griglia', () => {
+test('la data sta fra l’immagine di apertura e la fotografia della cantina, che precede la prosa', () => {
   const document = loadSite();
   const header = document.querySelector('header');
-  const picture = document.querySelector('picture');
-  const photo = picture?.querySelector('img');
+  const hero = document.querySelector('.hero-photo picture img');
   const date = document.querySelector('section[aria-label="Data e ora"]');
+  const band = document.querySelector('.photo-band');
+  const picture = band?.querySelector('picture');
+  const photo = picture?.querySelector('img');
   const prose = document.querySelector('.cantina');
-  const spread = document.querySelector('main.spread');
+  const page = document.querySelector('main.page');
 
   assert.ok(header, 'manca la testata della pagina');
-  assert.ok(picture, 'la fotografia non è servita dentro un elemento picture');
-  assert.ok(photo, 'manca la fotografia');
+  assert.ok(hero, 'manca l’immagine di apertura');
   assert.ok(date, 'manca il blocco della data');
+  assert.ok(picture, 'la fotografia della cantina non è servita dentro un elemento picture');
+  assert.ok(photo, 'manca la fotografia della cantina');
   assert.ok(prose, 'manca la prosa delle Cantine');
-  assert.ok(spread, 'manca la griglia della pagina');
+  assert.ok(page, 'manca la pagina');
 
   const elements = [...document.querySelectorAll('*')];
   const headerAt = elements.indexOf(header);
+  const heroAt = elements.indexOf(hero);
   const photoAt = elements.indexOf(photo);
   const dateAt = elements.indexOf(date);
   const proseAt = elements.indexOf(prose);
-  assert.ok(headerAt < dateAt, 'la data non segue la testata');
-  assert.ok(dateAt < photoAt, 'la fotografia non segue la data');
-  assert.ok(photoAt < proseAt, 'la fotografia non precede la prosa');
-  assert.ok(
-    spread.contains(photo),
-    'la fotografia non è dentro la griglia della pagina',
-  );
+  assert.ok(headerAt < heroAt, 'l’immagine di apertura non segue la testata');
+  assert.ok(heroAt < dateAt, 'la data non segue l’immagine di apertura');
+  assert.ok(dateAt < photoAt, 'la fotografia della cantina non segue la data');
+  assert.ok(photoAt < proseAt, 'la fotografia della cantina non precede la prosa');
+  for (const element of [header, hero, date, photo, prose]) {
+    assert.ok(
+      page.contains(element),
+      'un blocco della pagina non è dentro la colonna',
+    );
+  }
 
   const alt = normalize(photo.getAttribute('alt') ?? '');
   assert.equal(
@@ -1963,9 +1882,9 @@ test('la fotografia segue la data e precede la prosa nella griglia', () => {
   assert.ok(webpBytes.length > 0, 'il WebP della fotografia è vuoto');
 });
 
-test('la fotografia offre una sorgente di almeno 2048 px e dichiara la misura della griglia', () => {
+test('la fotografia della cantina offre una sorgente di almeno 2048 px e dichiara la misura della pagina', () => {
   const document = loadSite();
-  const picture = document.querySelector('picture');
+  const picture = document.querySelector('.photo-band picture');
   const photo = picture?.querySelector('img');
   assert.ok(picture, 'la fotografia non è servita dentro un elemento picture');
   assert.ok(photo, 'manca la fotografia');
@@ -2013,12 +1932,12 @@ test('la fotografia offre una sorgente di almeno 2048 px e dichiara la misura de
   assert.equal(
     webp.getAttribute('sizes'),
     PHOTO_SIZES,
-    'la sorgente non dichiara la misura della griglia',
+    'la sorgente non dichiara la larghezza della pagina',
   );
   assert.equal(
     photo.getAttribute('sizes'),
     PHOTO_SIZES,
-    'il ripiego non dichiara la misura della griglia',
+    'il ripiego non dichiara la larghezza della pagina',
   );
 
   assert.deepEqual(
@@ -2116,69 +2035,289 @@ test('la fotografia tiene la banda 303:191 e un solo strappo misurato sulla band
   }
 });
 
-test('la fotografia esce dai margini della pagina sul telefono e rientra nella misura da 48 rem', () => {
+/*
+ * The opening photograph is the cover. It shares the page's first row with
+ * the masthead, which sits at its foot, inside the shell, on a bordeaux scrim.
+ * The masthead reads the on-photo roles; both were measured on the crop's
+ * brightest pixel behind it, not assumed. On a phone the crop keeps 4:5; from
+ * 64 rem it widens to a cover.
+ */
+test('l’immagine di apertura è la copertina, con la testata su una velatura bordeaux', () => {
+  const document = loadSite();
   const css = stripCssComments(servedStylesheet());
   const layout = layerBlock(css, 'layout');
+  const components = layerBlock(css, 'components');
 
-  /*
-   * The page's inline padding is where the gutters live. The bleed is the
-   * photograph giving that padding back at both edges — not a viewport-sized
-   * band, which would scroll at 320 px.
-   */
+  const hero = document.querySelector('.hero-photo');
+  const header = document.querySelector('header.masthead');
+  assert.ok(hero, 'manca l’immagine di apertura');
+  assert.ok(header, 'manca la testata');
+
+  // The two share the first row: the signature is set on the photograph.
+  const shared =
+    layout.match(/\.masthead,\s*\.hero-photo\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(shared, 'la testata e l’apertura non condividono una regola');
   assert.match(
-    layout,
-    /\.spread\s*\{[^}]*padding-inline:\s*var\(--page-pad\)/s,
-    'la griglia non dichiara il margine interno da cui la fotografia deve uscire',
+    shared,
+    /grid-row:\s*1\s*;/,
+    'la testata e l’apertura non condividono la riga',
+  );
+  assert.match(
+    shared,
+    /grid-column:\s*1\s*;/,
+    'la testata e l’apertura non condividono la colonna',
   );
 
-  const phoneBand = layout.match(/\.photo-band\s*\{([^}]*)\}/s);
-  assert.ok(phoneBand, 'manca la banda della fotografia sul telefono');
+  // The masthead is the later layer, at the photograph's foot, on the shell.
+  const mastheadLayer = layout.match(/\.masthead\s*\{([^}]*)\}/s)?.[1] ?? '';
   assert.match(
-    phoneBand[1],
-    /margin-inline:\s*calc\(\s*-1\s*\*\s*var\(--page-pad\)\s*\)/,
-    'sotto 48 rem la fotografia non annulla il margine interno della pagina e non arriva ai bordi',
+    mastheadLayer,
+    /z-index:\s*2\s*;/,
+    'la testata non sta sopra l’immagine',
   );
-  assert.doesNotMatch(
-    phoneBand[1],
-    /\d(?:vw|vmin|vmax)\b/,
-    'la fotografia si dimensiona con il viewport e può scorrere in orizzontale',
+  assert.match(
+    mastheadLayer,
+    /align-self:\s*end\s*;/,
+    'la testata non sta in basso sulla copertina',
+  );
+  assert.match(
+    mastheadLayer,
+    /padding-inline:\s*var\(--shell-pad\)/,
+    'la testata non sta sulla shell della pagina',
   );
 
-  const wideBody = wideSpread(css);
-  const wideBand = wideBody.match(/\.photo-band\s*\{([^}]*)\}/s);
-  assert.ok(wideBand, 'la fotografia non rientra nella misura da 48 rem');
+  // The scrim: bordeaux rising from the foot of the photograph, anchored to
+  // the masthead so it holds behind the type at every width.
+  const scrim = components.match(/\.masthead::before\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(scrim, 'manca la velatura della copertina');
   assert.match(
-    wideBand[1],
-    /margin-inline:\s*0\s*;/,
-    'da 48 rem la fotografia non torna dentro i margini della pagina',
+    scrim,
+    /linear-gradient\(\s*to top/,
+    'la velatura non sale dal piede della fotografia',
+  );
+  assert.match(
+    scrim,
+    /color-mix\(in srgb,\s*var\(--strong\)\s*86%,\s*transparent\)/,
+    'la velatura non è il bordeaux della superficie forte',
+  );
+  assert.match(
+    scrim,
+    /inset-block:\s*calc\(-1\s*\*\s*var\(--space-8\)\)\s*0/,
+    'la velatura non è ancorata alla testata e scende con essa',
+  );
+  assert.match(scrim, /z-index:\s*-1\s*;/, 'la velatura non sta dietro la testata');
+  assert.match(scrim, /pointer-events:\s*none/, 'la velatura intercetta il puntatore');
+
+  // The masthead takes the on-photo roles: cream and cream-light, measured on
+  // the crop's brightest pixel.
+  const mastheadInk = components.match(/\.masthead\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(
+    mastheadInk,
+    /--ink:\s*var\(--on-photo\)/,
+    'la testata non legge l’inchiostro della copertina',
+  );
+  assert.match(
+    mastheadInk,
+    /--ink-muted:\s*var\(--on-photo-soft\)/,
+    'il sottotitolo non legge l’inchiostro attenuato della copertina',
+  );
+  const tokens = layerBlock(css, 'tokens');
+  for (const role of ['on-photo', 'on-photo-soft']) {
+    assert.match(
+      tokens,
+      new RegExp(`--${role}\\s*:\\s*var\\(--[a-z-]+\\)\\s*;`),
+      `manca il ruolo --${role}`,
+    );
+  }
+
+  // The scrim's weakest stop is measured, not assumed: both on-photo roles
+  // must clear AA over the scrim composited on a pure-white photograph pixel.
+  const scrimAlphas = [...scrim.matchAll(/var\(--strong\)\s*(\d+)%/g)].map(
+    (match) => Number(match[1]),
+  );
+  assert.ok(scrimAlphas.length >= 2, 'la velatura non dichiara le sue fermate');
+  const hold = Math.min(...scrimAlphas) / 100;
+  const bordeaux = rgb(paletteToken('bordeaux'));
+  const scrimOnWhite = `#${['r', 'g', 'b']
+    .map((channel) =>
+      Math.round(hold * bordeaux[channel] + (1 - hold) * 255)
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')}`;
+  for (const role of ['cream', 'cream-light']) {
+    assert.ok(
+      contrastRatio(paletteToken(role), scrimOnWhite) >= 4.5,
+      `il ${role} sulla velatura non raggiunge il rapporto 4.5:1`,
+    );
+  }
+
+  // The crops: the phone's 4:5, the desktop's wide cover.
+  assert.match(
+    components,
+    /\.hero-photo img\s*\{[^}]*aspect-ratio:\s*4\s*\/\s*5/s,
+    'l’immagine di apertura non è ritagliata 4:5 sul telefono',
+  );
+  assert.match(
+    desktopComposition(css),
+    /\.hero-photo img\s*\{[^}]*aspect-ratio:\s*3\s*\/\s*2/s,
+    'la copertina desktop non ha il ritaglio largo',
   );
 });
 
-test('la fotografia decodifica in asincrono, ha alta priorità e non è precaricata', () => {
+test('l’immagine di apertura è servita a due larghezze, descritta e in 4:5', () => {
   const document = loadSite();
-  const photo = document.querySelector('picture img');
-  assert.ok(photo, 'manca la fotografia');
+  const hero = document.querySelector('.hero-photo picture img');
+  assert.ok(hero, 'manca l’immagine di apertura');
+
+  assert.equal(hero.getAttribute('width'), '720');
+  assert.equal(hero.getAttribute('height'), '900');
+  assert.equal(normalize(hero.getAttribute('alt') ?? ''), HERO_ALT);
+  assert.ok(
+    !/Turania/i.test(hero.getAttribute('alt') ?? ''),
+    'l’immagine di apertura è presentata come un luogo reale',
+  );
+
+  const webp = document.querySelector(
+    '.hero-photo source[type="image/webp"][srcset]',
+  );
+  assert.ok(webp, 'manca la sorgente WebP dell’apertura');
+  assert.equal(webp.getAttribute('sizes'), HERO_SIZES);
+  assert.equal(hero.getAttribute('sizes'), HERO_SIZES);
+
+  const candidates = parseSrcset(hero.getAttribute('srcset') ?? '');
+  assert.deepEqual(
+    candidates.map((candidate) => candidate.width),
+    [720, 1033],
+    'l’apertura non offre le due copie',
+  );
+
+  for (const candidate of candidates) {
+    const { file, url } = siteFileFor(candidate.url);
+    assert.match(url.pathname, /\.jpe?g$/i, 'una copia dell’apertura non è un JPEG');
+    const frame = jpegFrame(readFileSync(file));
+    assert.equal(
+      frame.width,
+      candidate.width,
+      'la copia dichiarata non ha la larghezza dichiarata',
+    );
+    assert.equal(frame.components, 3, 'l’apertura non è RGB');
+    assert.ok(
+      Math.abs(frame.width / frame.height - 4 / 5) < 0.002,
+      'l’apertura non tiene il 4:5',
+    );
+  }
+
+  for (const candidate of parseSrcset(webp.getAttribute('srcset'))) {
+    const bytes = readFileSync(siteFileFor(candidate.url).file);
+    assert.equal(bytes.subarray(0, 4).toString('ascii'), 'RIFF');
+    assert.equal(bytes.subarray(8, 12).toString('ascii'), 'WEBP');
+  }
+});
+
+test('la pagina ha una shell e una sola composizione desktop', () => {
+  const css = stripCssComments(servedStylesheet());
+  assertDesktopComposition(css);
+
+  const tokens = layerBlock(css, 'tokens');
+  assert.match(tokens, /--shell\s*:\s*76rem\s*;/, 'la shell non è 76 rem');
+  assert.match(tokens, /--measure\s*:\s*48rem\s*;/, 'la misura della prosa non è 48 rem');
+  assert.match(
+    tokens,
+    /--gutter\s*:\s*clamp\(/,
+    'il margine della pagina non è fluido',
+  );
+  assert.match(
+    tokens,
+    /--shell-pad\s*:\s*max\(var\(--gutter\),\s*calc\(\(100%\s*-\s*var\(--shell\)\)\s*\/\s*2\)\)/,
+    'la shell non calcola il proprio inset',
+  );
+
+  const layout = layerBlock(css, 'layout');
+  assert.match(
+    layout,
+    /\.page\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s,
+    'la pagina non è una griglia a piena larghezza',
+  );
+  assert.doesNotMatch(
+    layout,
+    /\.page\s*\{[^}]*max-inline-size/s,
+    'la pagina conserva una misura: è ancora una colonna',
+  );
+});
+
+test('la fotografia esce dai margini della pagina a ogni larghezza', () => {
+  const css = stripCssComments(servedStylesheet());
+  assertDesktopComposition(css);
+  const layout = layerBlock(css, 'layout');
+
+  /*
+   * The page is the viewport, so the photograph bleeds by occupying the grid's
+   * whole column. It declares no measure of its own and no negative margin —
+   * the old trick for escaping a column that no longer exists.
+   */
+  assert.match(
+    layout,
+    /\.page\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s,
+    'la pagina non è a piena larghezza',
+  );
+
+  const band = layout.match(/\.photo-band\s*\{([^}]*)\}/s);
+  assert.ok(band, 'manca la banda della fotografia');
+  assert.match(
+    band[1],
+    /inline-size:\s*100%/,
+    'la fotografia non occupa la larghezza della pagina',
+  );
+  assert.match(
+    band[1],
+    /margin:\s*0/,
+    'la fotografia conserva un margine laterale',
+  );
+  assert.doesNotMatch(
+    band[1],
+    /\d(?:vw|vmin|vmax)\b/,
+    'la fotografia si dimensiona con il viewport e può scorrere in orizzontale',
+  );
+});
+
+test('l’immagine di apertura ha alta priorità, la cantina no, e nessuna è precaricata', () => {
+  const document = loadSite();
+  const hero = document.querySelector('.hero-photo picture img');
+  const cantina = document.querySelector('.photo-band picture img');
+  assert.ok(hero, 'manca l’immagine di apertura');
+  assert.ok(cantina, 'manca la fotografia della cantina');
 
   assert.equal(
-    photo.getAttribute('decoding'),
+    hero.getAttribute('decoding'),
     'async',
-    'la fotografia non decodifica in asincrono',
+    'l’immagine di apertura non decodifica in asincrono',
   );
   assert.equal(
-    photo.getAttribute('fetchpriority'),
+    hero.getAttribute('fetchpriority'),
     'high',
-    'la fotografia non ha alta priorità di caricamento',
+    'l’immagine di apertura non ha alta priorità di caricamento',
+  );
+  assert.equal(
+    cantina.getAttribute('decoding'),
+    'async',
+    'la fotografia della cantina non decodifica in asincrono',
+  );
+  assert.equal(
+    cantina.getAttribute('fetchpriority'),
+    'low',
+    'la fotografia della cantina non cede la priorità all’apertura',
   );
 
   const preloads = [...document.querySelectorAll('link[rel~="preload"]')].filter(
     (link) =>
       link.getAttribute('as') === 'image' ||
-      /svino-cantina/.test(link.getAttribute('href') ?? ''),
+      /svino-(?:cantina|borgo)/.test(link.getAttribute('href') ?? ''),
   );
   assert.deepEqual(
     preloads.map((link) => link.getAttribute('href')),
     [],
-    'la fotografia è precaricata: il preload duplica il caricamento',
+    'un’immagine è precaricata: il preload duplica il caricamento',
   );
 });
 
@@ -2447,7 +2586,7 @@ test('il foglio di stile espone un indicatore di focus visibile sui link', () =>
   assert.ok(pixels >= 2, `outline troppo sottile: ${value}`);
 });
 
-test('il movimento del spread usa i token, lascia fermo l’eroe e ha una via per chi riduce il movimento', () => {
+test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via per chi riduce il movimento', () => {
   const css = servedStylesheet();
 
   assert.doesNotMatch(
@@ -2526,7 +2665,7 @@ test('il movimento del spread usa i token, lascia fermo l’eroe e ha una via pe
   }
 
   /*
-   * The spread reveals only the prose and the band as they enter the viewport.
+   * The page reveals only the prose and the band as they enter the viewport.
    * The hero — the signature, its lockup and subtitle, and the date — is
    * present on the first screen and never waits for the scroll.
    */
@@ -2543,7 +2682,7 @@ test('il movimento del spread usa i token, lascia fermo l’eroe e ha una via pe
   for (const selector of reveals) {
     assert.doesNotMatch(
       selector,
-      /(?:\.masthead|\.signature|\.lockup|\.subtitle|\.date)\b/,
+      /(?:\.masthead|\.signature|\.lockup|\.subtitle|\.date|\.hero-photo)\b/,
       `l’eroe ha un reveal scroll: ${selector}`,
     );
     assert.match(
