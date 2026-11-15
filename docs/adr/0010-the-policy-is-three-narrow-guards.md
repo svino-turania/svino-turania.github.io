@@ -13,9 +13,9 @@
 
 The suite had one blanket test: the page loads no JavaScript and no third-party
 resources. It asserted no `<script>`, no inline `on*` handler and no shipped
-`.js`; it required every `src`, `srcset`, stylesheet `href` and anchor `href`
-to stay on the origin, with the map link the single exception; and it failed on
-any `https?://` appearing anywhere in a shipped stylesheet.
+`.js`; it required every `src`, `srcset`, `link[href]` and anchor `href` to stay
+on the origin, with the map link the single exception; and it failed on any
+`https?://` appearing anywhere in a shipped stylesheet.
 
 The rule was cheap to write and total. It also treated a string as a request.
 The paper ground adds a grain through an inline SVG `data:` URI, and that URI
@@ -41,23 +41,28 @@ so no one of them can be dropped by editing another:
   that ship analytics, advertising and session recording: Google Analytics and
   Tag Manager, Matomo, Plausible, Segment, Mixpanel, Amplitude, Heap, Hotjar,
   FullStory, Clarity, Smartlook, LogRocket and the rest of the list in
-  `tests/site.test.mjs`. Entries are hostnames, and a subdomain matches its
-  entry, so the map's `google.com` destination stays allowed while
-  `google-analytics.com` does not. Every shipped file — the page, the
-  stylesheet and each asset — is scanned, and any match fails the suite.
+  `tests/site.test.mjs`. Entries are hostnames matched on host boundaries, so
+  an entry also matches its subdomains: `www.google-analytics.com` is denied,
+  while the map's `www.google.com` is allowed because `google.com` is not on
+  the denylist. Every shipped file — the page, the stylesheet and each asset —
+  is scanned, and any match fails the suite.
 - **No external font.** No file named after Breathing is shipped, and no
   separate signature file is shipped. Every shipped font file is one of the
   four self-hosted `assets/fonts/SV(Serif|Sans)-(Regular|Bold).woff2`. The page
-  names no `@font-face` and no external font, and contains no `url(http…)`.
-  Every `@font-face` in the stylesheet resolves to a relative local `.woff2`,
-  and the stylesheet names no Google Fonts host and contains no `url(http…)`.
+  names no `@font-face` and no external font, contains no `url(http…)` and no
+  external `@import`, and links no external stylesheet and no external link
+  that names a font (`as="font"` or a `font/…` type): a stylesheet link is
+  checked because `@font-face` can only enter through CSS. Every `@font-face`
+  in the stylesheet resolves to a relative local `.woff2`, and the stylesheet
+  names no Google Fonts host, contains no `url(http…)` and no external
+  `@import`.
 
-The same-origin assertions over `src`, `srcset`, stylesheet `href` and anchor
-`href` are gone, as is the blanket `https?://` scan of shipped CSS. The map
-link keeps its own test — destination `Turania (RI)`, `rel="noopener
-noreferrer"` — unchanged. The per-asset resolver that the icon, photograph,
-download and social-preview tests use stays: it checks a specific resource, and
-it is not a blanket rule.
+The same-origin assertions over `src`, `srcset`, `link[href]` and anchor `href`
+are gone, as is the blanket `https?://` scan of shipped CSS; the font guard
+keeps its narrower `url(http…)` check. The map link keeps its own test —
+destination `Turania (RI)`, `rel="noopener noreferrer"` — unchanged. The
+per-asset resolver that the icon, photograph, download and social-preview tests
+use stays: it checks a specific resource, and it is not a blanket rule.
 
 Nothing else about the site changes. SV Serif and SV Sans are still the
 self-hosted OFL subsets with their licence text beside them. There is still no
@@ -74,8 +79,7 @@ the Comitato has not approved — continues.
 
 - **A string is no longer a request.** The grain's inline SVG namespace, and
   any other absolute string carried as data rather than as a load, passes. The
-  guards reason about what the browser fetches, not about what the file
-  contains.
+  guards look for load patterns, not for the bare presence of a URL.
 - **External resources are no longer forbidden by default.** Adding one is a
   decision, taken with the Comitato, not a suite failure. The map link stops
   being the one permitted exception by rule and becomes simply the one external
@@ -84,12 +88,13 @@ the Comitato has not approved — continues.
   fails on the hosts it names, matched on host boundaries; a tracker it does
   not name passes. It is a floor maintained by hand, and the list has to grow
   when a new host earns its place. The no-JavaScript contract means no script
-  can run from the page's own markup; an external resource that is not a font
-  or a listed tracker is not otherwise inspected.
-- **Some coverage is genuinely lost.** A new external `<img src>`, stylesheet
-  link or anchor would no longer fail a general assertion. The assets the page
-  actually uses are still resolved file by file, and the map link still has its
-  own test.
+  can run from the page's own markup; an external resource that is not a font,
+  a stylesheet or a listed tracker is not otherwise inspected.
+- **Some coverage is genuinely lost.** A new external `<img src>` or anchor
+  would no longer fail a general assertion. An external stylesheet link does
+  still fail, but only through the font guard, because a stylesheet is where
+  `@font-face` is declared. The assets the page actually uses are still
+  resolved file by file, and the map link still has its own test.
 - **The no-script guarantee no longer depends on a host rule.** It survives
   this ADR as its own test, which is why the block was split before it was
   removed.

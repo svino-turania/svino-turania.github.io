@@ -30,6 +30,26 @@ const IMAGE_TYPE_BY_EXTENSION = new Map([
   ['.jpeg', 'image/jpeg'],
 ]);
 
+/*
+ * Every image the site ships. The ground adds no image file: its grain is a
+ * data URI. This is an exact inventory, like the font allowlist, so a new
+ * image fails whatever it is called, not only one named after the grain.
+ */
+const SHIPPED_IMAGE_FILES = Object.freeze([
+  'assets/download/locandina-svino-ii-edizione.jpg',
+  'assets/icons/apple-touch-icon.png',
+  'assets/icons/favicon.svg',
+  'assets/img/svino-borgo-hero-1033.jpg',
+  'assets/img/svino-borgo-hero-1033.webp',
+  'assets/img/svino-borgo-hero-720.jpg',
+  'assets/img/svino-borgo-hero-720.webp',
+  'assets/img/svino-cantina-1200.jpg',
+  'assets/img/svino-cantina-1200.webp',
+  'assets/img/svino-cantina-2048.jpg',
+  'assets/img/svino-cantina-2048.webp',
+  'assets/img/svino-quadrato-og.jpg',
+]);
+
 function normalize(value) {
   return value.replace(/\s+/g, ' ').trim();
 }
@@ -227,7 +247,7 @@ function resolveTokenColour(name, css = servedStylesheet()) {
 function mixedGroundTone(name, css = servedStylesheet()) {
   const value = tokenValue(name, css);
   const mix = value.match(
-    /^color-mix\(\s*in srgb\s*,\s*var\(--([a-z-]+)\)\s+(\d+(?:\.\d+)?)%\s*,\s*var\(--([a-z-]+)\)(?:\s+(\d+(?:\.\d+)?)%)?\s*\)$/,
+    /^color-mix\(\s*in srgb\s*,\s*var\(--([a-z-]+)\)\s+(\d+(?:\.\d+)?)%\s*,\s*var\(--([a-z-]+)\)\s*\)$/,
   );
   assert.ok(
     mix,
@@ -236,11 +256,7 @@ function mixedGroundTone(name, css = servedStylesheet()) {
   const first = rgb(resolveTokenColour(mix[1], css));
   const second = rgb(resolveTokenColour(mix[3], css));
   const firstShare = Number(mix[2]) / 100;
-  const secondShare = mix[4] ? Number(mix[4]) / 100 : 1 - firstShare;
-  assert.ok(
-    Math.abs(firstShare + secondShare - 1) < 1e-9,
-    `--${name} non mescola due parti intere: ${value}`,
-  );
+  const secondShare = 1 - firstShare;
   return {
     r: first.r * firstShare + second.r * secondShare,
     g: first.g * firstShare + second.g * secondShare,
@@ -351,6 +367,14 @@ function shippedFiles() {
     }
   }
   return files;
+}
+
+/*
+ * The shipped entries that are files on disk. The directory walk also reports
+ * directories; the assertions that read every shipped file skip those.
+ */
+function shippedFilesOnDisk() {
+  return shippedFiles().filter((file) => statSync(join(SITE, file)).isFile());
 }
 
 /*
@@ -1370,13 +1394,16 @@ test('il fondo non aggiunge un file, una richiesta o un movimento', () => {
     /url\((?!#)/,
     'il tassello della grana richiede una risorsa fuori da sé',
   );
-  for (const file of shippedFiles()) {
-    assert.doesNotMatch(
-      file,
-      /(?:grain|noise|paper|texture|fibre|fiber)/i,
-      `la grana aggiunge un file: ${file}`,
-    );
-  }
+  // The site's images are an exact, known set. The ground ships no file: its
+  // grain is the data URI above, so the inventory does not grow.
+  const images = shippedFilesOnDisk()
+    .filter((file) => /\.(?:avif|gif|ico|jpe?g|png|svg|tiff?|webp)$/i.test(file))
+    .sort();
+  assert.deepEqual(
+    images,
+    [...SHIPPED_IMAGE_FILES],
+    `il fondo aggiunge un file immagine: ${images.join(', ')}`,
+  );
 
   // Still and flat: the ground adds no motion, shadow or rounding to the page.
   assert.doesNotMatch(
@@ -1473,19 +1500,25 @@ test('i due toni del campo sono mescolanze della palette, non colori nuovi', () 
       /#[0-9a-fA-F]{3,8}\b/,
       `--${name} introduce un colore grezzo invece di mescolare la palette`,
     );
-    // Every source is a token the stylesheet actually ships.
+    // Every source is a token the stylesheet actually ships; tokenValue
+    // asserts its presence with its own message.
     for (const [, source] of value.matchAll(/var\(--([a-z-]+)\)/g)) {
-      assert.ok(
-        tokenValue(source, css),
-        `--${name} legge un token che non esiste: --${source}`,
-      );
+      tokenValue(source, css);
     }
   }
 
   // The light end leans on the print's light paper, the deep end on its warm
   // neutral, and both on the page's own surface.
-  assert.match(light, /var\(--cream-light\)/);
-  assert.match(deep, /var\(--bronze\)/);
+  assert.match(
+    light,
+    /var\(--cream-light\)/,
+    'il capo chiaro non attinge alla carta chiara della stampa',
+  );
+  assert.match(
+    deep,
+    /var\(--bronze\)/,
+    'il capo scuro non attinge al neutro caldo della stampa',
+  );
   for (const [name, value] of [
     ['ground-light', light],
     ['ground-deep', deep],
@@ -1539,14 +1572,14 @@ test('il campo resta entro il sei per cento e il bordeaux regge su entrambi i ca
   assert.match(
     note,
     new RegExp(
-      `lightest ground\\s+${literal(hexOf(lightest))}\\s+luminance\\s+${literal(lightLuminance.toFixed(4))}`,
+      `lightest ground\\s+≈\\s+${literal(hexOf(lightest))}\\s+luminance\\s+${literal(lightLuminance.toFixed(4))}`,
     ),
     'la nota non registra il capo più chiaro del campo',
   );
   assert.match(
     note,
     new RegExp(
-      `darkest ground\\s+${literal(hexOf(darkest))}\\s+luminance\\s+${literal(darkLuminance.toFixed(4))}`,
+      `darkest ground\\s+≈\\s+${literal(hexOf(darkest))}\\s+luminance\\s+${literal(darkLuminance.toFixed(4))}`,
     ),
     'la nota non registra il capo più scuro del campo',
   );
@@ -2262,17 +2295,14 @@ function deniedTrackerHost(text) {
       (entry) => host === entry || host.endsWith(`.${entry}`),
     );
     if (denied) {
-      return { host, denied };
+      return { host };
     }
   }
   return null;
 }
 
 test('nessun host di tracciamento, pubblicità o registrazione sessione compare nel sito', () => {
-  const files = shippedFiles().filter((file) =>
-    statSync(join(SITE, file)).isFile(),
-  );
-  for (const file of files) {
+  for (const file of shippedFilesOnDisk()) {
     const text = readFileSync(join(SITE, file), 'utf8');
     const hit = deniedTrackerHost(text);
     assert.ok(
@@ -2867,44 +2897,6 @@ test('la testata riporta la firma come tracciato inline con nome accessibile e i
   }
 });
 
-test('il sito non distribuisce il font Breathing e non richiede font esterni', () => {
-  const files = shippedFiles();
-
-  for (const file of files) {
-    assert.doesNotMatch(
-      file,
-      /breathing/i,
-      `il sito contiene il font Breathing: ${file}`,
-    );
-  }
-  assert.deepEqual(
-    files.filter((file) => /signature/i.test(file)),
-    [],
-    'la firma è distribuita come file separato invece che inline',
-  );
-
-  const fontFiles = files.filter((file) => /\.(?:woff2?|ttf|otf)$/i.test(file));
-  for (const file of fontFiles) {
-    assert.match(
-      file,
-      /(?:^|\/)assets\/fonts\/(?:SVSerif|SVSans)-(?:Regular|Bold)\.woff2$/,
-      `il sito contiene un font non ammesso: ${file}`,
-    );
-  }
-
-  const html = readFileSync(join(SITE, 'index.html'), 'utf8');
-  assert.doesNotMatch(
-    html,
-    /breathing|fonts\.(?:googleapis|gstatic)\.com|@font-face/i,
-    'la pagina richiede o nomina un font esterno',
-  );
-  assert.doesNotMatch(
-    html,
-    /url\(\s*['"]?https?:\/\//i,
-    'la pagina richiede un font da un host esterno',
-  );
-});
-
 test('i font auto-ospitati sono WOFF2 dello stesso sito', () => {
   const cssPath = join(SITE, 'assets', 'css', 'style.css');
   const css = servedStylesheet();
@@ -2954,25 +2946,28 @@ test('i font auto-ospitati sono WOFF2 dello stesso sito', () => {
 /*
  * Third of the three narrow guards. It keeps the unlicensed demo font out of
  * the site and every font request on the origin: no Breathing file, no
- * shipped signature file, no Google Fonts host, no url(http...) in the
- * stylesheet, and every @font-face resolving to a local WOFF2.
+ * shipped signature file, no Google Fonts host, no external font load from
+ * the page, stylesheet or their imports, and every @font-face resolving to a
+ * local WOFF2.
  */
 test('il font Breathing, la firma spedita e i font fuori sede restano fuori dal sito', () => {
-  const files = shippedFiles().filter((file) =>
-    statSync(join(SITE, file)).isFile(),
-  );
-  assert.deepEqual(
-    files.filter((file) => /breathing/i.test(file)),
-    [],
-    'il sito distribuisce il font Breathing',
-  );
+  const files = shippedFiles();
+  for (const file of files) {
+    assert.doesNotMatch(
+      file,
+      /breathing/i,
+      `il sito contiene il font Breathing: ${file}`,
+    );
+  }
   assert.deepEqual(
     files.filter((file) => /signature/i.test(file)),
     [],
     'la firma è distribuita come file separato invece che inline',
   );
 
-  const fontFiles = files.filter((file) => /\.(?:woff2?|ttf|otf)$/i.test(file));
+  const fontFiles = shippedFilesOnDisk().filter((file) =>
+    /\.(?:woff2?|ttf|otf)$/i.test(file),
+  );
   for (const file of fontFiles) {
     assert.match(
       file,
@@ -2987,6 +2982,36 @@ test('il font Breathing, la firma spedita e i font fuori sede restano fuori dal 
     /breathing|fonts\.(?:googleapis|gstatic)\.com|@font-face/i,
     'la pagina richiede o nomina un font esterno',
   );
+  // A font can also be fetched around the stylesheet: an inline url(http...)
+  // in a style attribute or style element, or an external @import.
+  assert.doesNotMatch(
+    html,
+    /url\(\s*['"]?(?:https?:)?\/\//i,
+    'la pagina richiede un font da un host esterno',
+  );
+  assert.doesNotMatch(
+    html,
+    /@import\s+(?:url\(\s*)?['"]?\s*(?:https?:)?\/\//i,
+    'la pagina importa un foglio di stile da un host esterno',
+  );
+  /*
+   * Or through a link: a preload/prefetch of a font file, or a stylesheet,
+   * which is where @font-face is declared. Those stay on the origin, so a
+   * font CDN cannot slip in beside the local stylesheet.
+   */
+  for (const link of loadSite().querySelectorAll('link[href]')) {
+    const href = (link.getAttribute('href') ?? '').trim();
+    if (!/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(href)) {
+      continue;
+    }
+    const rel = (link.getAttribute('rel') ?? '').toLowerCase().split(/\s+/);
+    const type = (link.getAttribute('type') ?? '').toLowerCase();
+    const as = (link.getAttribute('as') ?? '').toLowerCase();
+    assert.ok(
+      !(type.startsWith('font/') || as === 'font' || rel.includes('stylesheet')),
+      `la pagina carica un font o un foglio di stile fuori sede: ${href}`,
+    );
+  }
 
   const css = servedStylesheet();
   const faces = [...css.matchAll(/@font-face\s*\{([^}]*)\}/gi)].map(
@@ -3012,8 +3037,13 @@ test('il font Breathing, la firma spedita e i font fuori sede restano fuori dal 
   );
   assert.doesNotMatch(
     css,
-    /url\(\s*['"]?https?:\/\//i,
+    /url\(\s*['"]?(?:https?:)?\/\//i,
     'il foglio di stile richiede un font da un host esterno',
+  );
+  assert.doesNotMatch(
+    css,
+    /@import\s+(?:url\(\s*)?['"]?\s*(?:https?:)?\/\//i,
+    'il foglio di stile importa un foglio da un host esterno',
   );
 });
 
