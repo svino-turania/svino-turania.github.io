@@ -4,12 +4,13 @@ The one-page Italian site for sVino, II Edizione — 6 dicembre 2026, Turania
 (RI) — published at <https://svino-turania.github.io> from the public
 repository `svino-turania/svino-turania.github.io`.
 
-Status: the page carries the Locandina's facts, the Cantina prose and
-the map link. The identity (palette and type), the label composition, the
-outlined signature with the `II EDIZIONE` lockup, the Cantina photograph with
-its torn lower edge, the Open Graph and Twitter metadata, the square social
-preview, the Locandina download, the print-derived motion and the accessibility
-work are all in place. The rules below describe the system that work preserves.
+Status: the page is the editorial spread recorded in ADR-0005. It carries the
+Locandina's facts, the Cantina prose, the map link and one Locandina download.
+The identity (palette and type), the outlined signature with the `II EDIZIONE`
+lockup, the Cantina photograph with its single torn lower edge, the Open Graph
+and Twitter metadata, the square social preview, the print-derived motion and
+the accessibility work are all in place. The rules below describe the system
+that work preserves.
 
 ## The site is the files it is
 
@@ -39,57 +40,79 @@ type for the fonts and WebP files and no caching, so a refresh picks up an
 edit. Nothing outside those paths is reachable. `python3 -m http.server 8080`
 also works, but it serves the whole repository root.
 
-Check the three compositions before merging, in the browser's responsive mode:
+Check the spread before merging, in the browser's responsive mode:
 
-- 320 and 390 px: the panel with the facts stacked, and no horizontal scrolling;
-- 768 px: the panel at its reading measure, the facts as two cells;
-- 1024, 1440×900 and 1920 px: the panel centred on the cream ground. At
-  1440×900 the signature and the date must fit the first screen.
+- 320 and 390 px: one left-aligned column with 24 px gutters and the
+  photograph at full width, with no horizontal scrolling; the signature and
+  the date fit the first screen.
+- 768 px: the twelve-column grid, with the masthead in columns 1–8 and the
+  date in columns 9–12.
+- 1024, 1440×900 and 1920 px: the 84 rem measure centred, with the photograph
+  spanning it; the signature and the date fit the first screen. The page fits
+  two screens on desktop and three on a phone.
 
 Repeat at 200% text zoom: the date, the place and the organiser must stay
-readable, with no horizontal scrolling and no clipped text.
+readable, with no horizontal scrolling and no clipped text. At a tight measure
+the date's words wrap inside their own columns rather than pushing the page
+sideways.
 
 ## Composition
 
-The page is one label: a cream-light panel on the cream ground, bounded by a
-gold rule with an inset hairline, at most 46 rem wide. The order is the
-Locandina's — signature, subtitle, date lockup, photograph, Cantina prose, the
-facts — and the footer (map link, Locandina download, colophon) sits outside the
-panel.
+The page is the paper: the cream ground is the page itself, with no sheet,
+panel, border or shadow. The order is the masthead (signature and subtitle),
+the date, the photograph, the Cantina prose and one closing bordeaux band.
 
-The date is the centre field: the weekday in tracked small caps, the day at
-display size, the month beneath, with the time under `DALLE ORE`. The
-photograph is contained in the panel and keeps its torn lower edge. The facts
-are two ruled cells, side by side above 30 rem and stacked below it.
+The measure is 84 rem, centred, with `clamp(28px, 5.5vw, 96px)` gutters. Inside
+it the desktop spread is a twelve-column grid with a `clamp(1.25rem, 2vw, 2rem)`
+gap: the masthead takes columns 1–8, the date columns 9–12 set to the bottom
+and left-aligned, the photograph spans all twelve columns and the prose takes
+columns 1–8 at most 36 rem wide. Below 48 rem the page is one left-aligned
+column with 24 px gutters and a full-width photograph.
+
+The date keeps the print's vertical lockup: the tracked weekday, the day
+numeral at display scale, the month beneath, the time under `DALLE ORE`. The
+photograph keeps the exact 303:191 print crop and exactly one torn lower edge,
+the boundary between the photographic section and the prose. The tear is a
+vector polygon expressed against the photograph band's own width (`cqw`, with
+`container-type: inline-size` on `.photo-band`), so the measure cannot compress
+its teeth. No raster tear is shipped.
+
+One bordeaux band closes the page: `DOVE`, `A CURA DI`, the map link, the
+Locandina download and the colophon, cream on bordeaux with the role labels in
+gold-light. It is the page's only dark surface, and it is present at every
+width. Its inner content re-aligns to the same 84 rem measure, with the facts
+at the left, the two actions at the right and the colophon on a full-width
+tail.
+
+The Locandina has one download anchor, in that band. There is no second copy
+and no show/hide rule, so there is nothing to keep in step.
 
 Each fact has one home, so the page does not read as duplicated boilerplate:
 the time is in the date under `DALLE ORE`; the place is under `DOVE`; the
 organiser is under `A CURA DI`. The map link opens Google Maps for the same
-place without repeating it, and the colophon states the edition only. The
-Locandina has two download anchors in the DOM, one per composition: the facts
-copy is desktop only, the footer copy sits after the map link below 64 rem.
-Both point to the same file and carry the same name; the stylesheet hides the
-other copy with `display: none`, so exactly one is visible and focusable at any
-width. Update both together.
+place without repeating it, and the colophon states the edition only.
 
-The tear is a vector polygon expressed against the photograph's own width, so
-the panel's measure cannot compress its teeth. ADR-0004 records how and why.
+ADR-0005 records the composition; ADR-0004 is superseded for it.
 
 ## Motion
 
 The page prints itself rather than fading in like a template. The signature is
-clipped in from the left like a press impression, the `II EDIZIONE` lockup
-follows, the subtitle settles, the date's two rules extend from the centre and
-the weekday, day, month and time follow. Below the fold, the photograph
-develops inside its fixed tear, the prose rises and the facts rule extends as
-they enter the viewport.
+pressed in from the left like a press impression, the `II EDIZIONE` lockup is
+inked behind it, the subtitle settles and the date is set. The photograph
+develops inside the tear the frame cuts, so the edge never moves. Below the
+fold, the Cantina prose and the facts rise as they enter the viewport; the
+band's two actions never fade, only their rules are ruled.
+
+The hero — the signature, its lockup and subtitle, and the date — is complete
+on the first screen and never waits for the scroll. Scroll-driven reveals are
+only for the prose and the facts band.
 
 Motion is CSS only. The no-JavaScript test fails on any script, so no effect
 may depend on one. The rules are:
 
 - **The base style is the finished page.** Animations are added under
-  `prefers-reduced-motion: no-preference`; under `reduce` the label is complete
-  and still. Nothing starts invisible.
+  `prefers-reduced-motion: no-preference`; under `reduce` the spread is
+  complete and still. Nothing starts invisible.
 - **Nothing repeats.** There are no ambient effects, so no pause control is
   needed and no new UI appears.
 - **Focus never animates.** `:focus-visible` is feedback and appears at once.
@@ -99,14 +122,14 @@ may depend on one. The rules are:
 
 The entrance finishes within about 900 ms. Scroll-driven reveals
 (`animation-timeline: view()`) are progressive enhancement behind `@supports`;
-browsers without it, including iOS before 26, serve the static page.
+browsers without it, including iOS before 26, serve the static page with the
+same content.
 
 The signature has no stroke, so the press edge is a `clip-path` on the filled
-path, not a stroke animation. The date's rules and the facts rule are
-pseudo-lines rather than borders precisely so they can extend; the extra 1px
-of padding keeps their rendered boxes identical. ADR-0004 records the label
-composition the motion sits on; the motion itself is cheap to reverse and has
-no ADR.
+path, not a stroke animation. The actions' rules are pseudo-lines rather than
+borders precisely so they can be ruled; the extra 1px of padding keeps their
+rendered boxes identical. ADR-0005 records the composition the motion sits on;
+the motion itself is cheap to reverse and has no ADR.
 
 ## Editor workflow (Comitato)
 
@@ -124,12 +147,12 @@ a short comment beside it in the file:
 | Weekday               | `DOMENICA`                     | the date lockup, above the numeral                             |
 | Month and year        | `DICEMBRE 2026`                | the date lockup, under the numeral                             |
 | Time                  | `12:00`                        | the date, under `DALLE ORE`                                   |
-| Place                 | `Turania (RI)`                 | `DOVE` in the facts, plus the title/description metadata |
-| Organiser             | `Comitato Feste Turania`       | the `A CURA DI` value                                         |
+| Place                 | `Turania (RI)`                 | `DOVE` in the closing band, plus the title/description metadata |
+| Organiser             | `Comitato Feste Turania`       | the `A CURA DI` value in the closing band                     |
 | Subtitle              | `Per le cantine di Turania`    | under the signature                                           |
 | Edition               | `II EDIZIONE`                  | the lockup beside the signature, the colophon and the metadata |
 | Photograph description| the approved Italian sentence  | the `alt` attribute of the Cantina photograph                 |
-| Locandina download    | `assets/download/locandina-svino-ii-edizione.jpg` | the facts link on desktop, the footer link on phone and tablet |
+| Locandina download    | `assets/download/locandina-svino-ii-edizione.jpg` | the single link in the closing band, at every width |
 
 The date is the one value the page states in several forms. Change
 `datetime="2026-12-06"` only if the Comitato moves the event, then bring the
@@ -148,10 +171,9 @@ date lockup. A test counts `12:00`, `Turania (RI)`, `Comitato Feste Turania`,
 `DALLE ORE`, `DOVE` and `A CURA DI` in the visible body text and fails if any
 appears more than once.
 
-The Locandina download is two anchors, one per composition: in the facts on
-desktop and in the footer after the map link on phone and tablet. They must
-keep the same `href`, `download`, `type` and link text; the stylesheet hides
-the copy that does not belong to the current composition. Change both together.
+The Locandina download is one anchor, in the closing bordeaux band. It is
+present at every width, with no second copy and no rule that hides it, so
+there is one `href`, `download`, `type` and link text to keep correct.
 
 The Cantina prose sits between the `CANTINA — INIZIO REGIONE MODIFICABILE`
 and `CANTINA — FINE REGIONE MODIFICABILE` comments. Keep it inside those
@@ -177,9 +199,11 @@ maintainer instead of editing it alone.
 
 When the Comitato supplies the programme, add it as a new section of
 `index.html` — not as a new page or route — so the address printed on the
-Locandina stays the address of the programme. Add the section inside the
-Cantina prose region, after the Cantina prose and before the facts
-`aside`; it then inherits the prose measure in all three compositions:
+Locandina stays the address of the programme. Put it inside the prose container
+(`<div class="cantina">`), after the `CANTINA — FINE REGIONE MODIFICABILE`
+marker and before the closing `</div>`; it then follows the photograph and the
+prose, sits in the measured column (columns 1–8 at most 36 rem on the spread,
+the single column on the phone) and precedes the closing band:
 
 ```html
 <section aria-labelledby="programma">
@@ -188,9 +212,13 @@ Cantina prose region, after the Cantina prose and before the facts
 </section>
 ```
 
-Keep the heading order valid: the signature is the page's only `h1`, so the
-programme heading is an `h2`. The programme is absent until that content
-exists; nothing is added to fill the space.
+Leave the two approved Cantina paragraphs untouched between the two markers:
+the tests expect exactly those two paragraphs inside the region. Do not add the
+programme to the bordeaux band; the band carries only `DOVE`, `A CURA DI`, the
+map link, the Locandina download and the colophon. Keep the heading order
+valid: the signature is the page's only `h1`, so the programme heading is an
+`h2`. The programme is absent until that content exists; nothing is added to
+fill the space.
 
 ## Deployment
 
@@ -216,22 +244,32 @@ against `datetime`, the map destination, the declared language, headings and
 link names, the absence of JavaScript and third-party hosts, and the content
 policy.
 
-The suite also asserts the composition's contracts: the time, place, organiser
-and the `DALLE ORE`, `DOVE`, `A CURA DI` labels each occur exactly once in the
-visible body text; the map link opens `Turania (RI)` on Google Maps in a new
-context with `noopener noreferrer` and its text need not repeat the place; the
-section order puts the date's time before the prose, the facts after it, and
-closes with the map link and the colophon; the Locandina has one download anchor
-in the facts and one in the footer, both resolving to the same file with the
-same declared type and name; and the tear is a vector polygon measured with
-`cqw` against the photograph's own width, with `container-type: inline-size` on
-its wrapper. The suite also pins the favicon's path data to the
-inline signature path, so the two cannot drift apart. The motion rules are
+The suite also asserts the spread's contracts: `main.spread` is a twelve-column
+grid with a measure of 84 rem and the masthead in columns 1–8; the date is a
+left-aligned vertical lockup in columns 9–12 with one home for `DALLE ORE`; the
+photograph spans the grid, keeps the 303:191 band and has exactly one torn edge
+measured in `cqw` against the photograph band (`container-type: inline-size` on
+`.photo-band`), with no raster tear shipped; the prose is in columns 1–8 at most
+36 rem wide; the phone is one column with 24 px gutters; and one bordeaux band is
+the page's only dark surface, carrying `DOVE`, `A CURA DI`, the map link, the
+single Locandina download and the colophon. The one download is present at every
+width and the stylesheet contains no rule that hides content. The time, place,
+organiser and the `DALLE ORE`, `DOVE`, `A CURA DI` labels each occur exactly once
+in the visible body text; the map link opens `Turania (RI)` on Google Maps in a
+new context with `noopener noreferrer` and its text need not repeat the place;
+and the reading order is brand first. The suite also measures cream and
+gold-light on bordeaux and records the ratios beside the palette, pins the
+favicon's path data to the inline signature path, and asserts the two actions
+are typographic rules with arrows rather than buttons. The motion rules are
 asserted as well: no looping animation, every animation inside
 `prefers-reduced-motion: no-preference` and taking its duration from a motion
-token, and every `view()` timeline behind `@supports`. The layout itself is
-verified by rendering at 320, 390, 768, 1024, 1440 and 1920 and at 200% text
-zoom, not by asserting the stylesheet.
+token, every `view()` timeline behind `@supports`, the hero free of scroll
+reveals, the prose and facts revealed, and the band's actions never faded. The
+layout itself is verified by rendering at 320, 390, 768, 1024, 1440 and 1920 and
+at 200% text zoom, not by asserting the stylesheet.
+
+The label's contracts were replaced by these spread contracts, and each
+replacement is named in the commit that replaced it.
 
 Directory-walking assertions use an allowlist — `index.html` and everything
 under `assets/` — so `node_modules/`, the tests, the repository documents and
@@ -298,13 +336,15 @@ the print crop; do not use it for the site, or the edges will disagree with the
 poster.
 
 The page offers the crop at 2048 px for laptop screens and the 1200 px copy for
-narrow screens and slower connections, through `srcset` and a `sizes` value
-that describes the panel's measure — `(min-width: 46rem) 39.5rem,
-calc(100vw - 4.5rem)` — on the WebP source and on the JPEG fallback. It is not
-`100vw`: the photograph no longer spans the viewport, and a phone would
-otherwise fetch the 2048 px candidate for a 330 px slot. Never upscale: the wide
-candidate is a downscale of the 2244 px crop, not a larger render of the
-1200 px copy.
+narrow screens and slower connections, through `srcset` and the same `sizes`
+value on the WebP source and on the JPEG fallback:
+`(min-width: 84rem) calc(84rem - 2 * min(5.5vw, 96px)), (min-width: 48rem)
+calc(100vw - 11vw), calc(100vw - 48px)`. Above 84 rem the page is capped at the
+measure and the gutters are `min(5.5vw, 96px)` a side; between 48 and 84 rem the
+photograph is the viewport less the same gutters (11vw in total); on the phone it
+is the viewport less the two 24 px gutters. The 2048 px candidate serves the wide
+spread and is downscaled, never upscaled: it is a downscale of the 2244 px crop,
+not a larger render of the 1200 px copy.
 
 Regenerate all four files from the crop with:
 
