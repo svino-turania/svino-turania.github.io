@@ -128,6 +128,16 @@ function layerBlock(css, name, source = servedStylesheet()) {
   return clean.slice(blocks[0].start, blocks[0].end + 1);
 }
 
+/*
+ * The declarations of every 48 rem override: the deliberate large-format
+ * spread, as opposed to the phone the base rules describe.
+ */
+function wideSpread(css) {
+  return atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)')
+    .map(({ start, end }) => css.slice(css.indexOf('{', start) + 1, end))
+    .join('\n');
+}
+
 function rgb(hexColour) {
   return {
     r: Number.parseInt(hexColour.slice(1, 3), 16),
@@ -1140,6 +1150,200 @@ test('la testata apre la pagina: firma grande a sinistra e sottotitolo sotto', (
   assert.ok(
     elements.indexOf(header) < elements.indexOf(date),
     'la data non segue la testata',
+  );
+});
+
+test('sul telefono la firma occupa la larghezza della misura e a 48 rem torna alla sua dimensione', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  const lockup = css.match(/\.lockup\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(lockup, 'manca la regola del titolo della testata');
+  assert.match(
+    lockup,
+    /(?:^|;)\s*(?:inline-size|width)\s*:\s*100%/,
+    'sul telefono il titolo della testata non dà alla firma la larghezza della misura',
+  );
+
+  const signature = css.match(/\.signature\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(signature, 'manca la regola della firma');
+  assert.match(
+    signature,
+    /(?:^|;)\s*(?:inline-size|width)\s*:\s*100%/,
+    'sul telefono la firma non occupa la larghezza della misura',
+  );
+
+  const wide = wideSpread(css);
+  const wideSignature = wide.match(/\.signature\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(
+    wideSignature,
+    'a 48 rem la firma non torna alla dimensione dello spread',
+  );
+  assert.match(
+    wideSignature,
+    /(?:^|;)\s*(?:inline-size|width)\s*:\s*var\(--signature-size\)/,
+    'a 48 rem la firma non torna alla dimensione --signature-size',
+  );
+});
+
+test('sul telefono i due fatti stanno su due colonne e ognuno va a capo dentro la sua', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  const facts = css.match(/\.facts\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(facts, 'manca la regola dei fatti');
+  assert.match(
+    facts,
+    /(?:^|;)\s*display\s*:\s*grid/,
+    'sul telefono i fatti non sono una lista composta',
+  );
+  assert.match(
+    facts,
+    /(?:^|;)\s*grid-template-columns\s*:\s*repeat\(\s*2\s*,\s*minmax\(\s*0\s*,\s*1fr\s*\)\s*\)/,
+    'sul telefono i due fatti non stanno su due colonne',
+  );
+
+  const fact = css.match(/\.fact\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(
+    fact,
+    /(?:^|;)\s*min-inline-size\s*:\s*0/,
+    'un fatto non può restringersi e andare a capo dentro la sua colonna',
+  );
+
+  const wide = wideSpread(css);
+  const wideFacts = wide.match(/\.facts\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(wideFacts, 'a 48 rem i fatti non tornano allo spread');
+  assert.match(
+    wideFacts,
+    /(?:^|;)\s*display\s*:\s*flex/,
+    'a 48 rem i fatti non tornano in linea',
+  );
+  assert.match(
+    wideFacts,
+    /(?:^|;)\s*flex-wrap\s*:\s*wrap/,
+    'a 48 rem i fatti non possono andare a capo',
+  );
+  assert.match(
+    wideFacts,
+    /(?:^|;)\s*gap\s*:\s*var\(--space-6\)\s+var\(--space-8\)/,
+    'a 48 rem i fatti non conservano la distanza dello spread',
+  );
+});
+
+test('sul telefono le due azioni stanno una sopra l’altra a tutta riga, con la riga che attraversa il fondo', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  const inner = css.match(/\.band__inner\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(inner, 'manca la regola interna della banda');
+  assert.match(
+    inner,
+    /(?:^|;)\s*display\s*:\s*grid/,
+    'sul telefono la banda non impila i fatti e le azioni in una colonna',
+  );
+
+  const actions = css.match(/\.band__actions\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(actions, 'manca la regola delle azioni');
+  assert.match(
+    actions,
+    /(?:^|;)\s*(?:display\s*:\s*grid|flex-direction\s*:\s*column)/,
+    'sul telefono le due azioni non stanno una sopra l’altra a tutta riga',
+  );
+
+  const action =
+    css.match(/\.band__actions\s*>\s*p\s*>\s*a\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(action, 'sul telefono un’azione non dichiara la larghezza della riga');
+  assert.match(
+    action,
+    /(?:^|;)\s*inline-size\s*:\s*100%/,
+    'sul telefono un’azione non occupa la riga: la sua riga non la attraversa',
+  );
+
+  const label = css.match(/\.map-link,\s*\.locandina-download\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(
+    label,
+    /(?:^|;)\s*font-size\s*:\s*var\(--step-0\)/,
+    'sul telefono l’etichetta della Locandina è rimpicciolita',
+  );
+
+  const ruleLine = css.match(/\.band__actions\s+a::before\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(
+    ruleLine,
+    /(?:^|;)\s*inset-inline\s*:\s*0/,
+    'la riga dell’azione non attraversa la riga della banda',
+  );
+
+  const wide = wideSpread(css);
+  const wideInner = wide.match(/\.band__inner\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(wideInner, 'a 48 rem la banda non torna allo spread');
+  assert.match(
+    wideInner,
+    /(?:^|;)\s*display\s*:\s*flex/,
+    'a 48 rem la banda non torna in linea',
+  );
+  assert.match(
+    wideInner,
+    /(?:^|;)\s*justify-content\s*:\s*space-between/,
+    'a 48 rem i fatti e le azioni non tornano ai due lati della banda',
+  );
+  assert.match(
+    wideInner,
+    /(?:^|;)\s*gap\s*:\s*var\(--space-4\)\s+var\(--space-8\)/,
+    'a 48 rem la banda non conserva la distanza dello spread',
+  );
+
+  const wideActions = wide.match(/\.band__actions\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(wideActions, 'a 48 rem le azioni non tornano allo spread');
+  assert.match(
+    wideActions,
+    /(?:^|;)\s*display\s*:\s*flex/,
+    'a 48 rem le due azioni non tornano in linea',
+  );
+  assert.match(
+    wideActions,
+    /(?:^|;)\s*gap\s*:\s*var\(--space-3\)\s+var\(--space-5\)/,
+    'a 48 rem le azioni non conservano la distanza dello spread',
+  );
+
+  const wideAction =
+    wide.match(/\.band__actions\s*>\s*p\s*>\s*a\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(
+    wideAction,
+    /(?:^|;)\s*inline-size\s*:\s*auto/,
+    'a 48 rem un’azione non torna alla larghezza del suo testo',
+  );
+});
+
+test('sul telefono la fotografia si avvicina alla data e a 48 rem torna la distanza dello spread', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  const band = css.match(/\.photo-band\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(band, 'manca la regola della banda della fotografia');
+  const phone = band
+    .match(/(?:^|;)\s*margin-block-start\s*:\s*([^;]+);/)?.[1]
+    ?.trim();
+  assert.ok(phone, 'sul telefono la fotografia non dichiara il margine superiore');
+
+  const rem = phone.match(/^([\d.]+)rem$/);
+  assert.ok(rem, `il margine superiore della fotografia non è in rem: ${phone}`);
+  const value = Number(rem[1]);
+  assert.ok(
+    Math.abs(value - 2.5) <= 0.5,
+    `sul telefono la fotografia è a ${value} rem dalla data, non circa 2.5`,
+  );
+
+  const tokens = layerBlock(css, 'tokens');
+  const photoSpace = tokens.match(/--photo-space\s*:\s*clamp\(\s*([\d.]+)rem/)?.[1];
+  assert.ok(photoSpace, 'manca il valore desktop --photo-space');
+  assert.ok(
+    value < Number(photoSpace),
+    `sul telefono la fotografia (${value} rem) non si avvicina alla data più dello spread (${photoSpace} rem)`,
+  );
+
+  const wide = wideSpread(css);
+  const wideBand = wide.match(/\.photo-band\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(wideBand, 'a 48 rem la fotografia non torna allo spread');
+  assert.match(
+    wideBand,
+    /(?:^|;)\s*margin-block-start\s*:\s*var\(--photo-space\)/,
+    'a 48 rem la fotografia non torna alla distanza --photo-space',
   );
 });
 

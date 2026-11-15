@@ -228,8 +228,54 @@
     text-align: start;
   }
 
+  /*
+   * The phone uses its width. The signature fills the measure instead of
+   * floating at half the page width; the spread at 48 rem restores its size.
+   */
+  .lockup {
+    inline-size: 100%;
+  }
+
+  .signature {
+    inline-size: 100%;
+  }
+
+  /*
+   * The two facts pair on the phone and wrap inside their own columns. The
+   * spread at 48 rem restores the inline list.
+   */
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6) var(--space-4);
+  }
+
+  /*
+   * The two actions stay stacked and full width: pairing them would wrap or
+   * shrink the Locandina label. Each anchor fills its row, so the pseudo-line
+   * below it spans the row.
+   */
+  .band__inner {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .band__actions {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  /* Each anchor fills its row, so the pseudo-line below it spans the row. */
+  .band__actions > p > a {
+    inline-size: 100%;
+  }
+
+  /*
+   * On the phone the photograph sits closer to the date; the spread restores
+   * the block margin. This is spacing, not motion.
+   */
   .photo-band {
-    margin-block-start: var(--photo-space);
+    margin-block-start: 2.5rem;
     /*
      * The phone spends no gutter on the page's one photograph: the band gives
      * the page padding back at both edges. Negative margins against the page's
@@ -261,6 +307,41 @@
       grid-template-columns: repeat(12, minmax(0, 1fr));
     }
 
+    .lockup {
+      inline-size: auto;
+    }
+
+    .signature {
+      inline-size: var(--signature-size);
+    }
+
+    .facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-6) var(--space-8);
+    }
+
+    .band__inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-4) var(--space-8);
+    }
+
+    .band__actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      align-self: flex-end;
+      gap: var(--space-3) var(--space-5);
+    }
+
+    /* The spread restores each action to the width of its text. */
+    .band__actions > p > a {
+      inline-size: auto;
+    }
+
     .masthead {
       grid-column: 1 / span 8;
     }
@@ -280,6 +361,7 @@
 
     .photo-band {
       grid-column: 1 / -1;
+      margin-block-start: var(--photo-space);
       /* From the spread up the photograph sits inside the page gutters. */
       margin-inline: 0;
     }
@@ -304,7 +386,6 @@
   }
 
   .signature {
-    width: var(--signature-size);
     max-inline-size: 100%;
     height: auto;
     color: var(--ink);
@@ -473,21 +554,10 @@
   }
 
   .band__inner {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-4) var(--space-8);
     max-inline-size: var(--measure);
     margin-inline: auto;
     padding-inline: var(--page-pad);
     padding-block: var(--space-5);
-  }
-
-  .facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-6) var(--space-8);
   }
 
   .fact {
@@ -510,14 +580,6 @@
 
   .fact--organiser dd {
     font-weight: 700;
-  }
-
-  .band__actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    align-self: flex-end;
-    gap: var(--space-3) var(--space-5);
   }
 
   .band__actions p {
