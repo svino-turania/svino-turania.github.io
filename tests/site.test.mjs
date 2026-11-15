@@ -10,7 +10,6 @@ const ROOT = resolve(import.meta.dirname, '..');
 // The single seam: the repository root, as a static server serves it.
 const SITE = ROOT;
 const SITE_ORIGIN = 'https://svino-turania.github.io';
-const MAP_ORIGIN = 'https://www.google.com';
 
 // Both photographs run edge to edge at every width: they are full-bleed
 // sections of the cover, so the browser sizes them against the viewport.
@@ -1731,64 +1730,6 @@ test('la mappa e la Locandina sono azioni tipografiche con riga e freccia, non b
   }
 });
 
-test('la pagina non carica JavaScript né risorse di terze parti', () => {
-  const document = loadSite();
-
-  assert.equal(document.querySelectorAll('script').length, 0);
-
-  for (const element of document.querySelectorAll('*')) {
-    for (const attribute of element.getAttributeNames()) {
-      assert.ok(
-        !attribute.startsWith('on'),
-        `attributo JavaScript inline: ${attribute}`,
-      );
-    }
-  }
-
-  for (const element of document.querySelectorAll('[src]')) {
-    sameOriginUrl(element.getAttribute('src'));
-  }
-
-  for (const element of document.querySelectorAll('[srcset]')) {
-    for (const candidate of element.getAttribute('srcset').split(',')) {
-      sameOriginUrl(candidate.trim().split(/\s+/)[0]);
-    }
-  }
-
-  for (const link of document.querySelectorAll('link[href]')) {
-    sameOriginUrl(link.getAttribute('href'));
-  }
-
-  for (const anchor of document.querySelectorAll('a[href]')) {
-    const href = anchor.getAttribute('href');
-    const url = new URL(href, `${SITE_ORIGIN}/`);
-    if (url.origin === SITE_ORIGIN) {
-      continue;
-    }
-    assert.equal(
-      url.origin,
-      MAP_ORIGIN,
-      `link verso un host non ammesso: ${href}`,
-    );
-  }
-
-  const files = shippedFiles();
-  assert.deepEqual(
-    files.filter((file) => file.endsWith('.js')),
-    [],
-    'il sito contiene file JavaScript',
-  );
-
-  for (const file of files.filter((name) => name.endsWith('.css'))) {
-    const css = readFileSync(join(SITE, file), 'utf8');
-    assert.doesNotMatch(
-      css,
-      /https?:\/\//i,
-      `il CSS ${file} carica una risorsa esterna`,
-    );
-  }
-});
-
 /*
  * First of the three narrow guards. It states the no-JavaScript contract on
  * its own so that the blanket third-party assertion can be removed without
@@ -2574,8 +2515,6 @@ test('i font auto-ospitati sono WOFF2 dello stesso sito', () => {
       `manca il font ${name}.woff2 nel sito`,
     );
   }
-
-  assert.doesNotMatch(css, /https?:\/\//i, 'il CSS richiama un host esterno');
 });
 
 /*
