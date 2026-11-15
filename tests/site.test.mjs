@@ -405,6 +405,31 @@ test('ogni fatto compare una sola volta nel testo visibile della pagina', () => 
   }
 });
 
+test('la prosa delle Cantine sta alla lettera dentro la regione modificabile', () => {
+  const html = readFileSync(join(SITE, 'index.html'), 'utf8');
+  const startMarker = 'CANTINA — INIZIO REGIONE MODIFICABILE';
+  const endMarker = 'CANTINA — FINE REGIONE MODIFICABILE';
+  assert.equal(html.split(startMarker).length, 2, 'manca o si ripete il segnaposto d’inizio');
+  assert.equal(html.split(endMarker).length, 2, 'manca o si ripete il segnaposto di fine');
+
+  const start = html.indexOf(startMarker) + startMarker.length;
+  const end = html.indexOf(endMarker);
+  assert.ok(start < end, 'la regione modificabile è vuota o rovesciata');
+
+  const fragment = html.slice(start, end).replace(/-->/g, '').replace(/<!--/g, '');
+  const { document } = parseHTML(`<!doctype html><html><body>${fragment}</body></html>`);
+  const paragraphs = [...document.querySelectorAll('p')].map((node) =>
+    normalize(node.textContent),
+  );
+
+  assert.equal(paragraphs.length, 2, 'la regione non contiene i due paragrafi approvati');
+  assert.equal(
+    normalize(paragraphs.join(' ')),
+    CANTINA_PARAGRAPH,
+    'i paragrafi dentro la regione non sono quelli approvati, alla lettera',
+  );
+});
+
 test('le literal della data concordano con l’attributo datetime', () => {
   const document = loadSite();
   const time = document.querySelector('time[datetime]');
@@ -1181,6 +1206,135 @@ test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', ()
   assert.ok(
     contrastRatio(paletteToken('gold-light'), paletteToken('bordeaux')) >= 4.5,
     'l’oro chiaro sul bordeaux non raggiunge il rapporto 4.5:1',
+  );
+});
+
+test('il contrasto sul bordeaux è misurato e annotato accanto alla palette', () => {
+  const css = servedStylesheet();
+  const blocks = atRuleBlocks(css, '@layer\\s+tokens\\s*\\{');
+  assert.equal(blocks.length, 1, 'manca il layer dei token');
+  const tokens = css.slice(blocks[0].start, blocks[0].end + 1);
+
+  // The note is part of the palette block, not a stray comment elsewhere.
+  const note = tokens.match(/\/\*[\s\S]*?\*\//)?.[0] ?? '';
+  assert.ok(note, 'la palette non annota il contrasto misurato');
+  assert.ok(
+    tokens.indexOf(note) < tokens.indexOf('--bordeaux'),
+    'il contrasto non è annotato accanto alle primitive',
+  );
+
+  // The numbers come from the served primitives, not from memory: each one is
+  // recomputed here with WCAG 2.1 relative luminance and must also be written
+  // in the note next to its token. Cream carries the band's body text.
+  const bordeaux = paletteToken('bordeaux');
+  for (const [token, expected] of [
+    ['cream', '9.94'],
+    ['cream-light', '10.61'],
+    ['gold-light', '5.75'],
+    ['gold', '3.78'],
+    ['bronze', '2.09'],
+  ]) {
+    const measured = contrastRatio(paletteToken(token), bordeaux).toFixed(2);
+    assert.equal(
+      measured,
+      expected,
+      `il contrasto misurato di --${token} sul bordeaux è ${measured}:1, non ${expected}:1`,
+    );
+    assert.match(
+      note,
+      new RegExp(`--${token}\\s[^\\n]*${expected}:1`),
+      `la nota della palette non registra --${token} a ${expected}:1 sul bordeaux`,
+    );
+  }
+
+  assert.match(
+    note,
+    /bronze[^\n]*(?:mai|non|never)[^\n]*testo|bronze[^\n]*2\.09:1[^\n]*(?:mai|non|never)/i,
+    'la nota non avverte che il bronzo non regge il testo sul bordeaux',
+  );
+
+  const cream = Number(
+    note.match(/--cream\s[^\n]*?(\d+\.\d+):1/)?.[1] ?? NaN,
+  );
+  assert.ok(
+    cream >= 4.5,
+    `il crema sul bordeaux è annotato a ${cream}:1, sotto il minimo di 4.5:1`,
+  );
+});
+
+test('la mappa e la Locandina sono azioni tipografiche con riga e freccia, non bottoni', () => {
+  const document = loadSite();
+  const band = document.querySelector('footer.band');
+  assert.ok(band, 'manca la banda che chiude la pagina');
+  const actions = [...band.querySelectorAll('.band__actions a')];
+  assert.equal(actions.length, 2, 'la banda non ha le due azioni');
+
+  const css = stripCssComments(servedStylesheet());
+  const actionRule = css.match(/\.band__actions\s+a\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(actionRule, 'le azioni della banda non hanno una regola');
+  assert.match(
+    actionRule,
+    /border-block-end\s*:\s*1px\s+solid\s+var\(--rule\)/,
+    'le azioni non portano una riga tipografica',
+  );
+  assert.match(
+    actionRule,
+    /text-decoration\s*:\s*none/,
+    'le azioni conservano la sottolineatura invece della riga',
+  );
+  assert.doesNotMatch(
+    actionRule,
+    /background(?:-color)?\s*:/,
+    'un’azione ha un fondo: è un bottone, non una riga',
+  );
+  assert.doesNotMatch(
+    actionRule,
+    /border-radius\s*:/,
+    'un’azione ha un angolo arrotondato da bottone',
+  );
+
+  const arrowRule = css.match(/\.band__actions\s+a::after\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(arrowRule, 'le azioni non hanno una freccia in un pseudo-elemento');
+  assert.match(
+    arrowRule,
+    /content\s*:\s*["'](?:\\2192|→)["']/,
+    'la freccia non è dichiarata come contenuto del pseudo-elemento',
+  );
+
+  // The arrow is decoration: it never enters the link text or its name.
+  for (const anchor of actions) {
+    const text = normalize(anchor.textContent);
+    const name = accessibleName(document, anchor);
+    assert.doesNotMatch(text, /→|&rarr;/i, `la freccia è nel testo di "${text}"`);
+    assert.doesNotMatch(name, /→/, `la freccia è nel nome accessibile di "${name}"`);
+  }
+  assert.doesNotMatch(
+    readFileSync(join(SITE, 'index.html'), 'utf8'),
+    /→|&rarr;/i,
+    'la freccia è scritta nell’HTML invece che nel foglio di stile',
+  );
+});
+
+test('la Locandina è un solo link presente a ogni larghezza, senza copie nascoste', () => {
+  const document = loadSite();
+  const band = document.querySelector('footer.band');
+  assert.ok(band, 'manca la banda che chiude la pagina');
+  const downloads = [...document.querySelectorAll('a[download]')];
+  assert.equal(
+    downloads.length,
+    1,
+    'la pagina deve offrire un solo link per scaricare la Locandina',
+  );
+  assert.ok(band.contains(downloads[0]), 'il download non sta nella banda');
+
+  // Nothing in the stylesheet may hide the one anchor: the band is present at
+  // every width, so there is no phone-only or desktop-only copy to show.
+  const css = stripCssComments(servedStylesheet());
+  const hiding = /\b(?:display\s*:\s*none|visibility\s*:\s*hidden)\b/;
+  assert.doesNotMatch(
+    css,
+    hiding,
+    'il foglio di stile nasconde un contenuto: il download deve restare presente',
   );
 });
 
