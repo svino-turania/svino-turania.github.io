@@ -465,26 +465,98 @@ test('le literal della data concordano con l’attributo datetime', () => {
     `${day} ${weekday} ${month} ${year}`,
     'giorno, giorno della settimana, mese o anno non concordano con datetime',
   );
+});
 
-  // The date strip is the time's single home: the DALLE ORE label and its
-  // clock value sit inside the strip, beside the date. The exactly-once test
-  // proves no other visible copy of the time exists on the page.
-  const strip = document.querySelector('section[aria-label="Data e ora"]');
-  assert.ok(strip, 'manca la striscia della data e ora');
-  assert.ok(strip.contains(time), 'la data non è nella striscia della data');
+/*
+ * The printed date is one vertical lockup, left-aligned in the spread: the
+ * weekday above the numeral at display scale, the month beneath, the time
+ * under DALLE ORE. The DOM keeps the printed order (day, weekday, month) so
+ * the time element reads as one date; the composition puts the weekday above
+ * the numeral. The exactly-once test proves the time has no second home.
+ */
+test('la data è un lockup verticale allineato a sinistra con un solo luogo per l’orario', () => {
+  const document = loadSite();
+  const spread = document.querySelector('main.spread');
+  assert.ok(spread, 'manca la griglia della pagina');
 
-  const label = [...strip.querySelectorAll('dt')].find(
+  const date = spread.querySelector('section.date');
+  assert.ok(date, 'manca il blocco della data');
+  assert.equal(
+    date.parentElement,
+    spread,
+    'la data non è un blocco della griglia',
+  );
+
+  const lockup = date.querySelector('time.date-lockup[datetime="2026-12-06"]');
+  assert.ok(lockup, 'il lockup non è un <time> con datetime="2026-12-06"');
+
+  // The markup keeps the printed order; the grid areas, not the DOM, put the
+  // weekday above the numeral on screen.
+  const parts = [...lockup.children];
+  assert.deepEqual(
+    parts.map((node) => node.getAttribute('class')),
+    ['date-day', 'date-weekday', 'date-month'],
+    'l’ordine del DOM non è giorno, giorno della settimana, mese',
+  );
+  assert.deepEqual(
+    parts.map((node) => normalize(node.textContent)),
+    ['6', 'DOMENICA', 'DICEMBRE 2026'],
+    'le parti del lockup non sono quelle stampate',
+  );
+
+  // One visible home for the time: the DALLE ORE label and its clock value
+  // sit in the date block, directly under the lockup.
+  const timeHome = date.querySelector('dl.date-time');
+  assert.ok(timeHome, 'manca il luogo dell’orario nella data');
+  assert.equal(
+    lockup.nextElementSibling,
+    timeHome,
+    'l’orario non segue il lockup della data',
+  );
+  const label = [...timeHome.querySelectorAll('dt')].find(
     (node) => normalize(node.textContent) === 'DALLE ORE',
   );
-  assert.ok(label, 'manca il fatto DALLE ORE nella striscia della data');
-  assert.ok(
-    time.parentElement?.contains(label),
-    'il fatto DALLE ORE non è accanto alla data',
-  );
+  assert.ok(label, 'manca DALLE ORE sotto la data');
   assert.match(
     normalize(label.nextElementSibling?.textContent ?? ''),
     /^\d{2}:\d{2}$/,
     'il valore sotto DALLE ORE non è un orario',
+  );
+
+  // The composition, not the markup, makes the lockup left-aligned; the
+  // numeral is SV Serif at the display-scale token, and the time's size also
+  // comes from the token layer rather than a magic number.
+  const css = stripCssComments(servedStylesheet());
+  assert.match(
+    css,
+    /\.date\s*\{[^}]*text-align:\s*start/s,
+    'la data non è allineata a sinistra',
+  );
+  assert.match(
+    css,
+    /\.date-lockup\s*\{[^}]*grid-template-areas:\s*"weekday"\s*"day"\s*"month"/s,
+    'il lockup non mette il giorno della settimana sopra il numero e il mese sotto',
+  );
+  assert.match(
+    css,
+    /\.date-lockup\s*\{[^}]*justify-items:\s*start/s,
+    'il lockup non è allineato a sinistra',
+  );
+  assert.match(
+    css,
+    /\.date-day\s*\{[^}]*font-family:\s*var\(--serif\)[^}]*font-size:\s*var\(--date-numeral\)/s,
+    'il numero del giorno non è SV Serif alla misura display',
+  );
+  assert.match(
+    css,
+    /\.date-time dd\s*\{[^}]*font-family:\s*var\(--serif\)[^}]*font-size:\s*var\(--[a-z0-9-]+\)/s,
+    'la misura dell’orario non viene dal layer dei token',
+  );
+  // On the spread the date hugs the left edge of columns 9–13.
+  assert.match(
+    css,
+    /\.date\s*\{[^}]*grid-column:\s*9\s*\/\s*-1[^}]*justify-self:\s*start/s,
+    'la data non è appoggiata a sinistra delle colonne 9–12',
   );
 });
 
@@ -1578,7 +1650,7 @@ test('il sito non spedisce alcuna immagine di strappo', () => {
   );
 });
 
-test('la fotografia tiene la banda 303:191 e un solo strappo in basso', () => {
+test('la fotografia tiene la banda 303:191 e un solo strappo misurato sulla banda', () => {
   const css = stripCssComments(servedStylesheet());
 
   assert.match(
@@ -1587,9 +1659,41 @@ test('la fotografia tiene la banda 303:191 e un solo strappo in basso', () => {
     'la fotografia non tiene la banda 303:191 della stampa',
   );
 
-  const rules = [...css.matchAll(/clip-path:\s*(polygon\([^;]+\))\s*;/g)];
-  assert.equal(rules.length, 1, 'la fotografia non ha esattamente uno strappo');
-  const polygon = rules[0][1];
+  /*
+   * The print's tear is a fraction of the band's WIDTH. It must be measured
+   * against the photograph band itself, not the viewport: the band declares
+   * inline-size containment and the teeth are cqw offsets. Without that, the
+   * teeth would compress on a phone and swell on a wide screen.
+   */
+  assert.match(
+    css,
+    /\.photo-band\s*\{[^}]*container-type:\s*inline-size/s,
+    'la banda della fotografia non è un contenitore di larghezza: lo strappo non ha riferimento',
+  );
+
+  // Exactly one torn edge on the page, and it is the photograph's lower edge.
+  assert.equal(
+    [...css.matchAll(/clip-path:\s*polygon\(/g)].length,
+    1,
+    'la pagina non ha esattamente uno strappo',
+  );
+  const rule = css.match(
+    /\.photo-frame\s*\{[^}]*?clip-path:\s*(polygon\([^;]+\));/s,
+  );
+  assert.ok(rule, 'lo strappo non è sul bordo della fotografia');
+  const polygon = rule[1];
+
+  assert.match(
+    polygon,
+    /cqw/,
+    'lo strappo non è espresso contro la larghezza della banda',
+  );
+  assert.doesNotMatch(
+    polygon,
+    /\d(?:vw|vh|vmin|vmax)\b/,
+    'lo strappo usa ancora la larghezza del viewport',
+  );
+
   const points = [...polygon.matchAll(/(-?[\d.]+%)\s+(-?[\d.]+%|calc\([^)]+\))/g)].map(
     ([, x, y]) => ({ x, y }),
   );
@@ -1600,19 +1704,47 @@ test('la fotografia tiene la banda 303:191 e un solo strappo in basso', () => {
   assert.equal(points[1].x, '100%', 'il bordo superiore non arriva a destra');
   assert.equal(points[1].y, '0%', 'il bordo superiore non è dritto');
 
-  // Exactly one edge is torn: every point after the two top corners sits on the
-  // lower edge, whose vertical coordinate is a calc() against the band width.
+  // One edge is torn: every point after the two top corners sits on the lower
+  // edge, offset from it by a length in cqw — 1% of the band's inline size.
   for (const point of points.slice(2)) {
     assert.match(
       point.y,
-      /calc\(100%\s*-/,
-      'un punto dello strappo non è sul bordo inferiore',
+      /^calc\(100%\s*-\s*[\d.]+cqw\)$/,
+      'un punto dello strappo non è sul bordo inferiore o non è misurato sulla banda',
     );
     assert.ok(
       Number.parseFloat(point.x) >= 0 && Number.parseFloat(point.x) <= 100,
       'lo strappo esce dalla larghezza della banda',
     );
   }
+});
+
+test('la fotografia decodifica in asincrono, ha alta priorità e non è precaricata', () => {
+  const document = loadSite();
+  const photo = document.querySelector('picture img');
+  assert.ok(photo, 'manca la fotografia');
+
+  assert.equal(
+    photo.getAttribute('decoding'),
+    'async',
+    'la fotografia non decodifica in asincrono',
+  );
+  assert.equal(
+    photo.getAttribute('fetchpriority'),
+    'high',
+    'la fotografia non ha alta priorità di caricamento',
+  );
+
+  const preloads = [...document.querySelectorAll('link[rel~="preload"]')].filter(
+    (link) =>
+      link.getAttribute('as') === 'image' ||
+      /svino-cantina/.test(link.getAttribute('href') ?? ''),
+  );
+  assert.deepEqual(
+    preloads.map((link) => link.getAttribute('href')),
+    [],
+    'la fotografia è precaricata: il preload duplica il caricamento',
+  );
 });
 
 test('la testata riporta la firma come tracciato inline con nome accessibile e il lockup come testo', () => {
