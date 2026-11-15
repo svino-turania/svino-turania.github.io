@@ -130,10 +130,13 @@ function layerBlock(css, name, source = servedStylesheet()) {
 
 /*
  * The declarations of every 48 rem override: the deliberate large-format
- * spread, as opposed to the phone the base rules describe.
+ * spread, as opposed to the phone the base rules describe. The threshold has
+ * one home, stated here once: callers that need the override also assert it.
  */
 function wideSpread(css) {
-  return atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)')
+  const blocks = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)');
+  assert.equal(blocks.length, 1, 'manca il blocco della misura da 48 rem');
+  return blocks
     .map(({ start, end }) => css.slice(css.indexOf('{', start) + 1, end))
     .join('\n');
 }
@@ -614,12 +617,7 @@ test('la data è un campo a tutta larghezza e, da 64 rem, un blocco nelle colonn
 
   // From 48 rem the grid is twelve columns; until 64 rem the date spans all
   // of them, so `DICEMBRE 2026` never has to wrap inside a narrow block.
-  const spread = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)');
-  assert.equal(spread.length, 1, 'manca il blocco della misura da 48 rem');
-  const spreadBody = css.slice(
-    css.indexOf('{', spread[0].start) + 1,
-    spread[0].end,
-  );
+  const spreadBody = wideSpread(css);
   const spreadDate = spreadBody.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
   assert.ok(spreadDate, 'la data non è collocata nella griglia da 48 rem');
   assert.match(
@@ -2154,9 +2152,7 @@ test('la fotografia esce dai margini della pagina sul telefono e rientra nella m
     'la fotografia si dimensiona con il viewport e può scorrere in orizzontale',
   );
 
-  const wide = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)');
-  assert.equal(wide.length, 1, 'manca il blocco della misura da 48 rem');
-  const wideBody = css.slice(css.indexOf('{', wide[0].start) + 1, wide[0].end);
+  const wideBody = wideSpread(css);
   const wideBand = wideBody.match(/\.photo-band\s*\{([^}]*)\}/s);
   assert.ok(wideBand, 'la fotografia non rientra nella misura da 48 rem');
   assert.match(
