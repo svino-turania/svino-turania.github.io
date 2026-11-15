@@ -4,7 +4,8 @@ The one-page Italian site for sVino, II Edizione — 6 dicembre 2026, Turania
 (RI) — published at <https://svino-turania.github.io> from the public
 repository `svino-turania/svino-turania.github.io`.
 
-Status: the page is the editorial spread recorded in ADR-0005. It carries the
+Status: the page is the editorial spread recorded in ADR-0005, with the tonal
+rhythm and the phone composition recorded in ADR-0006. It carries the
 Locandina's facts, the Cantina prose, the map link and one Locandina download.
 The identity (palette and type), the outlined signature with the `II EDIZIONE`
 lockup, the Cantina photograph with its single torn lower edge, the Open Graph
@@ -42,14 +43,16 @@ also works, but it serves the whole repository root.
 
 Check the spread before merging, in the browser's responsive mode:
 
-- 320 and 390 px: one left-aligned column with 24 px gutters and the
-  photograph at full width, with no horizontal scrolling; the signature and
-  the date fit the first screen.
-- 768 px: the twelve-column grid, with the masthead in columns 1–8 and the
-  date in columns 9–12.
+- 320 and 390 px: the phone composition — 24 px page gutters, the signature
+  filling the measure, the date a full-width bordeaux field, the photograph
+  edge to edge, the facts paired and the two actions stacked; no horizontal
+  scrolling, and the signature and the date fit the first screen.
+- 768 px: the twelve-column grid, with the masthead in columns 1–8, the
+  photograph on the measure and the date still full width until 64 rem.
 - 1024, 1440×900 and 1920 px: the 84 rem measure centred, with the photograph
-  spanning it; the signature and the date fit the first screen. The page fits
-  two screens on desktop and three on a phone.
+  spanning it and the date a bordeaux block in columns 9–12; the signature and
+  the date fit the first screen. The page fits two screens on desktop and three
+  on a phone.
 
 Repeat at 200% text zoom: the date, the place and the organiser must stay
 readable, with no horizontal scrolling and no clipped text. At a tight measure
@@ -64,27 +67,47 @@ the date, the photograph, the Cantina prose and one closing bordeaux band.
 
 The measure is 84 rem, centred, with `clamp(28px, 5.5vw, 96px)` gutters. Inside
 it the desktop spread is a twelve-column grid with a `clamp(1.25rem, 2vw, 2rem)`
-gap: the masthead takes columns 1–8, the date columns 9–12 set to the bottom
-and left-aligned, the photograph spans all twelve columns and the prose takes
-columns 1–8 at most 36 rem wide. Below 48 rem the page is one left-aligned
-column with 24 px gutters and a full-width photograph.
+gap: the masthead takes columns 1–8, the photograph spans all twelve columns
+and the prose takes columns 1–8 at most 36 rem wide. From 48 rem the date
+spans all twelve columns; from 64 rem it becomes a block in columns 9–12.
+Below 48 rem the page is one column with 24 px gutters and the phone
+composition: the signature fills the measure, `DOVE` and `A CURA DI` pair in
+two columns and wrap inside their own, the two actions stay stacked and full
+width with their rule spanning the row, and the photograph's top margin is
+2.5 rem (the spread restores its own value).
+
+Two strong surfaces carry the page's dark tone, and both read the same semantic
+roles: `--strong` for the bordeaux ground, `--strong-ink` for cream,
+`--strong-ink-muted` for the gold-light labels and `--strong-rule` for the
+rule. The date is the page's second dark surface. The closing band is the
+page's last surface, no longer its only dark one.
 
 The date keeps the print's vertical lockup: the tracked weekday, the day
-numeral at display scale, the month beneath, the time under `DALLE ORE`. The
-photograph keeps the exact 303:191 print crop and exactly one torn lower edge,
-the boundary between the photographic section and the prose. The Cantina prose
-is set directly under that torn edge: the tear is the boundary between the
-photograph and the prose, so no extra separation is inserted between them. The
-tear is a vector polygon expressed against the photograph band's own width (`cqw`, with
-`container-type: inline-size` on `.photo-band`), so the measure cannot compress
-its teeth. No raster tear is shipped.
+numeral at display scale, the month beneath, the time under `DALLE ORE`. It has
+two geometries. Below 64 rem it is a bordeaux field spanning the page edge to
+edge, with its content set back on the page gutters. From 64 rem it is a
+sharp-edged bordeaux block in columns 9–12, stretched to the masthead row it
+shares, so it adds no row and no height; the lockup sits at the top of the
+block and `DALLE ORE` with the time at the bottom. It has no radius, border or
+shadow, and the DOM keeps the lockup then the time, so the date lockup stays one
+`<time>`.
+
+The photograph keeps the exact 303:191 print crop and exactly one torn lower
+edge, the boundary between the photographic section and the prose. Below 48 rem
+it runs edge to edge; from 48 rem it sits on the 84 rem measure with the page
+gutters. `sizes` describes that: the 100vw slot on the phone, the measure from
+48 rem up. The Cantina prose is set directly under that torn edge: the tear is
+the boundary between the photograph and the prose, so no extra separation is
+inserted between them. The tear is a vector polygon expressed against the
+photograph band's own width (`cqw`, with `container-type: inline-size` on
+`.photo-band`), so the measure cannot compress its teeth and the phone's bleed
+does not change them. No raster tear is shipped.
 
 One bordeaux band closes the page: `DOVE`, `A CURA DI`, the map link, the
 Locandina download and the colophon, cream on bordeaux with the role labels in
-gold-light. It is the page's only dark surface, and it is present at every
-width. Its inner content re-aligns to the same 84 rem measure, with the facts
-at the left, the two actions at the right and the colophon on a full-width
-tail.
+gold-light. It is present at every width and is the page's closing surface. Its
+inner content re-aligns to the same 84 rem measure, with the facts and the two
+actions inline from 48 rem up and the colophon on a full-width tail.
 
 The Locandina has one download anchor, in that band. There is no second copy
 and no show/hide rule, so there is nothing to keep in step.
@@ -94,7 +117,9 @@ the time is in the date under `DALLE ORE`; the place is under `DOVE`; the
 organiser is under `A CURA DI`. The map link opens Google Maps for the same
 place without repeating it, and the colophon states the edition only.
 
-ADR-0005 records the composition; ADR-0004 is superseded for it.
+ADR-0006 governs the composition and supersedes ADR-0005 in part — the single
+dark surface and the phone as one left-aligned column. ADR-0004 is superseded
+for it.
 
 ## Motion
 
@@ -252,11 +277,12 @@ month), and a `dl.date-time` directly after it holding `DALLE ORE` and an
 `HH:MM` value: the time has one home. The photograph keeps the 303:191 band and
 has exactly one torn edge measured in `cqw` against the photograph band
 (`container-type: inline-size` on `.photo-band`), with no raster tear shipped.
-One bordeaux band is the page's only dark surface, carrying `DOVE`, `A CURA DI`,
-the map link, the single Locandina download and the colophon; the stylesheet
-declares no dark-mode block. The suite measures cream and gold-light on bordeaux
-and records the ratios beside the palette, and pins the favicon's path data to
-the inline signature path.
+The strong surface appears on the date block and on the closing band, and
+nowhere else; the band carries `DOVE`, `A CURA DI`, the map link, the single
+Locandina download and the colophon, and the date carries the lockup and
+`DALLE ORE` with the time. The stylesheet declares no dark-mode block. The
+suite measures cream and gold-light on bordeaux and records the ratios beside
+the palette, and pins the favicon's path data to the inline signature path.
 
 The Locandina is one `a[download]`, inside `footer.band`, with an `href`,
 `download`, `type` and a discernible name, pointing at a file that exists and is
@@ -349,12 +375,12 @@ The page offers the crop at 2048 px for laptop screens and the 1200 px copy for
 narrow screens and slower connections, through `srcset` and the same `sizes`
 value on the WebP source and on the JPEG fallback:
 `(min-width: 84rem) calc(84rem - 2 * min(5.5vw, 96px)), (min-width: 48rem)
-calc(100vw - 11vw), calc(100vw - 48px)`. Above 84 rem the page is capped at the
-measure and the gutters are `min(5.5vw, 96px)` a side; between 48 and 84 rem the
-photograph is the viewport less the same gutters (11vw in total); on the phone it
-is the viewport less the two 24 px gutters. The 2048 px candidate serves the wide
-spread and is downscaled, never upscaled: it is a downscale of the 2244 px crop,
-not a larger render of the 1200 px copy.
+calc(100vw - 11vw), 100vw`. Above 84 rem the page is capped at the measure and
+the gutters are `min(5.5vw, 96px)` a side; between 48 and 84 rem the photograph
+is the viewport less the same gutters (11vw in total); on the phone it is the
+whole viewport, because the band bleeds past the 24 px gutters. The 2048 px
+candidate serves the wide spread and is downscaled, never upscaled: it is a
+downscale of the 2244 px crop, not a larger render of the 1200 px copy.
 
 Regenerate all four files from the crop with:
 
