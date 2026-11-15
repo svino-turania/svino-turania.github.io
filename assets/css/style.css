@@ -387,10 +387,10 @@
       justify-self: stretch;
       margin-block-start: 0;
       margin-inline: 0;
-      /* A small inset only: the block spans columns 9–12 without growing the
-       * masthead row it shares, and keeps room for `DICEMBRE 2026` on one
-       * line at this width. */
-      padding-inline: var(--space-4);
+      /* A hairline inset only: the block stays flush to the grid, and at
+       * 64 rem four columns hold `DICEMBRE 2026` on one line only when the
+       * inset stays this small. */
+      padding-inline: var(--space-1);
       padding-block: var(--space-2);
     }
   }
