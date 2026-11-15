@@ -1,6 +1,6 @@
 # The page is a label panel
 
-- **Status:** accepted
+- **Status:** superseded by ADR-0005
 - **Date:** 2026-11-14
 - **Related:** ADR-0002, README (*Composition*), `assets/css/style.css`,
   `tests/site.test.mjs`

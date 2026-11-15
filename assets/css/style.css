@@ -1,4 +1,22 @@
 /*
+ * sVino — II edizione
+ *
+ * The page is an editorial spread. The cream ground is the page itself: there
+ * is no sheet, no panel and no floating card. The stylesheet is organised in
+ * cascade layers, declared in this order:
+ *
+ *   tokens     primitives, semantic roles, fluid type and spacing scales
+ *   base       the reset, the ground and the link behaviour
+ *   layout     the measure and the twelve-column grid
+ *   components the masthead, date, photograph, prose and closing band
+ *   motion     the print vocabulary, all of it optional
+ *
+ * Tokens is the only layer that holds a raw colour. Everything below reads
+ * through the semantic roles, so a palette change has one place to go.
+ */
+@layer tokens, base, layout, components, motion;
+
+/*
  * Identity type, self-hosted. SV Serif and SV Sans are the OFL subsets of
  * Lora and Lato renamed for the Reserved Font Name condition; the licence
  * ships beside them as OFL-1.1.txt. No request leaves the origin.
@@ -35,658 +53,766 @@
   font-display: swap;
 }
 
-/*
- * Palette from the print system, with the ratios measured at these rendered
- * colours:
- *
- *   --bordeaux     #5C1A24  ink; on cream 9.94:1
- *   --cream        #EDE1C6  page ground
- *   --cream-light  #F2E8D5  the label's paper; bronze on it 5.04:1
- *   --gold        #A9854F  the panel edge and rules; not used for text
- *   --gold-light   #C9A96A  reserved: no bordeaux surface carries text here
- *   --bronze       #7A5C2E  secondary text; 4.76:1 on cream, 5.04:1 on cream-light
- *
- * The label has no bordeaux surface, so the lockup inside the signature, drawn
- * gold-light for bordeaux, is filled bronze here. Gold-light stays in the
- * primitive set because it belongs to the print palette; it has no role today.
- */
-:root {
-  /* primitives */
-  --bordeaux: #5c1a24;
-  --cream: #ede1c6;
-  --cream-light: #f2e8d5;
-  --gold-light: #c9a96a;
-  --gold: #a9854f;
-  --bronze: #7a5c2e;
+@layer tokens {
+  :root {
+    /*
+     * Print primitives.
+     *
+     * Contrast on the cream ground, measured at these rendered colours:
+     *   --bordeaux 9.94:1, --bronze 4.76:1.
+     *
+     * Contrast on the strong surface, measured fresh against its bordeaux
+     * base (#5c1a24) with WCAG 2.1 relative luminance — not inferred from
+     * the cream ground:
+     *   --cream       9.94:1   body text and values
+     *   --cream-light 10.61:1  emphasis on the strong surface, if any
+     *   --gold-light  5.75:1   the strong surface's muted ink
+     *   --gold        3.78:1   rules and non-text only
+     *   --bronze      2.09:1   never for text on the strong surface
+     * Cream and gold-light clear AA (4.5:1) for normal text; bronze does not.
+     */
+    --bordeaux: #5c1a24;
+    --cream: #ede1c6;
+    /*
+     * The print's paper tone. It has no consumer on this page, but it is part
+     * of the recorded palette and the tab icon derives from it.
+     */
+    --cream-light: #f2e8d5;
+    --gold: #a9854f;
+    --gold-light: #c9a96a;
+    --bronze: #7a5c2e;
 
-  /* semantic roles */
-  --surface: var(--cream);
-  --paper: var(--cream-light);
-  --ink: var(--bordeaux);
-  --ink-muted: var(--bronze);
-  --rule: var(--gold);
-  --rule-soft: rgba(169, 133, 79, 0.34);
-  --link: var(--bordeaux);
-  --link-hover: var(--bronze);
+    /* Semantic roles: the only colour vocabulary a component may use. */
+    --surface: var(--cream);
+    --ink: var(--bordeaux);
+    --ink-muted: var(--bronze);
+    --rule: var(--gold);
+    --link: var(--bordeaux);
+    --link-hover: var(--bronze);
 
-  /* type roles and scale */
-  --serif: "SV Serif", Georgia, "Times New Roman", serif;
-  --sans: "SV Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --step--1: 0.8rem;
-  --step-0: 1.0625rem;
-  --step-1: clamp(1.05rem, 2.2vw, 1.15rem);
-  --step-2: clamp(1.5rem, 5vw, 2.1rem);
-  --step-3: clamp(5rem, 18vw, 8rem);
+    /*
+     * The strong surface: the semantic vocabulary for the page's dark
+     * surfaces. Components read these roles, never a primitive.
+     */
+    --strong: var(--bordeaux);
+    --strong-ink: var(--cream);
+    --strong-ink-muted: var(--gold-light);
+    --strong-rule: var(--gold-light);
 
-  /* spacing scale */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.5rem;
-  --space-6: 2rem;
-  --space-7: 3rem;
-  --space-8: 4.5rem;
+    /* Type families and the fluid scale. */
+    --serif: "SV Serif", Georgia, "Times New Roman", serif;
+    --sans: "SV Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --step--1: clamp(0.78rem, 0.75rem + 0.12vw, 0.85rem);
+    --step-0: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+    --step-1: clamp(1.05rem, 0.95rem + 0.5vw, 1.35rem);
+    --step-2: clamp(1.5rem, 1.2rem + 1.4vw, 2.5rem);
+    --signature-size: clamp(13rem, 50vw, 26rem);
+    --date-numeral: clamp(4.25rem, 10vw, 8.5rem);
+
+    /* Fluid spacing scale. Every step breathes with the viewport. */
+    --space-1: clamp(0.25rem, 0.23rem + 0.1vw, 0.3125rem);
+    --space-2: clamp(0.5rem, 0.46rem + 0.2vw, 0.625rem);
+    --space-3: clamp(0.75rem, 0.7rem + 0.25vw, 1rem);
+    --space-4: clamp(1rem, 0.92rem + 0.4vw, 1.375rem);
+    --space-5: clamp(1.5rem, 1.36rem + 0.7vw, 2.125rem);
+    --space-6: clamp(2rem, 1.76rem + 1.2vw, 3rem);
+    --space-7: clamp(3rem, 2.5rem + 2.5vw, 4.75rem);
+    --space-8: clamp(4rem, 3.2rem + 4vw, 7rem);
+    /* The photograph's block margin: spacing, not motion. */
+    --photo-space: clamp(4rem, 7vw, 7rem);
+
+    /* The grid chosen for the spread: 84 rem, twelve columns. */
+    --measure: 84rem;
+    --gutter-phone: 24px;
+    --gutter: clamp(28px, 5.5vw, 96px);
+    /*
+     * The page's inline padding: the distance from the viewport edge to the
+     * content. The photograph and the date give it back at both edges to
+     * bleed, then pad their content in by it again.
+     */
+    --page-pad: var(--gutter-phone);
+    --column-gap: clamp(1.25rem, 2vw, 2rem);
+
+    /*
+     * Motion scale. Named for the print: ink is laid down, rules are ruled,
+     * paper settles. Every animation in this file takes its duration from one
+     * of these tokens, and every one lives behind the no-preference query.
+     */
+    --motion-ink: 460ms;
+    --motion-rule: 320ms;
+    --motion-date: 240ms;
+    --motion-quick: 240ms;
+    --motion-settle: 480ms;
+    /* Placeholder duration for the two view() reveals; the timeline times them. */
+    --motion-scroll: 1ms;
+    --ease-press: cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--step-0);
+    font-synthesis: none;
+    line-height: 1.5;
+    overflow-wrap: break-word;
+  }
+
+  h1,
+  p,
+  dl,
+  dd,
+  figure {
+    margin: 0;
+  }
+
+  img,
+  picture,
+  svg {
+    display: block;
+    max-inline-size: 100%;
+  }
+
+  /* The link keeps the print's rule and gains a clear keyboard indicator. */
+  a {
+    color: var(--link);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  a:hover {
+    color: var(--link-hover);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.25em;
+  }
+
+  a:active {
+    color: var(--ink);
+    text-decoration-thickness: 2px;
+  }
+
+  a:focus-visible {
+    border-radius: 1px;
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+}
+
+@layer layout {
+  /*
+   * Phone first: the page uses its width. The signature fills the measure, the
+   * date is a full-width field, the facts pair and the actions stack, and the
+   * photograph bleeds past the 24 px gutters to the viewport edges. The
+   * measure is the page itself — 84 rem, centred, with the gutters inside it.
+   * At 48 rem the spread becomes the twelve-column grid and the photograph
+   * returns to the measure.
+   */
+  .spread {
+    display: grid;
+    grid-template-columns: 1fr;
+    max-inline-size: var(--measure);
+    margin-inline: auto;
+    padding-inline: var(--page-pad);
+    /*
+     * Top and bottom use the same step: at 1024x768 the larger closing step
+     * pushed the page just past two screens, and the band closes it anyway.
+     */
+    padding-block: var(--space-7);
+    column-gap: var(--column-gap);
+    text-align: start;
+  }
 
   /*
-   * Motion scale. Named for the print: ink is laid down, rules are ruled,
-   * paper settles. Every animation in this file takes its duration from one
-   * of these tokens, and every one lives behind prefers-reduced-motion:
-   * no-preference.
+   * The phone uses its width. The signature fills the measure instead of
+   * floating at half the page width; the spread at 48 rem restores its size.
    */
-  --motion-ink: 460ms;
-  --motion-rule: 320ms;
-  --motion-date: 240ms;
-  --motion-quick: 240ms;
-  --motion-settle: 480ms;
-  --motion-scroll: 1ms;
-  --ease-press: cubic-bezier(0.22, 0.61, 0.36, 1);
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html {
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  margin: 0;
-  background: var(--surface);
-  color: var(--ink);
-  font-family: var(--sans);
-  font-size: var(--step-0);
-  font-synthesis: none;
-  line-height: 1.5;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: var(--space-7) var(--space-8);
-  overflow-wrap: break-word;
-}
-
-/* ----------------------------------------------------------------- pannello */
-
-/*
- * The page is one label: a paper panel on the cream ground, bounded by the
- * print's gold and an inset hairline. The panel keeps a reading measure and
- * never stretches to the viewport; the ground shows around it.
- */
-.page {
-  max-width: 46rem;
-  margin-inline: auto;
-}
-
-.sheet {
-  position: relative;
-  background: var(--paper);
-  border: 1px solid var(--rule);
-  padding: clamp(1.5rem, 5vw, 3.5rem) clamp(1.25rem, 5vw, 3.25rem);
-}
-
-.sheet::before {
-  content: "";
-  position: absolute;
-  inset: var(--space-2);
-  border: 1px solid var(--rule-soft);
-  pointer-events: none;
-}
-
-/* ---------------------------------------------------------------- testata */
-
-.masthead {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-3);
-  text-align: center;
-}
-
-.lockup {
-  margin: 0;
-}
-
-.signature {
-  display: block;
-  width: clamp(10rem, 48%, 17rem);
-  height: auto;
-  color: var(--ink);
-}
-
-/* The lockup sits on cream here, so it takes the bronze, not the gold. */
-.signature text {
-  font-family: var(--sans);
-  fill: var(--ink-muted);
-}
-
-.subtitle {
-  margin: 0;
-  color: var(--ink-muted);
-  font-size: clamp(1rem, 2.6vw, 1.15rem);
-  line-height: 1.35;
-  text-align: center;
-}
-
-/* ------------------------------------------------------------------- data */
-
-/*
- * The date is the label's centre field: the weekday in tracked small caps, the
- * day at display size, the month beneath. The DOM keeps the printed order
- * (day, weekday, month) so the time element reads as one date; grid areas put
- * the weekday above the numeral on screen.
- *
- * The two rules are pseudo-lines rather than borders so the entrance can rule
- * them from the centre. The extra 1px of padding keeps the rendered box
- * identical to the border version: 1px line + 1.5rem padding on each side.
- */
-.date {
-  position: relative;
-  margin-block: var(--space-7);
-  padding-block: calc(var(--space-5) + 1px);
-  border-block: 0;
-  text-align: center;
-}
-
-.date::before,
-.date::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  height: 1px;
-  background: var(--rule);
-  transform: scaleX(1);
-}
-
-.date::before {
-  top: 0;
-}
-
-.date::after {
-  bottom: 0;
-}
-
-.date-lockup {
-  display: grid;
-  grid-template-areas:
-    "weekday"
-    "day"
-    "month";
-  justify-items: center;
-  gap: var(--space-1);
-}
-
-.date-weekday {
-  grid-area: weekday;
-  color: var(--ink-muted);
-  font-size: var(--step--1);
-  font-weight: 700;
-  letter-spacing: 0.2em;
-}
-
-.date-day {
-  grid-area: day;
-  font-family: var(--serif);
-  font-size: var(--step-3);
-  font-variant-numeric: lining-nums tabular-nums;
-  font-weight: 700;
-  line-height: 0.8;
-}
-
-.date-month {
-  grid-area: month;
-  margin-block-start: var(--space-2);
-  font-family: var(--serif);
-  font-size: var(--step-2);
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  line-height: 1.05;
-}
-
-/* The time is the date's one home: the printed label DALLE ORE and the value. */
-.date-time {
-  display: grid;
-  justify-items: center;
-  gap: 0.15rem;
-  margin: var(--space-4) 0 0;
-}
-
-.date-time dt {
-  color: var(--ink-muted);
-  font-size: var(--step--1);
-  font-weight: 700;
-  letter-spacing: 0.16em;
-}
-
-.date-time dd {
-  margin: 0;
-  font-family: var(--serif);
-  font-size: 1.25rem;
-  font-variant-numeric: lining-nums tabular-nums;
-}
-
-/* ------------------------------------------------------- fotografia e strappo */
-
-/*
- * The print's tear is 4 mm of 303 mm — a fraction of the band's WIDTH. The
- * band is no longer the viewport, so the vertical coordinates are lengths
- * against the band's own inline size: 1 cqw is 1% of it. The wrapper declares
- * container-type: inline-size to give the polygon that reference. The
- * horizontal coordinates stay percentages of the width, and no raster tear is
- * shipped. A browser without container queries loses the tear, not the picture.
- */
-.photo-band {
-  margin: var(--space-6) 0 0;
-  container-type: inline-size;
-}
-
-.photo-frame {
-  aspect-ratio: 303 / 191;
-  overflow: hidden;
-}
-
-.photo-frame picture,
-.photo-frame img {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.photo-frame img {
-  object-fit: cover;
-}
-
-@supports (clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%)) {
-  .photo-frame {
-    clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 0.91843452cqw), 99.34% calc(100% - 0.85350744cqw), 98.35% calc(100% - 0.28555308cqw), 97.69% calc(100% - 0.5893866cqw), 96.7% calc(100% - 0.32400504cqw), 96.04% calc(100% - 0.614601cqw), 95.05% calc(100% - 0.83018412cqw), 94.389% calc(100% - 0.58119192cqw), 93.399% calc(100% - 0.99092592cqw), 91.749% calc(100% - 0.89006832cqw), 91.089% calc(100% - 0.46268424cqw), 90.429% calc(100% - 0.64233684cqw), 89.439% calc(100% - 0.73815156cqw), 88.779% calc(100% - 0.62027424cqw), 88.449% calc(100% - 0.68772276cqw), 87.789% calc(100% - 1.24874316cqw), 86.799% calc(100% - 1.19957508cqw), 85.479% calc(100% - 1.4372208cqw), 85.149% calc(100% - 1.38490092cqw), 83.828% calc(100% - 0.66755124cqw), 83.498% calc(100% - 0.64233684cqw), 82.838% calc(100% - 0.94175784cqw), 82.178% calc(100% - 0.94175784cqw), 81.188% calc(100% - 0.56165076cqw), 80.198% calc(100% - 0.535806cqw), 79.538% calc(100% - 0.66376908cqw), 77.888% calc(100% - 0.44566452cqw), 76.238% calc(100% - 0.4696182cqw), 75.578% calc(100% - 0.21495276cqw), 75.248% calc(100% - 0.30509424cqw), 73.927% calc(100% - 1.09493532cqw), 72.937% calc(100% - 1.39435632cqw), 71.287% calc(100% - 2.285055cqw), 70.957% calc(100% - 2.3039658cqw), 70.297% calc(100% - 2.26866564cqw), 69.637% calc(100% - 2.04677892cqw), 68.977% calc(100% - 2.03480208cqw), 66.337% calc(100% - 1.01677068cqw), 65.017% calc(100% - 1.05081012cqw), 62.376% calc(100% - 0.85918068cqw), 61.716% calc(100% - 0.51941664cqw), 61.386% calc(100% - 0.50996124cqw), 60.726% calc(100% - 0.71167644cqw), 60.066% calc(100% - 0.44566452cqw), 59.736% calc(100% - 0.49042008cqw), 59.076% calc(100% - 0.84279132cqw), 58.416% calc(100% - 0.67700664cqw), 58.086% calc(100% - 0.71608896cqw), 57.426% calc(100% - 1.01424924cqw), 56.766% calc(100% - 1.11132468cqw), 55.776% calc(100% - 0.83711808cqw), 54.125% calc(100% - 0.85350744cqw), 53.465% calc(100% - 1.34140608cqw), 51.815% calc(100% - 0.7627356cqw), 50.825% calc(100% - 0.85350744cqw), 49.175% calc(100% - 0.78227676cqw), 48.515% calc(100% - 1.04198508cqw), 47.525% calc(100% - 0.90708804cqw), 45.215% calc(100% - 1.04702796cqw), 44.554% calc(100% - 0.64233684cqw), 44.224% calc(100% - 0.59001696cqw), 43.564% calc(100% - 0.83018412cqw), 42.904% calc(100% - 0.42990552cqw), 42.574% calc(100% - 0.37569456cqw), 41.254% calc(100% - 0.7123068cqw), 40.924% calc(100% - 0.67070304cqw), 40.264% calc(100% - 0.2868138cqw), 39.604% calc(100% - 0.61838316cqw), 39.274% calc(100% - 0.66629052cqw), 38.614% calc(100% - 0.50617908cqw), 37.624% calc(100% - 0.85918068cqw), 36.964% calc(100% - 1.24937352cqw), 36.304% calc(100% - 0.98777412cqw), 35.314% calc(100% - 1.27900044cqw), 34.653% calc(100% - 0.86296284cqw), 33.003% calc(100% - 1.1283444cqw), 32.673% calc(100% - 1.02307428cqw), 32.013% calc(100% - 0.57804012cqw), 30.363% calc(100% - 0.7753428cqw), 29.703% calc(100% - 0.69276564cqw), 29.043% calc(100% - 0.33346044cqw), 28.713% calc(100% - 0.29879064cqw), 25.743% calc(100% - 1.25819856cqw), 25.413% calc(100% - 1.24622172cqw), 24.752% calc(100% - 0.92221668cqw), 24.092% calc(100% - 1.1472552cqw), 23.762% calc(100% - 1.13023548cqw), 23.102% calc(100% - 0.91843452cqw), 22.442% calc(100% - 0.47403072cqw), 22.112% calc(100% - 0.45133776cqw), 21.452% calc(100% - 0.71356752cqw), 19.802% calc(100% - 0.93230244cqw), 19.142% calc(100% - 0.54463104cqw), 18.812% calc(100% - 0.56795436cqw), 18.152% calc(100% - 0.94427928cqw), 17.492% calc(100% - 0.78921072cqw), 16.502% calc(100% - 0.78290712cqw), 15.842% calc(100% - 0.62216532cqw), 14.851% calc(100% - 0.64674936cqw), 14.191% calc(100% - 0.49420224cqw), 13.201% calc(100% - 0.70222104cqw), 12.541% calc(100% - 1.07665488cqw), 11.551% calc(100% - 0.84216096cqw), 10.891% calc(100% - 1.06593876cqw), 10.231% calc(100% - 1.08926208cqw), 9.241% calc(100% - 0.79551432cqw), 8.251% calc(100% - 0.83963952cqw), 7.591% calc(100% - 0.32526576cqw), 7.261% calc(100% - 0.43620912cqw), 6.931% calc(100% - 0.7028514cqw), 6.601% calc(100% - 0.74193372cqw), 5.941% calc(100% - 0.43368768cqw), 4.29% calc(100% - 0.6555744cqw), 3.63% calc(100% - 0.57804012cqw), 2.64% calc(100% - 0.74508552cqw), 1.98% calc(100% - 1.27143612cqw), 1.65% calc(100% - 1.3930956cqw), 0% calc(100% - 1.4372208cqw));
-  }
-}
-
-/* ------------------------------------------------------------------ prosa */
-
-.cantina {
-  max-width: 34rem;
-  margin: var(--space-6) auto 0;
-  font-size: var(--step-1);
-  line-height: 1.65;
-}
-
-.cantina p {
-  margin: 0;
-}
-
-/* ------------------------------------------------------------------ fatti */
-
-/*
- * Two ruled cells at the foot of the label, like a back label. They stack on
- * phone. The download is a rail copy here and a footer copy below 64rem: the
- * stylesheet hides the one that does not belong to the composition, so
- * display: none keeps it out of the focus order.
- */
-/*
- * The rule is a pseudo-line for the same reason as the date's: it can extend
- * when the facts enter the viewport. The extra 1px of padding preserves the
- * box the border version produced.
- */
-.facts {
-  position: relative;
-  margin-block-start: var(--space-7);
-  padding-block-start: calc(var(--space-5) + 1px);
-  border-block-start: 0;
-}
-
-.facts::before {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  height: 1px;
-  background: var(--rule);
-  transform: scaleX(1);
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-5);
-  margin: 0;
-  text-align: center;
-}
-
-.info-item {
-  min-width: 0;
-  margin: 0;
-}
-
-.info-item + .info-item {
-  border-inline-start: 1px solid var(--rule-soft);
-}
-
-.info-grid dt {
-  color: var(--ink-muted);
-  font-size: var(--step--1);
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  line-height: 1.2;
-}
-
-.info-grid dd {
-  margin: var(--space-2) 0 0;
-  font-size: var(--step-1);
-  line-height: 1.25;
-}
-
-.info-item--organiser dd {
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-/* ------------------------------------------------------------------ link */
-
-/*
- * The link acknowledges the pointer and the thumb: the rule beneath the word
- * thickens and drops a fraction on hover, and a tap holds the heavier rule.
- * Focus stays instant — the outline is feedback, not decoration.
- */
-a {
-  color: var(--link);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
-  transition:
-    color var(--motion-quick) var(--ease-press),
-    text-decoration-thickness var(--motion-quick) var(--ease-press),
-    text-underline-offset var(--motion-quick) var(--ease-press);
-}
-
-a:hover {
-  color: var(--link-hover);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.25em;
-}
-
-a:active {
-  color: var(--ink);
-  text-decoration-thickness: 2px;
-}
-
-a:focus-visible {
-  border-radius: 1px;
-  outline: 3px solid currentColor;
-  outline-offset: 3px;
-}
-
-/* ------------------------------------------------------------- locandina */
-
-.locandina-download {
-  margin: var(--space-5) 0 0;
-  text-align: center;
-}
-
-.locandina-download a {
-  display: inline-block;
-  padding-block: 0.35rem;
-  font-weight: 700;
-}
-
-.facts .locandina-download {
-  display: none;
-}
-
-/* ---------------------------------------------------------------- footer */
-
-.site-footer {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-3);
-  margin-block-start: var(--space-6);
-  text-align: center;
-}
-
-.map-link {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.colophon {
-  margin: 0;
-  color: var(--ink-muted);
-  font-size: var(--step--1);
-  letter-spacing: 0.08em;
-}
-
-.colophon p {
-  margin: 0;
-}
-
-/* ------------------------------------------------------------- movimento */
-
-/*
- * The page prints itself. The signature is clipped in from the left like a
- * press impression; the lockup follows; the subtitle settles; the date's rules
- * extend from the centre and the fields follow. Every duration is a token, and
- * every animation is an addition: with reduced motion the page is the finished
- * label, immediately.
- *
- * clip-path on the filled signature path is what makes the press edge work;
- * the path has no stroke to draw with. A browser that ignores it shows the
- * signature at once, which is the correct fallback.
- */
-@media (prefers-reduced-motion: no-preference) {
-  .signature path {
-    clip-path: inset(0 0 0 0);
-    animation: signature-press var(--motion-ink) var(--ease-press) both;
+  .lockup {
+    inline-size: 100%;
   }
 
-  .signature text {
-    animation: lockup-in var(--motion-quick) ease-out 300ms both;
+  .signature {
+    inline-size: 100%;
   }
 
-  .subtitle {
-    animation: settle-in var(--motion-settle) var(--ease-press) 360ms both;
+  /*
+   * The two facts pair on the phone and wrap inside their own columns. The
+   * spread at 48 rem restores the inline list.
+   */
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6) var(--space-4);
   }
 
-  .date::before,
-  .date::after {
-    animation: rule-extend var(--motion-rule) var(--ease-press) 320ms both;
+  /*
+   * The two actions stay stacked and full width: pairing them would wrap or
+   * shrink the Locandina label. Each anchor fills its row, so the pseudo-line
+   * below it spans the row.
+   */
+  .band__inner {
+    display: grid;
+    gap: var(--space-4);
   }
 
-  .date-weekday,
-  .date-day,
-  .date-month,
-  .date-time {
-    animation: date-in var(--motion-date) ease-out both;
+  .band__actions {
+    display: grid;
+    gap: var(--space-3);
   }
 
-  .date-weekday {
-    animation-delay: 400ms;
+  /* Each anchor fills its row, so the pseudo-line below it spans the row. */
+  .band__actions > p > a {
+    inline-size: 100%;
   }
 
-  .date-day {
-    animation-delay: 420ms;
+  /*
+   * On the phone the photograph sits closer to the date; the spread restores
+   * the block margin. This is spacing, not motion.
+   */
+  .photo-band {
+    margin-block-start: 2.5rem;
+    /*
+     * The phone spends no gutter on the page's one photograph: the band gives
+     * the page padding back at both edges. Negative margins against the page's
+     * own padding are exact and cannot scroll at 320 px, where 100vw can.
+     */
+    margin-inline: calc(-1 * var(--page-pad));
   }
 
-  .date-month {
-    animation-delay: 480ms;
+  /*
+   * On the phone the date is a block under the masthead, so it needs a
+   * separation of its own: without one the tracked weekday reads as a
+   * continuation of the subtitle. It is also the page's second strong
+   * surface, so the field gives the page's inline padding back at both edges
+   * — exactly as the photograph does — and pads its content back in by the
+   * same gutters.
+   */
+  .date {
+    margin-block-start: var(--space-6);
+    margin-inline: calc(-1 * var(--page-pad));
+    padding-inline: var(--page-pad);
+    padding-block: var(--space-4);
+    /* At 200% text zoom the date shrinks inside its grid area and its words
+     * wrap there, instead of forcing the page to scroll sideways. */
+    min-inline-size: 0;
   }
 
-  .date-time {
-    animation-delay: 560ms;
+  .cantina {
+    max-inline-size: 36rem;
   }
-}
 
-@keyframes signature-press {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
+  /* The deliberate large-format spread, not a wider phone. */
+  @media (min-width: 48rem) {
+    :root {
+      --page-pad: var(--gutter);
+    }
 
-@keyframes lockup-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
+    .spread {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
 
-@keyframes settle-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
+    .lockup {
+      inline-size: auto;
+    }
 
-@keyframes rule-extend {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
+    .signature {
+      inline-size: var(--signature-size);
+    }
 
-@keyframes date-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
+    .facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-6) var(--space-8);
+    }
 
-/*
- * Below the fold the page reveals itself as it enters the viewport. This is
- * progressive enhancement: view() timelines are recent, so the reveal lives
- * behind @supports and the static page is the baseline. The photograph
- * develops inside its fixed tear; the prose rises; the facts rule extends.
- */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .photo-frame img {
-      animation: photograph-develop linear var(--motion-scroll) both;
-      animation-timeline: view();
-      animation-range: entry 10% entry 60%;
+    .band__inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-4) var(--space-8);
+    }
+
+    .band__actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      align-self: flex-end;
+      gap: var(--space-3) var(--space-5);
+    }
+
+    /* The spread restores each action to the width of its text. */
+    .band__actions > p > a {
+      inline-size: auto;
+    }
+
+    .masthead {
+      grid-column: 1 / span 8;
+    }
+
+    .date {
+      /* Until 64 rem the field spans the whole spread: four columns cannot
+       * hold `DICEMBRE 2026` on one line inside a padded block. */
+      grid-column: 1 / -1;
+    }
+
+    .photo-band {
+      grid-column: 1 / -1;
+      margin-block-start: var(--photo-space);
+      /* From the spread up the photograph sits inside the page gutters. */
+      margin-inline: 0;
     }
 
     .cantina {
-      animation: section-rise linear var(--motion-scroll) both;
-      animation-timeline: view();
-      animation-range: entry 10% entry 45%;
+      grid-column: 1 / span 8;
     }
+  }
 
-    /*
-     * The cells settle, not the aside: the aside carries the desktop Locandina
-     * link, and a link inside an opacity-0 container can lose its focus ring.
-     */
-    .info-grid {
-      animation: section-rise linear var(--motion-scroll) both;
-      animation-timeline: view();
-      animation-range: entry 10% entry 45%;
-    }
-
-    .facts::before {
-      animation: rule-extend linear var(--motion-scroll) both;
-      animation-timeline: view();
-      animation-range: entry 10% entry 50%;
-    }
-
-    /*
-     * The footer settles without fading: it carries the map and download links,
-     * which must stay visible when focused.
-     */
-    .site-footer {
-      animation: footer-settle linear var(--motion-scroll) both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 35%;
+  /*
+   * The date's own threshold: arithmetic, not taste. `DICEMBRE 2026` needs
+   * about 227 px at 900 px and first fits on one line at 1024 px, where four
+   * columns are about 290 px. From here the field becomes the block — the
+   * masthead's empty right-hand half, flush to the grid and stretched to the
+   * row the masthead already gives it, so it adds no row and no height.
+   */
+  @media (min-width: 64rem) {
+    .date {
+      grid-column: 9 / -1;
+      align-self: stretch;
+      justify-self: stretch;
+      margin-block-start: 0;
+      margin-inline: 0;
+      /* A hairline inset only: the block stays flush to the grid, and at
+       * 64 rem four columns hold `DICEMBRE 2026` on one line only when the
+       * inset stays this small. */
+      padding-inline: var(--space-1);
+      padding-block: var(--space-2);
     }
   }
 }
 
-@keyframes photograph-develop {
-  from {
-    opacity: 0.55;
-    transform: scale(1.04);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes section-rise {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes footer-settle {
-  from {
-    transform: translateY(8px);
-  }
-  to {
-    transform: none;
-  }
-}
-
-/* --------------------------------------------------------------- telefono */
-
-@media (max-width: 30rem) {
-  .info-grid {
-    grid-template-columns: 1fr;
+@layer components {
+  /* -------------------------------------------------------------- testata */
+  .masthead {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-4);
+    text-align: start;
   }
 
-  .info-item + .info-item {
-    border-inline-start: 0;
-    border-block-start: 1px solid var(--rule-soft);
-    padding-block-start: var(--space-4);
+  .lockup {
+    max-inline-size: 100%;
   }
-}
 
-/* ---------------------------------------------------------------- desktop */
+  .signature {
+    max-inline-size: 100%;
+    height: auto;
+    color: var(--ink);
+  }
 
-@media (min-width: 64rem) {
-  /* The facts own the download from 64rem; the footer copy leaves the flow. */
-  .facts .locandina-download {
+  /* The lockup sits on cream here, so it takes the bronze, not the gold. */
+  .signature text {
+    font-family: var(--sans);
+    fill: var(--ink-muted);
+  }
+
+  .subtitle {
+    color: var(--ink-muted);
+    font-size: var(--step-1);
+    line-height: 1.35;
+    text-align: start;
+  }
+
+  /* ----------------------------------------------------------------- data */
+  /*
+   * The page's two strong surfaces share one home: the date block and the
+   * closing band read the same base and ink, so a colour change has one place
+   * to go and no third surface can declare them.
+   */
+  .band,
+  .date {
+    background: var(--strong);
+    color: var(--strong-ink);
+  }
+
+  /*
+   * The date distributes its own interior: the lockup at the top and the time
+   * at the bottom. It consumes one role — the muted ink its weekday and DALLE
+   * ORE labels read — so it remaps only that one.
+   */
+  .date {
+    display: grid;
+    align-content: space-between;
+    gap: var(--space-4);
+    text-align: start;
+    --ink-muted: var(--strong-ink-muted);
+  }
+
+  /*
+   * The vertical lockup: weekday in tracked small caps, the numeral at display
+   * scale, the month beneath, the time under DALLE ORE. The DOM keeps the
+   * printed order (day, weekday, month) so the time element reads as one date;
+   * grid areas put the weekday above the numeral on screen. Type stays
+   * left-aligned, like the print's margin.
+   */
+  .date-lockup {
+    display: grid;
+    grid-template-areas:
+      "weekday"
+      "day"
+      "month";
+    justify-items: start;
+    gap: var(--space-1);
+  }
+
+  /*
+   * At 200% text zoom the date's columns can be narrower than the month's
+   * max-content width. The lockup follows the date's width and breaks inside
+   * a word only when that word alone is still too wide, so the date never
+   * forces the page to scroll sideways.
+   */
+  .date-lockup > *,
+  .date-time > * {
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .date-weekday {
+    grid-area: weekday;
+    color: var(--ink-muted);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+  }
+
+  .date-day {
+    grid-area: day;
+    font-family: var(--serif);
+    font-size: var(--date-numeral);
+    font-variant-numeric: lining-nums tabular-nums;
+    font-weight: 700;
+    line-height: 0.8;
+  }
+
+  .date-month {
+    grid-area: month;
+    margin-block-start: var(--space-2);
+    font-family: var(--serif);
+    font-size: var(--step-2);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    line-height: 1.05;
+  }
+
+  /* The time is the date's one home: the printed label DALLE ORE and value. */
+  .date-time {
+    display: grid;
+    justify-items: start;
+    gap: 0.15rem;
+  }
+
+  .date-time dt {
+    color: var(--ink-muted);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+  }
+
+  .date-time dd {
+    font-family: var(--serif);
+    font-size: var(--step-0);
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+  /* ------------------------------------------------- fotografia e strappo */
+  /*
+   * The print's tear is 4 mm of 303 mm — a fraction of the band's WIDTH. The
+   * band is no longer the viewport, so the vertical coordinates are lengths
+   * against the band's own inline size: 1 cqw is 1% of it. The wrapper declares
+   * inline-size containment to give the polygon that reference. The horizontal
+   * coordinates stay percentages of the width, and no raster tear is shipped.
+   * A browser without container queries loses the tear, not the picture.
+   */
+  .photo-band {
+    container-type: inline-size;
+  }
+
+  .photo-frame {
+    aspect-ratio: 303 / 191;
+    overflow: hidden;
+  }
+
+  .photo-frame picture,
+  .photo-frame img {
     display: block;
+    width: 100%;
+    height: 100%;
   }
 
-  .site-footer .locandina-download {
-    display: none;
+  .photo-frame img {
+    object-fit: cover;
+  }
+
+  @supports (clip-path: inset(0)) {
+    .photo-frame {
+      clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 0.91843452cqw), 99.34% calc(100% - 0.85350744cqw), 98.35% calc(100% - 0.28555308cqw), 97.69% calc(100% - 0.5893866cqw), 96.7% calc(100% - 0.32400504cqw), 96.04% calc(100% - 0.614601cqw), 95.05% calc(100% - 0.83018412cqw), 94.389% calc(100% - 0.58119192cqw), 93.399% calc(100% - 0.99092592cqw), 91.749% calc(100% - 0.89006832cqw), 91.089% calc(100% - 0.46268424cqw), 90.429% calc(100% - 0.64233684cqw), 89.439% calc(100% - 0.73815156cqw), 88.779% calc(100% - 0.62027424cqw), 88.449% calc(100% - 0.68772276cqw), 87.789% calc(100% - 1.24874316cqw), 86.799% calc(100% - 1.19957508cqw), 85.479% calc(100% - 1.4372208cqw), 85.149% calc(100% - 1.38490092cqw), 83.828% calc(100% - 0.66755124cqw), 83.498% calc(100% - 0.64233684cqw), 82.838% calc(100% - 0.94175784cqw), 82.178% calc(100% - 0.94175784cqw), 81.188% calc(100% - 0.56165076cqw), 80.198% calc(100% - 0.535806cqw), 79.538% calc(100% - 0.66376908cqw), 77.888% calc(100% - 0.44566452cqw), 76.238% calc(100% - 0.4696182cqw), 75.578% calc(100% - 0.21495276cqw), 75.248% calc(100% - 0.30509424cqw), 73.927% calc(100% - 1.09493532cqw), 72.937% calc(100% - 1.39435632cqw), 71.287% calc(100% - 2.285055cqw), 70.957% calc(100% - 2.3039658cqw), 70.297% calc(100% - 2.26866564cqw), 69.637% calc(100% - 2.04677892cqw), 68.977% calc(100% - 2.03480208cqw), 66.337% calc(100% - 1.01677068cqw), 65.017% calc(100% - 1.05081012cqw), 62.376% calc(100% - 0.85918068cqw), 61.716% calc(100% - 0.51941664cqw), 61.386% calc(100% - 0.50996124cqw), 60.726% calc(100% - 0.71167644cqw), 60.066% calc(100% - 0.44566452cqw), 59.736% calc(100% - 0.49042008cqw), 59.076% calc(100% - 0.84279132cqw), 58.416% calc(100% - 0.67700664cqw), 58.086% calc(100% - 0.71608896cqw), 57.426% calc(100% - 1.01424924cqw), 56.766% calc(100% - 1.11132468cqw), 55.776% calc(100% - 0.83711808cqw), 54.125% calc(100% - 0.85350744cqw), 53.465% calc(100% - 1.34140608cqw), 51.815% calc(100% - 0.7627356cqw), 50.825% calc(100% - 0.85350744cqw), 49.175% calc(100% - 0.78227676cqw), 48.515% calc(100% - 1.04198508cqw), 47.525% calc(100% - 0.90708804cqw), 45.215% calc(100% - 1.04702796cqw), 44.554% calc(100% - 0.64233684cqw), 44.224% calc(100% - 0.59001696cqw), 43.564% calc(100% - 0.83018412cqw), 42.904% calc(100% - 0.42990552cqw), 42.574% calc(100% - 0.37569456cqw), 41.254% calc(100% - 0.7123068cqw), 40.924% calc(100% - 0.67070304cqw), 40.264% calc(100% - 0.2868138cqw), 39.604% calc(100% - 0.61838316cqw), 39.274% calc(100% - 0.66629052cqw), 38.614% calc(100% - 0.50617908cqw), 37.624% calc(100% - 0.85918068cqw), 36.964% calc(100% - 1.24937352cqw), 36.304% calc(100% - 0.98777412cqw), 35.314% calc(100% - 1.27900044cqw), 34.653% calc(100% - 0.86296284cqw), 33.003% calc(100% - 1.1283444cqw), 32.673% calc(100% - 1.02307428cqw), 32.013% calc(100% - 0.57804012cqw), 30.363% calc(100% - 0.7753428cqw), 29.703% calc(100% - 0.69276564cqw), 29.043% calc(100% - 0.33346044cqw), 28.713% calc(100% - 0.29879064cqw), 25.743% calc(100% - 1.25819856cqw), 25.413% calc(100% - 1.24622172cqw), 24.752% calc(100% - 0.92221668cqw), 24.092% calc(100% - 1.1472552cqw), 23.762% calc(100% - 1.13023548cqw), 23.102% calc(100% - 0.91843452cqw), 22.442% calc(100% - 0.47403072cqw), 22.112% calc(100% - 0.45133776cqw), 21.452% calc(100% - 0.71356752cqw), 19.802% calc(100% - 0.93230244cqw), 19.142% calc(100% - 0.54463104cqw), 18.812% calc(100% - 0.56795436cqw), 18.152% calc(100% - 0.94427928cqw), 17.492% calc(100% - 0.78921072cqw), 16.502% calc(100% - 0.78290712cqw), 15.842% calc(100% - 0.62216532cqw), 14.851% calc(100% - 0.64674936cqw), 14.191% calc(100% - 0.49420224cqw), 13.201% calc(100% - 0.70222104cqw), 12.541% calc(100% - 1.07665488cqw), 11.551% calc(100% - 0.84216096cqw), 10.891% calc(100% - 1.06593876cqw), 10.231% calc(100% - 1.08926208cqw), 9.241% calc(100% - 0.79551432cqw), 8.251% calc(100% - 0.83963952cqw), 7.591% calc(100% - 0.32526576cqw), 7.261% calc(100% - 0.43620912cqw), 6.931% calc(100% - 0.7028514cqw), 6.601% calc(100% - 0.74193372cqw), 5.941% calc(100% - 0.43368768cqw), 4.29% calc(100% - 0.6555744cqw), 3.63% calc(100% - 0.57804012cqw), 2.64% calc(100% - 0.74508552cqw), 1.98% calc(100% - 1.27143612cqw), 1.65% calc(100% - 1.3930956cqw), 0% calc(100% - 1.4372208cqw));
+    }
+  }
+
+  /* ---------------------------------------------------------------- prosa */
+  .cantina {
+    margin-block-start: var(--space-3);
+    font-size: var(--step-1);
+    line-height: 1.6;
+  }
+
+  .cantina p {
+    margin: 0;
+  }
+
+  .cantina p + p {
+    margin-block-start: var(--space-3);
+  }
+
+  /* --------------------------------------------------------- banda finale */
+  /*
+   * One bordeaux band closes the page. Cream carries the text and gold-light
+   * the secondary tone; both clear AA on the strong surface. The band shares
+   * the strong surface's base and ink with the date, and adds the link and
+   * rule roles its actions read.
+   */
+  .band {
+    --ink: var(--strong-ink);
+    --ink-muted: var(--strong-ink-muted);
+    --link: var(--strong-ink);
+    --link-hover: var(--strong-ink-muted);
+    --rule: var(--strong-rule);
+  }
+
+  .band__inner {
+    max-inline-size: var(--measure);
+    margin-inline: auto;
+    padding-inline: var(--page-pad);
+    padding-block: var(--space-5);
+  }
+
+  .fact {
+    min-inline-size: 0;
+  }
+
+  .fact dt {
+    color: var(--ink-muted);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
+  }
+
+  .fact dd {
+    margin-block-start: var(--space-2);
+    font-size: var(--step-1);
+    line-height: 1.25;
+  }
+
+  .fact--organiser dd {
+    font-weight: 700;
+  }
+
+  .band__actions p {
+    margin: 0;
+  }
+
+  .map-link,
+  .locandina-download {
+    font-size: var(--step-0);
+  }
+
+  /*
+   * The two actions are typographic, not buttons: the print's rule carries the
+   * link and an arrow in the margin points where it goes. The rule is a
+   * pseudo-line rather than a border so the motion layer can rule it without
+   * touching the link's text or its focus ring. The arrow is a span hidden
+   * from assistive tech, so it never enters the link's accessible name.
+   */
+  .band__actions a {
+    position: relative;
+    display: inline-block;
+    padding-block-end: calc(0.3rem + 1px);
+    color: var(--link);
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+  }
+
+  .band__actions a::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    block-size: 1px;
+    background: var(--rule);
+    transform-origin: left center;
+  }
+
+  /* The decorative arrow inherits the link and keeps the print's spacing. */
+  .action__arrow {
+    margin-inline-start: 0.55em;
+    color: inherit;
+    font-weight: 400;
+  }
+
+  .colophon {
+    flex-basis: 100%;
+    color: var(--ink-muted);
+    font-size: var(--step--1);
+    letter-spacing: 0.08em;
   }
 }
 
+@layer motion {
+  /*
+   * The spread prints itself rather than fading in like a template. The
+   * signature is pressed into the paper and its lockup is inked behind it; the
+   * subtitle settles; the date is set; the photograph develops inside the tear
+   * the frame cuts. Below the fold the prose rises and the facts rule draws
+   * itself as they enter the viewport. Every duration is a token, and every
+   * animation is an addition: with reduced motion the page is the finished
+   * spread, immediately.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    /* The link's colour and rule; focus never waits for them. */
+    a {
+      transition:
+        color var(--motion-quick) var(--ease-press),
+        text-decoration-thickness var(--motion-quick) var(--ease-press),
+        text-underline-offset var(--motion-quick) var(--ease-press);
+    }
+
+    /* The press, the lockup and the subtitle are ink laid down on the sheet. */
+    .signature path {
+      clip-path: inset(0 0 0 0);
+      animation: signature-press var(--motion-ink) var(--ease-press) both;
+    }
+
+    .signature text {
+      animation: ink-in var(--motion-quick) var(--ease-press) both;
+    }
+
+    .subtitle {
+      animation: ink-in var(--motion-settle) var(--ease-press) both;
+    }
+
+    .date {
+      animation: date-set var(--motion-date) var(--ease-press) both;
+    }
+
+    /* The image develops, but the tear is cut in the frame and never moves. */
+    .photo-frame img {
+      animation: photograph-develop var(--motion-settle) var(--ease-press) both;
+    }
+
+    /*
+     * Scroll-driven reveals belong to the prose and the facts band only. The
+     * hero — the signature, its lockup and subtitle, and the date — is fully
+     * present on the first screen and never waits for the scroll. The band's
+     * two actions are never faded: only their rules are ruled. view() is
+     * recent, so a browser without it serves the static page.
+     */
+    @supports (animation-timeline: view()) {
+      .cantina {
+        animation: section-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 10% entry 45%;
+      }
+
+      .facts {
+        animation: section-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 10% entry 45%;
+      }
+
+      .band__actions a::before {
+        animation: rule-rule linear var(--motion-rule) both;
+        animation-timeline: view();
+        animation-range: entry 10% entry 45%;
+      }
+    }
+  }
+
+  @keyframes signature-press {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  /* Text is inked from the left, never faded in like a template. */
+  @keyframes ink-in {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @keyframes date-set {
+    from {
+      transform: translateY(4px);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  @keyframes photograph-develop {
+    from {
+      opacity: 0.55;
+      transform: scale(1.04);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes section-rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* The rule is drawn from its left edge, like a pencil line. */
+  @keyframes rule-rule {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+}
+
+/* The finished page, for anyone who asked motion to stand still. */
 @media (prefers-reduced-motion: reduce) {
   a {
     transition: none;
