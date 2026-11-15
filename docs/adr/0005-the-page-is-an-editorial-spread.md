@@ -1,6 +1,6 @@
 # The page is an editorial spread
 
-- **Status:** accepted
+- **Status:** accepted, superseded in part by ADR-0006
 - **Date:** 2026-11-15
 - **Supersedes:** ADR-0004 for the composition
 - **Related:** ADR-0002 (the interpret-not-transcribe principle still holds),
