@@ -132,35 +132,50 @@ ADR-0004 is superseded for both.
 
 ## Motion
 
-The page prints itself rather than fading in like a template. The signature is
-pressed in from the left like a press impression, the `II EDIZIONE` lockup is
-inked behind it, the subtitle settles and the date is set. The opening
-photograph and the Cantina photograph develop; the Cantina one develops inside
-the tear the frame cuts, so the edge never moves. Below the fold, the Cantina
-prose and the facts rise as they enter the viewport; the band's two actions
-never fade, only their rules are ruled.
+The page opens by stepping out from under the arch, then prints itself, and it
+prints in order. The opening photograph is the paper: it is present on the first
+frame, close to the reader, and the view recedes from it — never a fade; the
+signature is pressed in from the left like a press impression and the date is
+set with it, from its left edge, hairlines and all; then the `II EDIZIONE`
+lockup is inked and the subtitle settles. Each step follows the one before it —
+overlapping, so nothing waits on anything — and the eye has an order to follow.
+
+Below the fold, the view steps back out of the Cantina arch as it is reached —
+a zoom, never a fade, inside the tear the frame cuts, so the edge never moves —
+and the prose and the facts rise as they enter the viewport. The band's two
+actions never fade; only their rules are ruled.
 
 The hero — the signature, its lockup and subtitle on the opening photograph,
 and the date — is complete on the first screen and never waits for the scroll.
-Scroll-driven reveals are only for the prose and the facts band.
+Scroll-driven reveals are only for the Cantina photograph, the prose and the
+facts band.
+
+The page has two links and both respond: the ink shifts, a second rule re-inks
+over the printed one from its left edge, and the arrow leads by 2 px, as if the
+label were picked up. The link settles 1 px while pressed. Nothing else
+responds to the pointer, because nothing else on the page is interactive.
 
 Motion is CSS only. The no-JavaScript test fails on any script, so no effect
 may depend on one. The rules are:
 
 - **The base style is the finished page.** Animations are added under
   `prefers-reduced-motion: no-preference`; under `reduce` the page is
-  complete and still. Nothing starts invisible.
+  complete and still. Nothing starts invisible and nothing is shrunk.
 - **Nothing repeats.** There are no ambient effects, so no pause control is
-  needed and no new UI appears.
-- **Focus never animates.** `:focus-visible` is feedback and appears at once.
-- **Durations come from the motion tokens** in `:root` (`--motion-ink`,
-  `--motion-rule`, `--motion-date`, `--motion-quick`, `--motion-settle`,
-  `--motion-scroll`), not from magic numbers.
+  needed and no new UI appears. Sustained movement comes from scroll position,
+  never from a clock.
+- **The focus indicator appears at once.** The outline is the indicator and it
+  is not animated; the link's colour and rule follow the same transition as
+  hover. That is not motion that delays use.
+- **Every duration and delay comes from the motion tokens** in `:root`
+  (`--motion-recede`, `--motion-press`, `--motion-ink`, `--motion-settle`,
+  `--motion-date`, `--motion-quick`, `--motion-rule`, `--motion-scroll`, and
+  the `--motion-after-*` entrance delays), not from magic numbers.
 
-The entrance finishes within about 900 ms. Scroll-driven reveals
-(`animation-timeline: view()`) are progressive enhancement behind `@supports`;
-browsers without it, including iOS before 26, serve the static page with the
-same content.
+The entrance finishes in about 0.9 s; the signature is legible at about
+640 ms. Scroll-driven reveals (`animation-timeline: view()`) are progressive
+enhancement behind `@supports`; browsers without it, including iOS before 26,
+serve the static page with the same content.
 
 The signature has no stroke, so the press edge is a `clip-path` on the filled
 path, not a stroke animation. The actions' rules are pseudo-lines rather than
@@ -312,10 +327,11 @@ The stylesheet keeps its own maintainability contracts: the layer order, the
 token isolation (no raw hex outside the tokens layer), and the primitives and
 semantic roles the composition reads. The motion rules are asserted as well: no
 looping animation, every animation inside `prefers-reduced-motion:
-no-preference`, every animation and transition duration taken from a
-`--motion-*` token, every `view()` timeline behind `@supports`, the hero free of
-scroll reveals, the prose and facts revealed, and the band's actions never
-faded.
+no-preference`, every animation and transition duration and delay taken from a
+`--motion-*` token, the entrance sequenced by the `--motion-after-*` delays,
+every `view()` timeline behind `@supports`, the hero free of scroll reveals, the
+Cantina photograph, the prose and the facts revealed, and the band's actions
+never faded.
 
 The suite asserts what a visitor observes and the CSS contracts the stylesheet
 declares for geometry: the shell and its computed inset, the cover's shared
