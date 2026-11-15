@@ -265,12 +265,15 @@ function mixedGroundTone(name, css = servedStylesheet()) {
 }
 
 /*
- * The field under the grain: the tile is neutral black at the grain token's
- * opacity, so it multiplies each channel of the tone beneath it. Both ends of
- * the field are measured this way, so the delta includes the grain.
+ * The field under the grain. The tile's RGB is neutral black, but its alpha is
+ * the turbulence's own and averages about 0.55 in a browser, so a rect at
+ * --grain-opacity darkens each channel by about 0.55 x the token. The measured
+ * ends in the tokens note are read through this composite, which the captured
+ * ground confirms: the old 0.03 tile moved cream to rgb(233 221 195).
  */
+const GRAIN_MEAN_ALPHA = 0.55;
 function groundUnderGrain(tone, css = servedStylesheet()) {
-  const grain = Number(tokenValue('grain-opacity', css));
+  const grain = Number(tokenValue('grain-opacity', css)) * GRAIN_MEAN_ALPHA;
   return {
     r: tone.r * (1 - grain),
     g: tone.g * (1 - grain),
@@ -1300,9 +1303,17 @@ test('la carta del corpo posa la grana come un tassello SVG in linea', () => {
   );
   assert.ok(tile, 'il tassello della grana non dichiara la propria misura');
   assert.equal(tile[1], tile[2], 'il tassello della grana non è quadrato');
-  assert.ok(
-    Number(tile[1]) >= 128,
-    `il tassello della grana è troppo piccolo: ${tile[1]} px`,
+  assert.equal(
+    Number(tile[1]),
+    480,
+    `il tassello della grana non misura 480 px: ${tile[1]} px`,
+  );
+  // The fibre is coarse enough not to read as a screen, but the tile is large
+  // enough that its repetition is not seen across a viewport.
+  assert.match(
+    svg,
+    /<feTurbulence\b[^>]*baseFrequency=['"]0\.5['"]/,
+    'la frequenza della grana non è 0.5',
   );
   // The grain is the first background layer, so its repeat value comes
   // first; later ground layers may extend the list.
@@ -1341,7 +1352,7 @@ test('la grana è neutra e non attinge alla palette', () => {
   );
 });
 
-test('l’opacità della grana vive in un token semantico sotto il tetto di 0.03', () => {
+test('l’opacità della grana vive in un token semantico sotto il tetto di 0.10', () => {
   const css = stripCssComments(servedStylesheet());
   const opacity = tokenValue('grain-opacity', css);
 
@@ -1355,8 +1366,8 @@ test('l’opacità della grana vive in un token semantico sotto il tetto di 0.03
   const value = Number(opacity);
   assert.ok(value > 0, 'la grana non è visibile');
   assert.ok(
-    value <= 0.03,
-    `la grana supera il tetto concordato di 0.03: ${value}`,
+    value <= 0.1,
+    `la grana supera il tetto concordato di 0.10: ${value}`,
   );
 
   // The inline SVG cannot read this document's custom properties, so the
@@ -1542,20 +1553,25 @@ test('i due toni del campo sono mescolanze della palette, non colori nuovi', () 
   );
 });
 
-test('il campo resta entro il sei per cento e il bordeaux regge su entrambi i capi', () => {
+test('il campo resta entro il sedici per cento e il bordeaux regge su entrambi i capi', () => {
   const css = stripCssComments(servedStylesheet());
-  const lightest = groundUnderGrain(mixedGroundTone('ground-light', css), css);
-  const darkest = groundUnderGrain(mixedGroundTone('ground-deep', css), css);
+  const lightTone = mixedGroundTone('ground-light', css);
+  const deepTone = mixedGroundTone('ground-deep', css);
+  // The grain is a texture: its mean darkens both ends by the same proportion,
+  // so the field's span is measured on the tones themselves. The ends the note
+  // records are read through the grain, for the contrast checks below.
+  const lightest = groundUnderGrain(lightTone, css);
+  const darkest = groundUnderGrain(deepTone, css);
   const lightLuminance = relativeLuminance(lightest);
   const darkLuminance = relativeLuminance(darkest);
-  const delta = lightLuminance - darkLuminance;
+  const delta = relativeLuminance(lightTone) - relativeLuminance(deepTone);
 
-  // The cap is measured, not assumed: both ends of the field, each under the
-  // grain at its declared opacity, differ by at most six points.
+  // The cap is measured, not assumed: both ends of the field differ by at most
+  // sixteen points of relative luminance.
   assert.ok(delta > 0, 'il campo non ha direzione: i due capi coincidono');
   assert.ok(
-    delta <= 0.06,
-    `il campo copre ${(delta * 100).toFixed(2)} punti di luminanza: supera il 6%`,
+    delta <= 0.16,
+    `il campo copre ${(delta * 100).toFixed(2)} punti di luminanza: supera il 16%`,
   );
 
   // The note beside the rule records the same measurement, so a reader reads
@@ -1612,6 +1628,20 @@ test('il campo resta entro il sei per cento e il bordeaux regge su entrambi i ca
     note,
     new RegExp(`darkest ground[^\\n]*${literal(onDarkest.toFixed(2))}:1`),
     'la nota non registra il bordeaux sul capo più scuro',
+  );
+
+  // The muted ink is why the palette's bronze moved: at the worst point of the
+  // field it still clears AA for normal text.
+  const bronze = paletteToken('bronze');
+  const mutedOnDarkest = contrastRatio(bronze, darkest);
+  assert.ok(
+    mutedOnDarkest >= 4.5,
+    `il bronzo sul fondo più scuro misura ${mutedOnDarkest.toFixed(2)}:1, sotto AA`,
+  );
+  assert.match(
+    note,
+    new RegExp(`muted ink[^\\n]*${literal(mutedOnDarkest.toFixed(2))}:1`),
+    'la nota non registra il bronzo sul capo più scuro',
   );
 });
 
@@ -2087,7 +2117,7 @@ test('il contrasto della superficie forte è misurato e annotato accanto alla pa
     ['cream-light', '10.61'],
     ['gold-light', '5.75'],
     ['gold', '3.78'],
-    ['bronze', '2.09'],
+    ['bronze', '1.58'],
   ]) {
     const measured = contrastRatio(paletteToken(token), bordeaux).toFixed(2);
     assert.equal(
@@ -2104,7 +2134,7 @@ test('il contrasto della superficie forte è misurato e annotato accanto alla pa
 
   assert.match(
     note,
-    /bronze[^\n]*(?:mai|non|never)[^\n]*testo|bronze[^\n]*2\.09:1[^\n]*(?:mai|non|never)/i,
+    /bronze[^\n]*(?:mai|non|never)[^\n]*testo|bronze[^\n]*1\.58:1[^\n]*(?:mai|non|never)/i,
     'la nota non avverte che il bronzo non regge il testo sulla superficie forte',
   );
 

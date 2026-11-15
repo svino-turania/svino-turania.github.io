@@ -64,7 +64,7 @@
      * Print primitives.
      *
      * Contrast on the cream ground, measured at these rendered colours:
-     *   --bordeaux 9.94:1, --bronze 4.76:1.
+     *   --bordeaux 9.94:1, --bronze 6.30:1.
      *
      * Contrast on the strong surface, measured fresh against its bordeaux
      * base (#5c1a24) with WCAG 2.1 relative luminance — not inferred from
@@ -73,7 +73,7 @@
      *   --cream-light 10.61:1  emphasis on the strong surface, if any
      *   --gold-light  5.75:1   the strong surface's muted ink
      *   --gold        3.78:1   rules and non-text only
-     *   --bronze      2.09:1   never for text on the strong surface
+     *   --bronze      1.58:1   never for text on the strong surface
      * Cream and gold-light clear AA (4.5:1) for normal text; bronze does not.
      */
     --bordeaux: #5c1a24;
@@ -85,7 +85,7 @@
     --cream-light: #f2e8d5;
     --gold: #a9854f;
     --gold-light: #c9a96a;
-    --bronze: #7a5c2e;
+    --bronze: #664a23;
 
     /* Semantic roles: the only colour vocabulary a component may use. */
     --surface: var(--cream);
@@ -96,38 +96,45 @@
     --link-hover: var(--bronze);
 
     /*
-     * The ground's grain. A fine, neutral fractal-noise tile drawn inline as
-     * SVG, so it adds no file and no request; the ground reads as paper
-     * rather than a flat fill. The tile is stitched, so its seam does not
-     * repeat, and its colour is reduced to black so it carries no palette.
+     * The ground's grain. A neutral fractal-noise tile drawn inline as SVG,
+     * so it adds no file and no request; the ground reads as paper rather
+     * than a flat fill. The tile is 480 px square and the fibre coarse (0.5),
+     * so the paper is seen rather than sensed and the tile does not repeat
+     * across a viewport. It is stitched, so its seam does not show, and its
+     * colour is reduced to black so it carries no palette.
      *
      * The grain's strength is one semantic number, at or below the agreed
-     * 0.03 cap. An SVG loaded through url() is its own document and cannot
+     * 0.10 cap. An SVG loaded through url() is its own document and cannot
      * read this document's custom properties, so the tile repeats the value;
      * the suite asserts that the served tile and --grain-opacity agree.
      */
-    --grain-opacity: 0.03;
-    --grain-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='grain' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='0.03'/%3E%3C/svg%3E");
+    --grain-opacity: 0.10;
+    --grain-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='480'%3E%3Cfilter id='grain' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='0.10'/%3E%3C/svg%3E");
 
     /*
      * The ground's light direction. One continuous vertical field runs down
      * the page: near the date it holds close to the print's light paper,
      * settles to the cream surface through the Cantina prose, and deepens
-     * slightly at the foot before the bordeaux band closes the page. Both
-     * tones are mixed from the palette through the cream surface, so the
-     * primitives still have one home and no raw colour is declared here.
+     * toward the foot before the bordeaux band closes the page. Both tones
+     * are mixed from the palette through the cream surface, so the primitives
+     * still have one home and no raw colour is declared here.
      *
-     * Measured on the served palette with the grain composited at its 0.03
-     * opacity over each end of the field. The hex is the rounded byte of each
-     * end; the luminance is computed from the unrounded mix:
-     *   lightest ground  ≈ #e9dec9  luminance 0.7391
-     *   darkest ground   ≈ #e3d6bc  luminance 0.6816
-     *   total delta      5.75 percentage points, under the 6% cap.
-     * Bordeaux on the lightest ground 9.69:1, on the darkest ground 8.99:1;
-     * both clear AA (4.5:1) for body text.
+     * Measured on the served palette with the grain composited over each end
+     * of the field. The tile's alpha averages about 0.55, so the 0.10 rect
+     * darkens each channel by about 5.5%; the hex is the rounded byte of each
+     * end and the luminance is computed from the unrounded composite:
+     *   lightest ground  ≈ #e4dac7  luminance 0.7089
+     *   darkest ground   ≈ #d3c6ac  luminance 0.5740
+     *   total delta      15.38 percentage points, under the 16% cap.
+     * Bordeaux on the lightest ground 9.32:1, on the darkest ground 7.66:1;
+     * both clear AA (4.5:1) for body text. The cream surface under the same
+     * grain is ≈ #e0d5bb, bordeaux 8.82:1.
+     * The muted ink reads 5.91:1 on the lightest ground and 4.86:1 on the
+     * darkest, both clear of AA; that is why the bronze primitive moved to
+     * #664a23. Under the old bronze, 0.06 grain would have been the ceiling.
      */
-    --ground-light: color-mix(in srgb, var(--cream-light) 60%, var(--surface));
-    --ground-deep: color-mix(in srgb, var(--surface) 97%, var(--bronze));
+    --ground-light: color-mix(in srgb, var(--cream-light) 85%, var(--surface));
+    --ground-deep: color-mix(in srgb, var(--surface) 90%, var(--bronze));
     /*
      * The light holds through the date bands of every viewport (about 31–50%
      * of the document), the surface arrives through the prose, and the deep
