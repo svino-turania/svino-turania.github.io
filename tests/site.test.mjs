@@ -183,19 +183,90 @@ function rgb(hexColour) {
   };
 }
 
-/* WCAG 2.1 relative-luminance contrast, computed from the served primitives. */
-function contrastRatio(foreground, background) {
+/*
+ * WCAG 2.1 relative luminance, computed from the served primitives. Accepts a
+ * served hex or a colour the suite has already mixed and composited.
+ */
+function relativeLuminance(colour) {
   const channel = (value) => {
     const c = value / 255;
     return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
   };
-  const luminance = (hex) => {
-    const { r, g, b } = rgb(hex);
-    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
-  };
-  const lighter = Math.max(luminance(foreground), luminance(background));
-  const darker = Math.min(luminance(foreground), luminance(background));
+  const { r, g, b } = typeof colour === 'string' ? rgb(colour) : colour;
+  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+}
+
+/* WCAG 2.1 relative-luminance contrast, computed from the served primitives. */
+function contrastRatio(foreground, background) {
+  const lighter = Math.max(
+    relativeLuminance(foreground),
+    relativeLuminance(background),
+  );
+  const darker = Math.min(
+    relativeLuminance(foreground),
+    relativeLuminance(background),
+  );
   return (lighter + 0.05) / (darker + 0.05);
+}
+
+/* A token's colour, following role aliases back to the served primitive. */
+function resolveTokenColour(name, css = servedStylesheet()) {
+  const value = tokenValue(name, css);
+  const alias = value.match(/^var\(--([a-z-]+)\)$/);
+  if (alias) {
+    return resolveTokenColour(alias[1], css);
+  }
+  return paletteToken(name);
+}
+
+/*
+ * A ground tone as the browser resolves it: the two-stop sRGB colour-mix the
+ * token declares, mixed from the served palette. The suite reads the mix, not
+ * a copy of its result, so a palette change moves both together.
+ */
+function mixedGroundTone(name, css = servedStylesheet()) {
+  const value = tokenValue(name, css);
+  const mix = value.match(
+    /^color-mix\(\s*in srgb\s*,\s*var\(--([a-z-]+)\)\s+(\d+(?:\.\d+)?)%\s*,\s*var\(--([a-z-]+)\)(?:\s+(\d+(?:\.\d+)?)%)?\s*\)$/,
+  );
+  assert.ok(
+    mix,
+    `--${name} non è una mescolanza sRGB di due ruoli: ${value}`,
+  );
+  const first = rgb(resolveTokenColour(mix[1], css));
+  const second = rgb(resolveTokenColour(mix[3], css));
+  const firstShare = Number(mix[2]) / 100;
+  const secondShare = mix[4] ? Number(mix[4]) / 100 : 1 - firstShare;
+  assert.ok(
+    Math.abs(firstShare + secondShare - 1) < 1e-9,
+    `--${name} non mescola due parti intere: ${value}`,
+  );
+  return {
+    r: first.r * firstShare + second.r * secondShare,
+    g: first.g * firstShare + second.g * secondShare,
+    b: first.b * firstShare + second.b * secondShare,
+  };
+}
+
+/*
+ * The field under the grain: the tile is neutral black at the grain token's
+ * opacity, so it multiplies each channel of the tone beneath it. Both ends of
+ * the field are measured this way, so the delta includes the grain.
+ */
+function groundUnderGrain(tone, css = servedStylesheet()) {
+  const grain = Number(tokenValue('grain-opacity', css));
+  return {
+    r: tone.r * (1 - grain),
+    g: tone.g * (1 - grain),
+    b: tone.b * (1 - grain),
+  };
+}
+
+/* A mixed colour as the served hex a note records. */
+function hexOf(colour) {
+  return `#${[colour.r, colour.g, colour.b]
+    .map((value) => Math.round(value).toString(16).padStart(2, '0'))
+    .join('')}`;
 }
 
 /*
@@ -1317,6 +1388,197 @@ test('il fondo non aggiunge un file, una richiesta o un movimento', () => {
     css,
     /@keyframes\s+(?:grain|ground|paper|noise)\b/i,
     'il fondo ha una sequenza di fotogrammi',
+  );
+});
+
+test('la carta riceve un solo campo di luce continuo sotto la grana', () => {
+  const css = stripCssComments(servedStylesheet());
+  const body = bodyRule(css);
+
+  // The cream surface stays the base colour; the ground is two image layers,
+  // grain on top and one field beneath it, added after the shorthand.
+  const image =
+    body.match(/background-image:\s*([^;]+);/)?.[1].trim() ?? '';
+  assert.equal(
+    image,
+    'var(--grain-image), var(--ground-field)',
+    `il corpo non posa la grana sopra un solo campo: ${image}`,
+  );
+  // The grain tiles; the field is painted once, over the document.
+  const repeat =
+    body.match(/background-repeat:\s*([^;]+);/)?.[1].trim() ?? '';
+  assert.equal(
+    repeat,
+    'repeat, no-repeat',
+    `il campo si ripete invece di scorrere una volta: ${repeat}`,
+  );
+
+  // One field for the whole page, not a wash per section: the body is its
+  // only consumer, and it is a single vertical gradient.
+  const field = tokenValue('ground-field', css);
+  assert.match(
+    field,
+    /^linear-gradient\(\s*to bottom\s*,/,
+    `il campo non è una discesa verticale: ${field}`,
+  );
+  // The descent is the ticket's: light near the date, the cream surface
+  // through the prose, the deep tone at the foot.
+  const stops = [...field.matchAll(/var\(--([a-z-]+)\)\s+\d+%/g)].map(
+    ([, name]) => name,
+  );
+  assert.deepEqual(
+    stops,
+    ['ground-light', 'ground-light', 'surface', 'ground-deep'],
+    `il campo non scende dal chiaro al fondo passando per la carta: ${stops.join(', ')}`,
+  );
+  assert.equal(
+    [...css.matchAll(/var\(--ground-field\)/g)].length,
+    1,
+    'il campo è dipinto più di una volta: è un lavaggio per sezione',
+  );
+
+  // The date stays a band on the page's cream: the field shows through it and
+  // the band adds no background, shadow or radius of its own.
+  for (const [, block] of css.matchAll(/\.date\s*\{([^}]*)\}/gs)) {
+    assert.doesNotMatch(
+      block,
+      /\bbackground(?:-image)?\s*:/,
+      'la data dipinge un fondo sopra il campo',
+    );
+    assert.doesNotMatch(
+      block,
+      /\bbox-shadow\s*:|(?:^|[;\s])border-radius\s*:/,
+      'la data è diventata un pannello sopra il campo',
+    );
+  }
+});
+
+test('i due toni del campo sono mescolanze della palette, non colori nuovi', () => {
+  const css = stripCssComments(servedStylesheet());
+  const tokens = layerBlock(css, 'tokens');
+  const light = tokenValue('ground-light', css);
+  const deep = tokenValue('ground-deep', css);
+
+  for (const [name, value] of [
+    ['ground-light', light],
+    ['ground-deep', deep],
+  ]) {
+    assert.match(
+      value,
+      /^color-mix\(\s*in srgb\s*,/,
+      `--${name} non è una mescolanza sRGB: ${value}`,
+    );
+    assert.doesNotMatch(
+      value,
+      /#[0-9a-fA-F]{3,8}\b/,
+      `--${name} introduce un colore grezzo invece di mescolare la palette`,
+    );
+    // Every source is a token the stylesheet actually ships.
+    for (const [, source] of value.matchAll(/var\(--([a-z-]+)\)/g)) {
+      assert.ok(
+        tokenValue(source, css),
+        `--${name} legge un token che non esiste: --${source}`,
+      );
+    }
+  }
+
+  // The light end leans on the print's light paper, the deep end on its warm
+  // neutral, and both on the page's own surface.
+  assert.match(light, /var\(--cream-light\)/);
+  assert.match(deep, /var\(--bronze\)/);
+  for (const [name, value] of [
+    ['ground-light', light],
+    ['ground-deep', deep],
+  ]) {
+    assert.match(
+      value,
+      /var\(--surface\)/,
+      `--${name} non parte dalla superficie della pagina`,
+    );
+  }
+
+  // No new primitive entered the palette: the tokens layer holds exactly the
+  // six printed colours and nothing else with a raw value.
+  const primitives = [...tokens.matchAll(/--([a-z-]+)\s*:\s*#[0-9a-fA-F]{6}\s*;/g)]
+    .map(([, name]) => name)
+    .sort();
+  assert.deepEqual(
+    primitives,
+    ['bordeaux', 'bronze', 'cream', 'cream-light', 'gold', 'gold-light'],
+    `il campo ha aggiunto una primitiva: ${primitives.join(', ')}`,
+  );
+});
+
+test('il campo resta entro il sei per cento e il bordeaux regge su entrambi i capi', () => {
+  const css = stripCssComments(servedStylesheet());
+  const lightest = groundUnderGrain(mixedGroundTone('ground-light', css), css);
+  const darkest = groundUnderGrain(mixedGroundTone('ground-deep', css), css);
+  const lightLuminance = relativeLuminance(lightest);
+  const darkLuminance = relativeLuminance(darkest);
+  const delta = lightLuminance - darkLuminance;
+
+  // The cap is measured, not assumed: both ends of the field, each under the
+  // grain at its declared opacity, differ by at most six points.
+  assert.ok(delta > 0, 'il campo non ha direzione: i due capi coincidono');
+  assert.ok(
+    delta <= 0.06,
+    `il campo copre ${(delta * 100).toFixed(2)} punti di luminanza: supera il 6%`,
+  );
+
+  // The note beside the rule records the same measurement, so a reader reads
+  // the number the suite checks rather than a second copy of the palette.
+  const blocks = atRuleBlocks(servedStylesheet(), '@layer\\s+tokens\\s*\\{');
+  const rawTokens = servedStylesheet().slice(blocks[0].start, blocks[0].end + 1);
+  const note =
+    [...rawTokens.matchAll(/\/\*[\s\S]*?\*\//g)]
+      .map(([comment]) => comment)
+      .find((comment) => /lightest ground/i.test(comment)) ?? '';
+  assert.ok(note, 'manca la misura del campo accanto alla palette');
+  const literal = (text) =>
+    text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  assert.match(
+    note,
+    new RegExp(
+      `lightest ground\\s+${literal(hexOf(lightest))}\\s+luminance\\s+${literal(lightLuminance.toFixed(4))}`,
+    ),
+    'la nota non registra il capo più chiaro del campo',
+  );
+  assert.match(
+    note,
+    new RegExp(
+      `darkest ground\\s+${literal(hexOf(darkest))}\\s+luminance\\s+${literal(darkLuminance.toFixed(4))}`,
+    ),
+    'la nota non registra il capo più scuro del campo',
+  );
+  assert.match(
+    note,
+    new RegExp(`delta\\s+${literal((delta * 100).toFixed(2))}`),
+    'la nota non registra il salto totale del campo',
+  );
+
+  // Worst case for the page's ink: bordeaux over either end of the field, at
+  // the grain's full strength, still clears AA for normal text.
+  const bordeaux = paletteToken('bordeaux');
+  const onLightest = contrastRatio(bordeaux, lightest);
+  const onDarkest = contrastRatio(bordeaux, darkest);
+  for (const [label, ratio] of [
+    ['chiarissimo', onLightest],
+    ['scurissimo', onDarkest],
+  ]) {
+    assert.ok(
+      ratio >= 4.5,
+      `il bordeaux sul fondo ${label} misura ${ratio.toFixed(2)}:1, sotto AA`,
+    );
+  }
+  assert.match(
+    note,
+    new RegExp(`lightest ground[^\\n]*${literal(onLightest.toFixed(2))}:1`),
+    'la nota non registra il bordeaux sul capo più chiaro',
+  );
+  assert.match(
+    note,
+    new RegExp(`darkest ground[^\\n]*${literal(onDarkest.toFixed(2))}:1`),
+    'la nota non registra il bordeaux sul capo più scuro',
   );
 });
 
