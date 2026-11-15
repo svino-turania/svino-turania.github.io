@@ -1424,7 +1424,7 @@ test('il sito non spedisce alcuna immagine di strappo', () => {
   );
 });
 
-test('la fotografia tiene la banda 303:191 e un solo strappo in basso', () => {
+test('la fotografia tiene la banda 303:191 e un solo strappo misurato sulla banda', () => {
   const css = stripCssComments(servedStylesheet());
 
   assert.match(
@@ -1433,9 +1433,41 @@ test('la fotografia tiene la banda 303:191 e un solo strappo in basso', () => {
     'la fotografia non tiene la banda 303:191 della stampa',
   );
 
-  const rules = [...css.matchAll(/clip-path:\s*(polygon\([^;]+\))\s*;/g)];
-  assert.equal(rules.length, 1, 'la fotografia non ha esattamente uno strappo');
-  const polygon = rules[0][1];
+  /*
+   * The print's tear is a fraction of the band's WIDTH. It must be measured
+   * against the photograph band itself, not the viewport: the band declares
+   * inline-size containment and the teeth are cqw offsets. Without that, the
+   * teeth would compress on a phone and swell on a wide screen.
+   */
+  assert.match(
+    css,
+    /\.photo-band\s*\{[^}]*container-type:\s*inline-size/s,
+    'la banda della fotografia non è un contenitore di larghezza: lo strappo non ha riferimento',
+  );
+
+  // Exactly one torn edge on the page, and it is the photograph's lower edge.
+  assert.equal(
+    [...css.matchAll(/clip-path:\s*polygon\(/g)].length,
+    1,
+    'la pagina non ha esattamente uno strappo',
+  );
+  const rule = css.match(
+    /\.photo-frame\s*\{[^}]*?clip-path:\s*(polygon\([^;]+\));/s,
+  );
+  assert.ok(rule, 'lo strappo non è sul bordo della fotografia');
+  const polygon = rule[1];
+
+  assert.match(
+    polygon,
+    /cqw/,
+    'lo strappo non è espresso contro la larghezza della banda',
+  );
+  assert.doesNotMatch(
+    polygon,
+    /\d(?:vw|vh|vmin|vmax)\b/,
+    'lo strappo usa ancora la larghezza del viewport',
+  );
+
   const points = [...polygon.matchAll(/(-?[\d.]+%)\s+(-?[\d.]+%|calc\([^)]+\))/g)].map(
     ([, x, y]) => ({ x, y }),
   );
@@ -1446,19 +1478,47 @@ test('la fotografia tiene la banda 303:191 e un solo strappo in basso', () => {
   assert.equal(points[1].x, '100%', 'il bordo superiore non arriva a destra');
   assert.equal(points[1].y, '0%', 'il bordo superiore non è dritto');
 
-  // Exactly one edge is torn: every point after the two top corners sits on the
-  // lower edge, whose vertical coordinate is a calc() against the band width.
+  // One edge is torn: every point after the two top corners sits on the lower
+  // edge, offset from it by a length in cqw — 1% of the band's inline size.
   for (const point of points.slice(2)) {
     assert.match(
       point.y,
-      /calc\(100%\s*-/,
-      'un punto dello strappo non è sul bordo inferiore',
+      /^calc\(100%\s*-\s*[\d.]+cqw\)$/,
+      'un punto dello strappo non è sul bordo inferiore o non è misurato sulla banda',
     );
     assert.ok(
       Number.parseFloat(point.x) >= 0 && Number.parseFloat(point.x) <= 100,
       'lo strappo esce dalla larghezza della banda',
     );
   }
+});
+
+test('la fotografia decodifica in asincrono, ha alta priorità e non è precaricata', () => {
+  const document = loadSite();
+  const photo = document.querySelector('picture img');
+  assert.ok(photo, 'manca la fotografia');
+
+  assert.equal(
+    photo.getAttribute('decoding'),
+    'async',
+    'la fotografia non decodifica in asincrono',
+  );
+  assert.equal(
+    photo.getAttribute('fetchpriority'),
+    'high',
+    'la fotografia non ha alta priorità di caricamento',
+  );
+
+  const preloads = [...document.querySelectorAll('link[rel~="preload"]')].filter(
+    (link) =>
+      link.getAttribute('as') === 'image' ||
+      /svino-cantina/.test(link.getAttribute('href') ?? ''),
+  );
+  assert.deepEqual(
+    preloads.map((link) => link.getAttribute('href')),
+    [],
+    'la fotografia è precaricata: il preload duplica il caricamento',
+  );
 });
 
 test('la testata riporta la firma come tracciato inline con nome accessibile e il lockup come testo', () => {
