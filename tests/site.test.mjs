@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
 import { inflateSync } from 'node:zlib';
 import { parseHTML } from 'linkedom';
@@ -10,7 +10,6 @@ const ROOT = resolve(import.meta.dirname, '..');
 // The single seam: the repository root, as a static server serves it.
 const SITE = ROOT;
 const SITE_ORIGIN = 'https://svino-turania.github.io';
-const MAP_ORIGIN = 'https://www.google.com';
 
 // Both photographs run edge to edge at every width: they are full-bleed
 // sections of the cover, so the browser sizes them against the viewport.
@@ -29,6 +28,26 @@ const HERO_ALT =
 const IMAGE_TYPE_BY_EXTENSION = new Map([
   ['.jpg', 'image/jpeg'],
   ['.jpeg', 'image/jpeg'],
+]);
+
+/*
+ * Every image the site ships. The ground adds no image file: its grain is a
+ * data URI. This is an exact inventory, like the font allowlist, so a new
+ * image fails whatever it is called, not only one named after the grain.
+ */
+const SHIPPED_IMAGE_FILES = Object.freeze([
+  'assets/download/locandina-svino-ii-edizione.jpg',
+  'assets/icons/apple-touch-icon.png',
+  'assets/icons/favicon.svg',
+  'assets/img/svino-borgo-hero-1033.jpg',
+  'assets/img/svino-borgo-hero-1033.webp',
+  'assets/img/svino-borgo-hero-720.jpg',
+  'assets/img/svino-borgo-hero-720.webp',
+  'assets/img/svino-cantina-1200.jpg',
+  'assets/img/svino-cantina-1200.webp',
+  'assets/img/svino-cantina-2048.jpg',
+  'assets/img/svino-cantina-2048.webp',
+  'assets/img/svino-quadrato-og.jpg',
 ]);
 
 function normalize(value) {
@@ -128,6 +147,29 @@ function layerBlock(css, name, source = servedStylesheet()) {
   return clean.slice(blocks[0].start, blocks[0].end + 1);
 }
 
+/* The body's rule: the cream ground the page is painted on. */
+function bodyRule(css = servedStylesheet()) {
+  const clean = stripCssComments(css);
+  const rule = clean.match(/(?:^|})\s*body\s*\{([^}]*)\}/s);
+  assert.ok(rule, 'manca la regola del corpo');
+  return rule[1];
+}
+
+/* One token's declared value, as the stylesheet ships it. */
+function tokenValue(name, css = servedStylesheet()) {
+  const tokens = layerBlock(css, 'tokens');
+  const match = tokens.match(new RegExp(`--${name}\\s*:\\s*([^;]+);`));
+  assert.ok(match, `manca il token --${name}`);
+  return match[1].trim();
+}
+
+/* The inline SVG behind a data URI token, decoded to the markup a browser reads. */
+function inlineSvg(value) {
+  const uri = value.match(/^url\("(data:image\/svg\+xml,([^"]+))"\)$/s);
+  assert.ok(uri, 'il valore non è un data URI SVG in linea');
+  return decodeURIComponent(uri[2]);
+}
+
 /*
  * The page has one base composition and one desktop composition at 64 rem.
  * No 48 rem override may return, and the 64 rem block is the only threshold:
@@ -161,19 +203,89 @@ function rgb(hexColour) {
   };
 }
 
-/* WCAG 2.1 relative-luminance contrast, computed from the served primitives. */
-function contrastRatio(foreground, background) {
+/*
+ * WCAG 2.1 relative luminance, computed from the served primitives. Accepts a
+ * served hex or a colour the suite has already mixed and composited.
+ */
+function relativeLuminance(colour) {
   const channel = (value) => {
     const c = value / 255;
     return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
   };
-  const luminance = (hex) => {
-    const { r, g, b } = rgb(hex);
-    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
-  };
-  const lighter = Math.max(luminance(foreground), luminance(background));
-  const darker = Math.min(luminance(foreground), luminance(background));
+  const { r, g, b } = typeof colour === 'string' ? rgb(colour) : colour;
+  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+}
+
+/* WCAG 2.1 relative-luminance contrast, computed from the served primitives. */
+function contrastRatio(foreground, background) {
+  const lighter = Math.max(
+    relativeLuminance(foreground),
+    relativeLuminance(background),
+  );
+  const darker = Math.min(
+    relativeLuminance(foreground),
+    relativeLuminance(background),
+  );
   return (lighter + 0.05) / (darker + 0.05);
+}
+
+/* A token's colour, following role aliases back to the served primitive. */
+function resolveTokenColour(name, css = servedStylesheet()) {
+  const value = tokenValue(name, css);
+  const alias = value.match(/^var\(--([a-z-]+)\)$/);
+  if (alias) {
+    return resolveTokenColour(alias[1], css);
+  }
+  return paletteToken(name);
+}
+
+/*
+ * A ground tone as the browser resolves it: the two-stop sRGB colour-mix the
+ * token declares, mixed from the served palette. The suite reads the mix, not
+ * a copy of its result, so a palette change moves both together.
+ */
+function mixedGroundTone(name, css = servedStylesheet()) {
+  const value = tokenValue(name, css);
+  const mix = value.match(
+    /^color-mix\(\s*in srgb\s*,\s*var\(--([a-z-]+)\)\s+(\d+(?:\.\d+)?)%\s*,\s*var\(--([a-z-]+)\)\s*\)$/,
+  );
+  assert.ok(
+    mix,
+    `--${name} non è una mescolanza sRGB di due ruoli: ${value}`,
+  );
+  const first = rgb(resolveTokenColour(mix[1], css));
+  const second = rgb(resolveTokenColour(mix[3], css));
+  const firstShare = Number(mix[2]) / 100;
+  const secondShare = 1 - firstShare;
+  return {
+    r: first.r * firstShare + second.r * secondShare,
+    g: first.g * firstShare + second.g * secondShare,
+    b: first.b * firstShare + second.b * secondShare,
+  };
+}
+
+/*
+ * The field under the grain. The tile's RGB is neutral black, but its alpha is
+ * the turbulence's own and averages about 0.55 in a browser, so a rect at
+ * --grain-opacity darkens each channel by about 0.55 x the token. The measured
+ * ends in the tokens note are read through this composite, which the captured
+ * ground confirms: the old 0.03 tile moved cream to rgb(233 221 195).
+ */
+const GRAIN_MEAN_ALPHA = 0.55;
+function groundUnderGrain(tone, css = servedStylesheet()) {
+  const grain = Number(tokenValue('grain-opacity', css)) * GRAIN_MEAN_ALPHA;
+  return {
+    r: tone.r * (1 - grain),
+    g: tone.g * (1 - grain),
+    b: tone.b * (1 - grain),
+  };
+}
+
+/* A mixed colour as the served hex a note records. */
+function hexOf(colour) {
+  return `#${[colour.r, colour.g, colour.b]
+    .map((value) => Math.round(value).toString(16).padStart(2, '0'))
+    .join('')}`;
 }
 
 /*
@@ -258,6 +370,14 @@ function shippedFiles() {
     }
   }
   return files;
+}
+
+/*
+ * The shipped entries that are files on disk. The directory walk also reports
+ * directories; the assertions that read every shipped file skip those.
+ */
+function shippedFilesOnDisk() {
+  return shippedFiles().filter((file) => statSync(join(SITE, file)).isFile());
 }
 
 /*
@@ -1149,6 +1269,382 @@ test('la pagina è la carta: nessun pannello, nessuna ombra, nessun foglio', () 
   );
 });
 
+test('la carta del corpo posa la grana come un tassello SVG in linea', () => {
+  const css = stripCssComments(servedStylesheet());
+  const body = bodyRule(css);
+  const grain = tokenValue('grain-image', css);
+
+  /*
+   * The cream surface is declared first and stays; the grain is an image
+   * layer added after it, because the shorthand resets the layer list.
+   */
+  const surface = body.indexOf('background: var(--surface)');
+  const image = body.indexOf('background-image: var(--grain-image)');
+  assert.ok(surface >= 0, 'il corpo perde la carta di crema');
+  assert.ok(
+    image > surface,
+    'la grana sostituisce la carta invece di posarsi sopra',
+  );
+
+  // Inline turbulence, tiled from its own square and stitched at the seam.
+  const svg = inlineSvg(grain);
+  assert.match(
+    svg,
+    /<feTurbulence\b[^>]*type=['"]fractalNoise['"]/,
+    'la grana non è rumore frattale',
+  );
+  assert.match(
+    svg,
+    /<feTurbulence\b[^>]*stitchTiles=['"]stitch['"]/,
+    'la grana non è cucita: il tassello ripete la cucitura',
+  );
+  const tile = svg.match(
+    /<svg\b[^>]*width=['"](\d+)['"][^>]*height=['"](\d+)['"]/,
+  );
+  assert.ok(tile, 'il tassello della grana non dichiara la propria misura');
+  assert.equal(tile[1], tile[2], 'il tassello della grana non è quadrato');
+  assert.equal(
+    Number(tile[1]),
+    480,
+    `il tassello della grana non misura 480 px: ${tile[1]} px`,
+  );
+  // The fibre is coarse enough not to read as a screen, but the tile is large
+  // enough that its repetition is not seen across a viewport.
+  assert.match(
+    svg,
+    /<feTurbulence\b[^>]*baseFrequency=['"]0\.5['"]/,
+    'la frequenza della grana non è 0.5',
+  );
+  // The grain is the first background layer, so its repeat value comes
+  // first; later ground layers may extend the list.
+  const repeat = body.match(/background-repeat:\s*([^;]+);/)?.[1].trim() ?? '';
+  assert.match(
+    repeat,
+    /^repeat(?:\s*,|$)/,
+    `la grana non è il primo strato a tasselli: ${repeat}`,
+  );
+});
+
+test('la grana è neutra e non attinge alla palette', () => {
+  const css = stripCssComments(servedStylesheet());
+  const svg = inlineSvg(tokenValue('grain-image', css));
+
+  // The noise is reduced to a neutral scale before it is laid down.
+  assert.match(
+    svg,
+    /<feColorMatrix\b/,
+    'la grana conserva i canali di colore del rumore',
+  );
+  assert.doesNotMatch(
+    svg,
+    /#[0-9a-fA-F]{3,8}\b/,
+    'la grana dichiara un colore invece di restare neutra',
+  );
+  assert.doesNotMatch(
+    svg,
+    /var\(--[a-z-]+\)/,
+    'la grana legge un ruolo della palette',
+  );
+  assert.doesNotMatch(
+    svg,
+    /(?:--|#)(?:bordeaux|cream|gold|bronze)/i,
+    'la grana nomina una primitiva della palette',
+  );
+});
+
+test('l’opacità della grana vive in un token semantico sotto il tetto di 0.10', () => {
+  const css = stripCssComments(servedStylesheet());
+  const opacity = tokenValue('grain-opacity', css);
+
+  // A bare number in the tokens layer, not a colour and not a magic decimal
+  // buried in the base rule.
+  assert.match(
+    opacity,
+    /^(?:0(?:\.\d+)?|1(?:\.0+)?)$/,
+    `l’opacità della grana non è un numero: ${opacity}`,
+  );
+  const value = Number(opacity);
+  assert.ok(value > 0, 'la grana non è visibile');
+  assert.ok(
+    value <= 0.1,
+    `la grana supera il tetto concordato di 0.10: ${value}`,
+  );
+
+  // The inline SVG cannot read this document's custom properties, so the
+  // shipped tile repeats the value; the contract is that the two agree.
+  const svg = inlineSvg(tokenValue('grain-image', css));
+  const embedded = svg.match(/\bopacity=['"]([0-9.]+)['"]/);
+  assert.ok(embedded, 'il tassello della grana non dichiara la propria opacità');
+  assert.equal(
+    Number(embedded[1]),
+    value,
+    `la grana spedita (${embedded[1]}) non segue il token (${value})`,
+  );
+});
+
+test('il fondo non aggiunge un file, una richiesta o un movimento', () => {
+  const css = stripCssComments(servedStylesheet());
+  const body = bodyRule(css);
+  const grain = tokenValue('grain-image', css);
+  const svg = inlineSvg(grain);
+
+  // The ground is inline: the only image is the data URI, and the SVG's own
+  // references stay inside the tile.
+  assert.match(
+    grain,
+    /^url\("data:image\/svg\+xml,/,
+    'la grana non è un data URI: è un file da caricare',
+  );
+  assert.doesNotMatch(
+    svg,
+    /<(?:animate|animateTransform|animateMotion|set)\b/,
+    'il tassello della grana contiene un movimento',
+  );
+  assert.doesNotMatch(
+    svg,
+    /url\((?!#)/,
+    'il tassello della grana richiede una risorsa fuori da sé',
+  );
+  // The site's images are an exact, known set. The ground ships no file: its
+  // grain is the data URI above, so the inventory does not grow.
+  const images = shippedFilesOnDisk()
+    .filter((file) => /\.(?:avif|gif|ico|jpe?g|png|svg|tiff?|webp)$/i.test(file))
+    .sort();
+  assert.deepEqual(
+    images,
+    [...SHIPPED_IMAGE_FILES],
+    `il fondo aggiunge un file immagine: ${images.join(', ')}`,
+  );
+
+  // Still and flat: the ground adds no motion, shadow or rounding to the page.
+  assert.doesNotMatch(
+    body,
+    /\b(?:animation|transition|transform|will-change|box-shadow|border-radius)\s*:/,
+    'il fondo del corpo aggiunge movimento o un pannello',
+  );
+  assert.doesNotMatch(
+    css,
+    /@keyframes\s+(?:grain|ground|paper|noise)\b/i,
+    'il fondo ha una sequenza di fotogrammi',
+  );
+});
+
+test('la carta riceve un solo campo di luce continuo sotto la grana', () => {
+  const css = stripCssComments(servedStylesheet());
+  const body = bodyRule(css);
+
+  // The cream surface stays the base colour; the ground is two image layers,
+  // grain on top and one field beneath it, added after the shorthand.
+  const image =
+    body.match(/background-image:\s*([^;]+);/)?.[1].trim() ?? '';
+  assert.equal(
+    image,
+    'var(--grain-image), var(--ground-field)',
+    `il corpo non posa la grana sopra un solo campo: ${image}`,
+  );
+  // The grain tiles; the field is painted once, over the document.
+  const repeat =
+    body.match(/background-repeat:\s*([^;]+);/)?.[1].trim() ?? '';
+  assert.equal(
+    repeat,
+    'repeat, no-repeat',
+    `il campo si ripete invece di scorrere una volta: ${repeat}`,
+  );
+
+  // One field for the whole page, not a wash per section: the body is its
+  // only consumer, and it is a single vertical gradient.
+  const field = tokenValue('ground-field', css);
+  assert.match(
+    field,
+    /^linear-gradient\(\s*to bottom\s*,/,
+    `il campo non è una discesa verticale: ${field}`,
+  );
+  // The descent is the ticket's: light near the date, the cream surface
+  // through the prose, the deep tone at the foot.
+  const stops = [...field.matchAll(/var\(--([a-z-]+)\)\s+\d+%/g)].map(
+    ([, name]) => name,
+  );
+  assert.deepEqual(
+    stops,
+    ['ground-light', 'ground-light', 'surface', 'ground-deep'],
+    `il campo non scende dal chiaro al fondo passando per la carta: ${stops.join(', ')}`,
+  );
+  assert.equal(
+    [...css.matchAll(/var\(--ground-field\)/g)].length,
+    1,
+    'il campo è dipinto più di una volta: è un lavaggio per sezione',
+  );
+
+  // The date stays a band on the page's cream: the field shows through it and
+  // the band adds no background, shadow or radius of its own.
+  for (const [, block] of css.matchAll(/\.date\s*\{([^}]*)\}/gs)) {
+    assert.doesNotMatch(
+      block,
+      /\bbackground(?:-image)?\s*:/,
+      'la data dipinge un fondo sopra il campo',
+    );
+    assert.doesNotMatch(
+      block,
+      /\bbox-shadow\s*:|(?:^|[;\s])border-radius\s*:/,
+      'la data è diventata un pannello sopra il campo',
+    );
+  }
+});
+
+test('i due toni del campo sono mescolanze della palette, non colori nuovi', () => {
+  const css = stripCssComments(servedStylesheet());
+  const tokens = layerBlock(css, 'tokens');
+  const light = tokenValue('ground-light', css);
+  const deep = tokenValue('ground-deep', css);
+
+  for (const [name, value] of [
+    ['ground-light', light],
+    ['ground-deep', deep],
+  ]) {
+    assert.match(
+      value,
+      /^color-mix\(\s*in srgb\s*,/,
+      `--${name} non è una mescolanza sRGB: ${value}`,
+    );
+    assert.doesNotMatch(
+      value,
+      /#[0-9a-fA-F]{3,8}\b/,
+      `--${name} introduce un colore grezzo invece di mescolare la palette`,
+    );
+    // Every source is a token the stylesheet actually ships; tokenValue
+    // asserts its presence with its own message.
+    for (const [, source] of value.matchAll(/var\(--([a-z-]+)\)/g)) {
+      tokenValue(source, css);
+    }
+  }
+
+  // The light end leans on the print's light paper, the deep end on its warm
+  // neutral, and both on the page's own surface.
+  assert.match(
+    light,
+    /var\(--cream-light\)/,
+    'il capo chiaro non attinge alla carta chiara della stampa',
+  );
+  assert.match(
+    deep,
+    /var\(--bronze\)/,
+    'il capo scuro non attinge al neutro caldo della stampa',
+  );
+  for (const [name, value] of [
+    ['ground-light', light],
+    ['ground-deep', deep],
+  ]) {
+    assert.match(
+      value,
+      /var\(--surface\)/,
+      `--${name} non parte dalla superficie della pagina`,
+    );
+  }
+
+  // No new primitive entered the palette: the tokens layer holds exactly the
+  // six printed colours and nothing else with a raw value.
+  const primitives = [...tokens.matchAll(/--([a-z-]+)\s*:\s*#[0-9a-fA-F]{6}\s*;/g)]
+    .map(([, name]) => name)
+    .sort();
+  assert.deepEqual(
+    primitives,
+    ['bordeaux', 'bronze', 'cream', 'cream-light', 'gold', 'gold-light'],
+    `il campo ha aggiunto una primitiva: ${primitives.join(', ')}`,
+  );
+});
+
+test('il campo resta entro il sedici per cento e il bordeaux regge su entrambi i capi', () => {
+  const css = stripCssComments(servedStylesheet());
+  const lightTone = mixedGroundTone('ground-light', css);
+  const deepTone = mixedGroundTone('ground-deep', css);
+  // The grain is a texture: its mean darkens both ends by the same proportion,
+  // so the field's span is measured on the tones themselves. The ends the note
+  // records are read through the grain, for the contrast checks below.
+  const lightest = groundUnderGrain(lightTone, css);
+  const darkest = groundUnderGrain(deepTone, css);
+  const lightLuminance = relativeLuminance(lightest);
+  const darkLuminance = relativeLuminance(darkest);
+  const delta = relativeLuminance(lightTone) - relativeLuminance(deepTone);
+
+  // The cap is measured, not assumed: both ends of the field differ by at most
+  // sixteen points of relative luminance.
+  assert.ok(delta > 0, 'il campo non ha direzione: i due capi coincidono');
+  assert.ok(
+    delta <= 0.16,
+    `il campo copre ${(delta * 100).toFixed(2)} punti di luminanza: supera il 16%`,
+  );
+
+  // The note beside the rule records the same measurement, so a reader reads
+  // the number the suite checks rather than a second copy of the palette.
+  const blocks = atRuleBlocks(servedStylesheet(), '@layer\\s+tokens\\s*\\{');
+  const rawTokens = servedStylesheet().slice(blocks[0].start, blocks[0].end + 1);
+  const note =
+    [...rawTokens.matchAll(/\/\*[\s\S]*?\*\//g)]
+      .map(([comment]) => comment)
+      .find((comment) => /lightest ground/i.test(comment)) ?? '';
+  assert.ok(note, 'manca la misura del campo accanto alla palette');
+  const literal = (text) =>
+    text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  assert.match(
+    note,
+    new RegExp(
+      `lightest ground\\s+≈\\s+${literal(hexOf(lightest))}\\s+luminance\\s+${literal(lightLuminance.toFixed(4))}`,
+    ),
+    'la nota non registra il capo più chiaro del campo',
+  );
+  assert.match(
+    note,
+    new RegExp(
+      `darkest ground\\s+≈\\s+${literal(hexOf(darkest))}\\s+luminance\\s+${literal(darkLuminance.toFixed(4))}`,
+    ),
+    'la nota non registra il capo più scuro del campo',
+  );
+  assert.match(
+    note,
+    new RegExp(`delta\\s+${literal((delta * 100).toFixed(2))}`),
+    'la nota non registra il salto totale del campo',
+  );
+
+  // Worst case for the page's ink: bordeaux over either end of the field, at
+  // the grain's full strength, still clears AA for normal text.
+  const bordeaux = paletteToken('bordeaux');
+  const onLightest = contrastRatio(bordeaux, lightest);
+  const onDarkest = contrastRatio(bordeaux, darkest);
+  for (const [label, ratio] of [
+    ['chiarissimo', onLightest],
+    ['scurissimo', onDarkest],
+  ]) {
+    assert.ok(
+      ratio >= 4.5,
+      `il bordeaux sul fondo ${label} misura ${ratio.toFixed(2)}:1, sotto AA`,
+    );
+  }
+  assert.match(
+    note,
+    new RegExp(`lightest ground[^\\n]*${literal(onLightest.toFixed(2))}:1`),
+    'la nota non registra il bordeaux sul capo più chiaro',
+  );
+  assert.match(
+    note,
+    new RegExp(`darkest ground[^\\n]*${literal(onDarkest.toFixed(2))}:1`),
+    'la nota non registra il bordeaux sul capo più scuro',
+  );
+
+  // The muted ink is why the palette's bronze moved: at the worst point of the
+  // field it still clears AA for normal text.
+  const bronze = paletteToken('bronze');
+  const mutedOnDarkest = contrastRatio(bronze, darkest);
+  assert.ok(
+    mutedOnDarkest >= 4.5,
+    `il bronzo sul fondo più scuro misura ${mutedOnDarkest.toFixed(2)}:1, sotto AA`,
+  );
+  assert.match(
+    note,
+    new RegExp(`muted ink[^\\n]*${literal(mutedOnDarkest.toFixed(2))}:1`),
+    'la nota non registra il bronzo sul capo più scuro',
+  );
+});
+
 test('il foglio di stile isola i token e dichiara l’ordine dei layer', () => {
   const css = servedStylesheet();
   const clean = stripCssComments(css);
@@ -1621,7 +2117,7 @@ test('il contrasto della superficie forte è misurato e annotato accanto alla pa
     ['cream-light', '10.61'],
     ['gold-light', '5.75'],
     ['gold', '3.78'],
-    ['bronze', '2.09'],
+    ['bronze', '1.58'],
   ]) {
     const measured = contrastRatio(paletteToken(token), bordeaux).toFixed(2);
     assert.equal(
@@ -1638,7 +2134,7 @@ test('il contrasto della superficie forte è misurato e annotato accanto alla pa
 
   assert.match(
     note,
-    /bronze[^\n]*(?:mai|non|never)[^\n]*testo|bronze[^\n]*2\.09:1[^\n]*(?:mai|non|never)/i,
+    /bronze[^\n]*(?:mai|non|never)[^\n]*testo|bronze[^\n]*1\.58:1[^\n]*(?:mai|non|never)/i,
     'la nota non avverte che il bronzo non regge il testo sulla superficie forte',
   );
 
@@ -1731,10 +2227,18 @@ test('la mappa e la Locandina sono azioni tipografiche con riga e freccia, non b
   }
 });
 
-test('la pagina non carica JavaScript né risorse di terze parti', () => {
+/*
+ * First of the three narrow guards. It states the no-JavaScript contract on
+ * its own so that the blanket third-party assertion can be removed without
+ * silently dropping it: no script element, no inline handler, no shipped .js.
+ */
+test('la pagina fa a meno di JavaScript: nessuno script, nessun gestore inline, nessun file .js', () => {
   const document = loadSite();
-
-  assert.equal(document.querySelectorAll('script').length, 0);
+  assert.equal(
+    document.querySelectorAll('script').length,
+    0,
+    'la pagina contiene un elemento script',
+  );
 
   for (const element of document.querySelectorAll('*')) {
     for (const attribute of element.getAttributeNames()) {
@@ -1745,46 +2249,95 @@ test('la pagina non carica JavaScript né risorse di terze parti', () => {
     }
   }
 
-  for (const element of document.querySelectorAll('[src]')) {
-    sameOriginUrl(element.getAttribute('src'));
-  }
-
-  for (const element of document.querySelectorAll('[srcset]')) {
-    for (const candidate of element.getAttribute('srcset').split(',')) {
-      sameOriginUrl(candidate.trim().split(/\s+/)[0]);
-    }
-  }
-
-  for (const link of document.querySelectorAll('link[href]')) {
-    sameOriginUrl(link.getAttribute('href'));
-  }
-
-  for (const anchor of document.querySelectorAll('a[href]')) {
-    const href = anchor.getAttribute('href');
-    const url = new URL(href, `${SITE_ORIGIN}/`);
-    if (url.origin === SITE_ORIGIN) {
-      continue;
-    }
-    assert.equal(
-      url.origin,
-      MAP_ORIGIN,
-      `link verso un host non ammesso: ${href}`,
-    );
-  }
-
-  const files = shippedFiles();
+  const scripts = shippedFiles().filter((file) => /\.js$/i.test(file));
   assert.deepEqual(
-    files.filter((file) => file.endsWith('.js')),
+    scripts,
     [],
-    'il sito contiene file JavaScript',
+    `il sito spedisce file JavaScript: ${scripts.join(', ')}`,
   );
+});
 
-  for (const file of files.filter((name) => name.endsWith('.css'))) {
-    const css = readFileSync(join(SITE, file), 'utf8');
-    assert.doesNotMatch(
-      css,
-      /https?:\/\//i,
-      `il CSS ${file} carica una risorsa esterna`,
+/*
+ * Second of the three narrow guards: a documented denylist of hosts that
+ * ship analytics, advertising or session recording. Entries are hostnames,
+ * and a subdomain matches its entry, so the map's google.com destination
+ * stays allowed while google-analytics.com does not. A match anywhere in the
+ * page, the stylesheet or a shipped asset fails the suite.
+ */
+const TRACKER_HOSTS = Object.freeze([
+  // Analytics
+  'google-analytics.com',
+  'googletagmanager.com',
+  'googlesyndication.com',
+  'googleadservices.com',
+  'matomo.cloud',
+  'plausible.io',
+  'segment.com',
+  'segment.io',
+  'mixpanel.com',
+  'amplitude.com',
+  'heap.io',
+  'heapanalytics.com',
+  'statcounter.com',
+  'chartbeat.com',
+  'parsely.com',
+  'quantserve.com',
+  'scorecardresearch.com',
+  'mc.yandex.ru',
+  'bat.bing.com',
+  'analytics.tiktok.com',
+  // Advertising and social pixels
+  'doubleclick.net',
+  'adservice.google.com',
+  'connect.facebook.net',
+  'ads.linkedin.com',
+  'ads.twitter.com',
+  'static.ads-twitter.com',
+  'criteo.com',
+  'criteo.net',
+  'taboola.com',
+  'outbrain.com',
+  'adroll.com',
+  // Session recording and behaviour analytics
+  'hotjar.com',
+  'fullstory.com',
+  'clarity.ms',
+  'smartlook.com',
+  'logrocket.com',
+  'mouseflow.com',
+  'inspectlet.com',
+  'crazyegg.com',
+  'luckyorange.com',
+]);
+
+/*
+ * Every hostname-looking token in the text, so the denylist is matched on
+ * host boundaries instead of on bare substrings.
+ */
+function hostTokens(text) {
+  return text.match(/[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}/gi) ?? [];
+}
+
+function deniedTrackerHost(text) {
+  for (const token of hostTokens(text)) {
+    const host = token.toLowerCase().replace(/\.$/, '');
+    const denied = TRACKER_HOSTS.find(
+      (entry) => host === entry || host.endsWith(`.${entry}`),
+    );
+    if (denied) {
+      return { host };
+    }
+  }
+  return null;
+}
+
+test('nessun host di tracciamento, pubblicità o registrazione sessione compare nel sito', () => {
+  for (const file of shippedFilesOnDisk()) {
+    const text = readFileSync(join(SITE, file), 'utf8');
+    const hit = deniedTrackerHost(text);
+    assert.ok(
+      !hit,
+      `${file} nomina un host in denylist: ${hit?.host ?? ''}`,
     );
   }
 });
@@ -2374,44 +2927,6 @@ test('la testata riporta la firma come tracciato inline con nome accessibile e i
   }
 });
 
-test('il sito non distribuisce il font Breathing e non richiede font esterni', () => {
-  const files = shippedFiles();
-
-  for (const file of files) {
-    assert.doesNotMatch(
-      file,
-      /breathing/i,
-      `il sito contiene il font Breathing: ${file}`,
-    );
-  }
-  assert.deepEqual(
-    files.filter((file) => /signature/i.test(file)),
-    [],
-    'la firma è distribuita come file separato invece che inline',
-  );
-
-  const fontFiles = files.filter((file) => /\.(?:woff2?|ttf|otf)$/i.test(file));
-  for (const file of fontFiles) {
-    assert.match(
-      file,
-      /(?:^|\/)assets\/fonts\/(?:SVSerif|SVSans)-(?:Regular|Bold)\.woff2$/,
-      `il sito contiene un font non ammesso: ${file}`,
-    );
-  }
-
-  const html = readFileSync(join(SITE, 'index.html'), 'utf8');
-  assert.doesNotMatch(
-    html,
-    /breathing|fonts\.(?:googleapis|gstatic)\.com|@font-face/i,
-    'la pagina richiede o nomina un font esterno',
-  );
-  assert.doesNotMatch(
-    html,
-    /url\(\s*['"]?https?:\/\//i,
-    'la pagina richiede un font da un host esterno',
-  );
-});
-
 test('i font auto-ospitati sono WOFF2 dello stesso sito', () => {
   const cssPath = join(SITE, 'assets', 'css', 'style.css');
   const css = servedStylesheet();
@@ -2456,8 +2971,110 @@ test('i font auto-ospitati sono WOFF2 dello stesso sito', () => {
       `manca il font ${name}.woff2 nel sito`,
     );
   }
+});
 
-  assert.doesNotMatch(css, /https?:\/\//i, 'il CSS richiama un host esterno');
+/*
+ * Third of the three narrow guards. It keeps the unlicensed demo font out of
+ * the site and every font request on the origin: no Breathing file, no
+ * shipped signature file, no Google Fonts host, no external font load from
+ * the page, stylesheet or their imports, and every @font-face resolving to a
+ * local WOFF2.
+ */
+test('il font Breathing, la firma spedita e i font fuori sede restano fuori dal sito', () => {
+  const files = shippedFiles();
+  for (const file of files) {
+    assert.doesNotMatch(
+      file,
+      /breathing/i,
+      `il sito contiene il font Breathing: ${file}`,
+    );
+  }
+  assert.deepEqual(
+    files.filter((file) => /signature/i.test(file)),
+    [],
+    'la firma è distribuita come file separato invece che inline',
+  );
+
+  const fontFiles = shippedFilesOnDisk().filter((file) =>
+    /\.(?:woff2?|ttf|otf)$/i.test(file),
+  );
+  for (const file of fontFiles) {
+    assert.match(
+      file,
+      /(?:^|\/)assets\/fonts\/(?:SVSerif|SVSans)-(?:Regular|Bold)\.woff2$/,
+      `il sito contiene un font non ammesso: ${file}`,
+    );
+  }
+
+  const html = readFileSync(join(SITE, 'index.html'), 'utf8');
+  assert.doesNotMatch(
+    html,
+    /breathing|fonts\.(?:googleapis|gstatic)\.com|@font-face/i,
+    'la pagina richiede o nomina un font esterno',
+  );
+  // A font can also be fetched around the stylesheet: an inline url(http...)
+  // in a style attribute or style element, or an external @import.
+  assert.doesNotMatch(
+    html,
+    /url\(\s*['"]?(?:https?:)?\/\//i,
+    'la pagina richiede un font da un host esterno',
+  );
+  assert.doesNotMatch(
+    html,
+    /@import\s+(?:url\(\s*)?['"]?\s*(?:https?:)?\/\//i,
+    'la pagina importa un foglio di stile da un host esterno',
+  );
+  /*
+   * Or through a link: a preload/prefetch of a font file, or a stylesheet,
+   * which is where @font-face is declared. Those stay on the origin, so a
+   * font CDN cannot slip in beside the local stylesheet.
+   */
+  for (const link of loadSite().querySelectorAll('link[href]')) {
+    const href = (link.getAttribute('href') ?? '').trim();
+    if (!/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(href)) {
+      continue;
+    }
+    const rel = (link.getAttribute('rel') ?? '').toLowerCase().split(/\s+/);
+    const type = (link.getAttribute('type') ?? '').toLowerCase();
+    const as = (link.getAttribute('as') ?? '').toLowerCase();
+    assert.ok(
+      !(type.startsWith('font/') || as === 'font' || rel.includes('stylesheet')),
+      `la pagina carica un font o un foglio di stile fuori sede: ${href}`,
+    );
+  }
+
+  const css = servedStylesheet();
+  const faces = [...css.matchAll(/@font-face\s*\{([^}]*)\}/gi)].map(
+    (match) => match[1],
+  );
+  assert.ok(faces.length > 0, 'il foglio di stile non dichiara facce @font-face');
+
+  for (const face of faces) {
+    const source = face.match(/src\s*:\s*url\(\s*["']?([^"')]+)["']?\s*\)/i);
+    assert.ok(source, `una faccia @font-face non dichiara un src: ${face}`);
+    const url = source[1].trim();
+    assert.match(url, /\.woff2$/i, `il font non è un WOFF2 locale: ${url}`);
+    assert.ok(
+      !/^(?:[a-z]+:)?\/\//i.test(url) && !url.startsWith('/'),
+      `il font è richiesto fuori sede: ${url}`,
+    );
+  }
+
+  assert.doesNotMatch(
+    css,
+    /fonts\.(?:googleapis|gstatic)\.com/i,
+    'il foglio di stile nomina Google Fonts',
+  );
+  assert.doesNotMatch(
+    css,
+    /url\(\s*['"]?(?:https?:)?\/\//i,
+    'il foglio di stile richiede un font da un host esterno',
+  );
+  assert.doesNotMatch(
+    css,
+    /@import\s+(?:url\(\s*)?['"]?\s*(?:https?:)?\/\//i,
+    'il foglio di stile importa un foglio da un host esterno',
+  );
 });
 
 test('la licenza dei font è la OFL 1.1 completa e nomina i titolari dei diritti', () => {

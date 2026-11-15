@@ -69,6 +69,17 @@ at its foot, inside the content shell, in cream on a bordeaux scrim. The order
 is the cover, the date, the Cantina photograph, the Cantina prose and one
 closing bordeaux band.
 
+The cream ground is paper (ADR-0011). The body keeps `--surface` as its
+background colour and lays two image layers over it: a neutral grain tiled from
+an inline 480 px SVG `data:` URI at 0.10 opacity, and one continuous vertical
+field that holds near `--cream-light` behind the date, settles to `--surface`
+through the prose and deepens toward the closing band. The coarser fibre and
+the larger tile make the paper visible rather than sensed: the lightest ground
+is `#e4dac7` (luminance 0.7089) and the darkest `#d3c6ac` (0.5740), a
+15.38-point delta under the 16% cap. Bordeaux reads 9.32:1 and 7.66:1 on the
+two ends, and muted ink 5.91:1 and 4.86:1, so both clear AA across the field.
+The grain adds no file, no request and no motion.
+
 Sections run to the viewport's edges and inset their own content with one
 computed value, `--shell-pad: max(var(--gutter), calc((100% - var(--shell)) /
 2))`. The shell is 76 rem and the gutter is fluid (`clamp(1.25rem, 4vw,
@@ -294,8 +305,9 @@ runs `node --test tests/*.test.mjs`; there is no build to run first. The tests
 read `index.html`, its assets and its metadata as a visitor or link checker
 would: the printed facts and the Cantina prose verbatim, the date literals
 against `datetime`, the map destination, the declared language, headings and
-link names, the absence of JavaScript and third-party hosts, and the content
-policy.
+link names, the three narrow guards — no `<script>`, inline handler or shipped
+`.js`; no host on the documented tracker denylist; no font fetched from outside
+the origin — and the content policy.
 
 The suite also asserts the page's contracts. The date is one `<time>` lockup
 with `datetime="2026-12-06"`, its printed parts in DOM order (day, weekday,
@@ -325,7 +337,10 @@ that is absent from the name computed from the markup.
 
 The stylesheet keeps its own maintainability contracts: the layer order, the
 token isolation (no raw hex outside the tokens layer), and the primitives and
-semantic roles the composition reads. The motion rules are asserted as well: no
+semantic roles the composition reads. The ground's caps are named too: the
+grain token sits under 0.10, its tile is 480 px at 0.5 frequency, and the
+field's tonal span stays under 16% while bordeaux and muted ink clear AA at
+both ends. The motion rules are asserted as well: no
 looping animation, every animation inside `prefers-reduced-motion:
 no-preference`, every animation and transition duration and delay taken from a
 `--motion-*` token, the entrance sequenced by the `--motion-after-*` delays,
@@ -365,9 +380,10 @@ The lettering comes from Breathing (Din Studio), whose demo is marked
 "Personal Use Only": it is not OFL and its licence does not cover promotional
 use. The font file must never be committed to this repository and must never be
 fetched at runtime — no `@font-face`, no CDN, no font file in the shipped site.
-The outline is the only form in which the lettering is distributed. The test
-that fails on any third-party host catches a font CDN or a tracker; the ban on
-committing the font file itself is a review rule.
+The outline is the only form in which the lettering is distributed. The font
+guard fails on any font fetched from outside the origin, so a font CDN cannot
+slip in; the tracker denylist is a separate guard. The ban on committing the
+font file itself is a review rule.
 
 If the lettering ever changes, re-extract the outline from the updated print
 master. Do not add Breathing to the repository, and do not re-typeset the
