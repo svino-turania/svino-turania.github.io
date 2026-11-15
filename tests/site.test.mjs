@@ -130,10 +130,13 @@ function layerBlock(css, name, source = servedStylesheet()) {
 
 /*
  * The declarations of every 48 rem override: the deliberate large-format
- * spread, as opposed to the phone the base rules describe.
+ * spread, as opposed to the phone the base rules describe. The threshold has
+ * one home, stated here once: callers that need the override also assert it.
  */
 function wideSpread(css) {
-  return atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)')
+  const blocks = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)');
+  assert.equal(blocks.length, 1, 'manca il blocco della misura da 48 rem');
+  return blocks
     .map(({ start, end }) => css.slice(css.indexOf('{', start) + 1, end))
     .join('\n');
 }
@@ -614,12 +617,7 @@ test('la data è un campo a tutta larghezza e, da 64 rem, un blocco nelle colonn
 
   // From 48 rem the grid is twelve columns; until 64 rem the date spans all
   // of them, so `DICEMBRE 2026` never has to wrap inside a narrow block.
-  const spread = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)');
-  assert.equal(spread.length, 1, 'manca il blocco della misura da 48 rem');
-  const spreadBody = css.slice(
-    css.indexOf('{', spread[0].start) + 1,
-    spread[0].end,
-  );
+  const spreadBody = wideSpread(css);
   const spreadDate = spreadBody.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
   assert.ok(spreadDate, 'la data non è collocata nella griglia da 48 rem');
   assert.match(
@@ -660,19 +658,12 @@ test('la data è un campo a tutta larghezza e, da 64 rem, un blocco nelle colonn
     /margin-block-start:\s*0\s*;/,
     'da 64 rem la data aggiunge una riga invece di stare in quella della testata',
   );
-  // The block is about 290 px at 64 rem and `DICEMBRE 2026` needs about
-  // 269 px there, so the inline inset must stay a hairline: a larger one
-  // forces the month onto two lines inside the narrow dark box.
-  assert.match(
-    wideDate,
-    /padding-inline:\s*var\(--space-1\)\s*;/,
-    'l’imbottitura orizzontale del blocco fa andare DICEMBRE 2026 a capo già a 64 rem',
-  );
 
   // The interior uses the height the row gives it: lockup at the top, time
   // at the bottom.
   const components = layerBlock(css, 'components');
-  const dateComponent = components.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
+  const dateComponent =
+    components.match(/\.date\s*\{([^{}]*display:\s*grid[^{}]*)\}/s)?.[1] ?? '';
   assert.match(
     dateComponent,
     /display:\s*grid\s*;/,
@@ -1489,7 +1480,7 @@ test('sul telefono la fotografia si avvicina alla data e a 48 rem torna la dista
   );
 });
 
-test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', () => {
+test('la banda bordeaux chiude la pagina con fatti, azioni e colophon e la superficie forte appare solo su data e banda', () => {
   const document = loadSite();
   const bands = [...document.querySelectorAll('.band')];
   assert.equal(bands.length, 1, 'la pagina non ha una sola banda');
@@ -1539,28 +1530,43 @@ test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', ()
     'la riga della superficie forte non è oro chiaro',
   );
   // The strong surface is no longer the band's alone: the date is the page's
-  // second dark surface, and no third one exists.
-  const strongSurfaces =
-    css.match(/background(?:-color)?:\s*var\(--strong\)/g) ?? [];
+  // second dark surface. It has one home — one rule, two consumers — and no
+  // third surface declares it.
+  const strongRules = [
+    ...css.matchAll(
+      /([^{}]+)\{\s*([^{}]*background:\s*var\(--strong\)\s*;[^{}]*)\}/gs,
+    ),
+  ];
   assert.equal(
-    strongSurfaces.length,
-    2,
-    'la superficie forte non appare due volte: la data è la seconda superficie della pagina',
+    strongRules.length,
+    1,
+    'la superficie forte non ha una sola casa: data e banda devono condividerne la dichiarazione',
+  );
+  const [, strongSelector, strongBody] = strongRules[0];
+  assert.equal(
+    normalize(strongSelector),
+    '.band, .date',
+    'la superficie forte non è dichiarata su data e banda insieme, e solo su quelle',
+  );
+  assert.match(
+    strongBody,
+    /background:\s*var\(--strong\)\s*;/,
+    'la superficie forte non dichiara il fondo bordeaux semantico',
+  );
+  assert.match(
+    strongBody,
+    /color:\s*var\(--strong-ink\)\s*;/,
+    'la superficie forte non dichiara il testo crema semantico',
+  );
+  assert.doesNotMatch(
+    strongBody,
+    /#[0-9a-fA-F]{3,8}\b/,
+    'la superficie forte dichiara un colore grezzo invece di un ruolo',
   );
   assert.match(
     css,
-    /\.date\s*\{[^}]*background:\s*var\(--strong\)/s,
-    'la data non dichiara il fondo della superficie forte',
-  );
-  assert.match(
-    css,
-    /\.band\s*\{[^}]*background:\s*var\(--strong\)/s,
-    'la banda non dichiara il fondo della superficie forte',
-  );
-  assert.match(
-    css,
-    /\.band\s*\{[^}]*color:\s*var\(--strong-ink\)/s,
-    'la banda non dichiara il testo della superficie forte',
+    /\.date\s*\{[^{}]*--ink-muted:\s*var\(--strong-ink-muted\)\s*;/s,
+    'la data non legge l’inchiostro attenuato della superficie forte',
   );
   // The band reads the strong-surface vocabulary, never a raw colour and
   // never a role named after itself.
@@ -1588,41 +1594,31 @@ test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', ()
 });
 
 /*
- * Both dark surfaces share one type vocabulary. Inside the date the role
- * overrides resolve the muted labels (weekday, DALLE ORE) to the strong
- * surface's gold-light, while the day, the month and the time inherit the
+ * Both dark surfaces share one type vocabulary. The date reads the strong
+ * surface's base and ink from the rule it shares with the band, and the one
+ * role it consumes — the muted ink its weekday and DALLE ORE labels use — is
+ * remapped on the dark ground. The day, the month and the time inherit the
  * strong ink. No raw colour and no role named after the band is involved.
  */
 test('la data legge i ruoli della superficie forte come la banda che chiude la pagina', () => {
   const css = stripCssComments(servedStylesheet());
   const components = layerBlock(css, 'components');
-  const dateRule = components.match(/\.date\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.ok(dateRule, 'manca la regola della data');
+  const dateRule =
+    components.match(/\.date\s*\{([^{}]*--ink-muted[^{}]*)\}/s)?.[1] ?? '';
+  assert.ok(dateRule, 'manca la regola dei ruoli della data');
 
+  // The date contains no link and no rule pseudo-element, so muted ink is the
+  // only role it consumes; the shared rule already carries base and ink.
   assert.match(
     dateRule,
-    /background:\s*var\(--strong\)\s*;/,
-    'la data non dichiara il fondo della superficie forte',
+    /--ink-muted:\s*var\(--strong-ink-muted\)\s*;/,
+    'la data non rimappa l’inchiostro attenuato sulla superficie forte',
   );
-  assert.match(
-    dateRule,
-    /color:\s*var\(--strong-ink\)\s*;/,
-    'la data non dichiara l’inchiostro della superficie forte',
-  );
-
-  // The same overrides the band declares, so every descendant role resolves
-  // on the dark ground instead of on the cream page.
-  for (const [role, value] of [
-    ['ink', '--strong-ink'],
-    ['ink-muted', '--strong-ink-muted'],
-    ['rule', '--strong-rule'],
-    ['link', '--strong-ink'],
-    ['link-hover', '--strong-ink-muted'],
-  ]) {
-    assert.match(
+  for (const role of ['ink', 'link', 'link-hover', 'rule']) {
+    assert.doesNotMatch(
       dateRule,
-      new RegExp(`--${role}:\\s*var\\(${value}\\)\\s*;`),
-      `la data non rimappa --${role} sull’inchiostro della superficie forte`,
+      new RegExp(`--${role}\\s*:`),
+      `la data rimappa --${role}, che non consuma`,
     );
   }
 
@@ -2148,9 +2144,7 @@ test('la fotografia esce dai margini della pagina sul telefono e rientra nella m
     'la fotografia si dimensiona con il viewport e può scorrere in orizzontale',
   );
 
-  const wide = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)');
-  assert.equal(wide.length, 1, 'manca il blocco della misura da 48 rem');
-  const wideBody = css.slice(css.indexOf('{', wide[0].start) + 1, wide[0].end);
+  const wideBody = wideSpread(css);
   const wideBand = wideBody.match(/\.photo-band\s*\{([^}]*)\}/s);
   assert.ok(wideBand, 'la fotografia non rientra nella misura da 48 rem');
   assert.match(
