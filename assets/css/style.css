@@ -155,16 +155,30 @@
     --photo-max: 42rem;
 
     /*
-     * Motion scale. Named for the print: ink is laid down, rules are ruled,
-     * paper settles. Every animation in this file takes its duration from one
-     * of these tokens, and every one lives behind the no-preference query.
+     * Motion scale. Named for the camera and the print: the view recedes out
+     * of the arch, the signature is pressed, ink is laid down, the date is
+     * set, a rule is ruled. Every animation in this file takes its duration
+     * and its delay from one of these tokens, and every one lives behind the
+     * no-preference query.
      */
-    --motion-ink: 460ms;
-    --motion-rule: 320ms;
-    --motion-date: 240ms;
+    --motion-recede: 640ms;
+    --motion-press: 560ms;
+    --motion-ink: 260ms;
+    --motion-settle: 340ms;
+    --motion-date: 420ms;
     --motion-quick: 240ms;
-    --motion-settle: 480ms;
-    /* Placeholder duration for the two view() reveals; the timeline times them. */
+    --motion-rule: 320ms;
+    /*
+     * When each step of the entrance begins. The page prints in order: the
+     * photograph is the paper, and the ink lands on it. The steps overlap, so
+     * the sequence reads without the page ever waiting on itself. The date is
+     * the exception: it is set with the signature, not after the text above
+     * it, so the band reads as part of the press rather than trailing it.
+     */
+    --motion-after-paper: 80ms;
+    --motion-after-press: 400ms;
+    --motion-after-lockup: 560ms;
+    /* Placeholder duration for the view() reveals; the timeline times them. */
     --motion-scroll: 1ms;
     --ease-press: cubic-bezier(0.22, 0.61, 0.36, 1);
   }
@@ -261,6 +275,14 @@
     position: relative;
     z-index: 0;
     inline-size: 100%;
+    /*
+     * The cover recedes from a hair larger than its frame, so its first frames
+     * are wider than the page. Clip it here, or a phone gets twenty pixels of
+     * sideways scroll for the length of the entrance. `clip` crops without
+     * becoming a scroll container; a browser without it keeps the overflow the
+     * older page already had.
+     */
+    overflow: clip;
   }
 
   .masthead {
@@ -562,6 +584,14 @@
     aspect-ratio: 303 / 191;
     max-block-size: var(--photo-max);
     overflow: hidden;
+    /*
+     * Cropping, not scrolling: `hidden` makes the frame the nearest scroll
+     * container, so the photograph's `view()` timeline was measured against a
+     * box that never scrolls and its progress pinned at the end. `clip` crops
+     * the same way without creating a scroller, which hands the timeline back
+     * to the page. A browser without `clip` keeps `hidden` and the still page.
+     */
+    overflow: clip;
   }
 
   .photo-frame picture,
@@ -653,8 +683,9 @@
    * The two actions are typographic, not buttons: the print's rule carries the
    * link and an arrow in the margin points where it goes. The rule is a
    * pseudo-line rather than a border so the motion layer can rule it without
-   * touching the link's text or its focus ring. The arrow is a span hidden
-   * from assistive tech, so it never enters the link's accessible name.
+   * touching the link's text or its focus ring; the motion layer adds a second
+   * pseudo-line that re-inks it on hover. The arrow is a span hidden from
+   * assistive tech, so it never enters the link's accessible name.
    */
   .band__actions a {
     position: relative;
@@ -664,6 +695,21 @@
     font-weight: 700;
     line-height: 1.2;
     text-decoration: none;
+  }
+
+  /*
+   * The ink shifts on hover and focus. It belongs here, not in the base
+   * layer's `a:hover`: a components rule beats a base rule whatever its
+   * specificity, so the actions would keep their resting ink.
+   */
+  .band__actions a:hover,
+  .band__actions a:focus-visible {
+    color: var(--link-hover);
+  }
+
+  /* The press: the label settles into the sheet while the pointer is down. */
+  .band__actions a:active {
+    transform: translateY(1px);
   }
 
   .band__actions a::before {
@@ -763,13 +809,15 @@
 
 @layer motion {
   /*
-   * The spread prints itself rather than fading in like a template. The
-   * signature is pressed into the paper and its lockup is inked behind it; the
-   * subtitle settles; the date is set; the photograph develops inside the tear
-   * the frame cuts. Below the fold the prose rises and the facts rule draws
-   * itself as they enter the viewport. Every duration is a token, and every
-   * animation is an addition: with reduced motion the page is the finished
-   * spread, immediately.
+   * The page opens by stepping out from under the arch, then prints itself.
+   * The photograph is the paper and the view recedes out of it first; the
+   * signature is pressed into it and the date is set with it; the lockup is
+   * inked behind them and the subtitle settles, each step following the one
+   * before. Below the fold the view steps back out of the Cantina arch as it
+   * is reached, the prose and the facts rise, and the actions' rules draw
+   * themselves as they enter the viewport. Every duration and delay is a token,
+   * and every animation is an addition: with reduced motion the page is the
+   * finished spread, immediately.
    */
   @media (prefers-reduced-motion: no-preference) {
     /* The link's colour and rule; focus never waits for them. */
@@ -780,42 +828,104 @@
         text-underline-offset var(--motion-quick) var(--ease-press);
     }
 
-    /* The press, the lockup and the subtitle are ink laid down on the sheet. */
+    /*
+     * The view steps back out of the arch, then the press the date joins, then
+     * the lockup and the subtitle. The photograph is the paper, so it is never
+     * faded in: it is present on the first frame, close to the reader, and only
+     * the view moves.
+     */
+    .hero-photo img {
+      animation: photograph-recede var(--motion-recede) var(--ease-press) both;
+    }
+
     .signature path {
       clip-path: inset(0 0 0 0);
-      animation: signature-press var(--motion-ink) var(--ease-press) both;
+      animation:
+        signature-press var(--motion-press) var(--ease-press)
+        var(--motion-after-paper) both;
     }
 
     .signature text {
-      animation: ink-in var(--motion-quick) var(--ease-press) both;
+      animation:
+        ink-in var(--motion-ink) var(--ease-press) var(--motion-after-press)
+        both;
     }
 
     .subtitle {
-      animation: ink-in var(--motion-settle) var(--ease-press) both;
+      animation:
+        ink-in var(--motion-settle) var(--ease-press) var(--motion-after-lockup)
+        both;
     }
 
     .date {
-      animation: date-set var(--motion-date) var(--ease-press) both;
-    }
-
-    /* The images develop, but the tear is cut in the frame and never moves. */
-    .hero-photo img,
-    .photo-frame img {
-      animation: photograph-develop var(--motion-settle) var(--ease-press) both;
+      /*
+       * The resting clip is declared so the wipe has an explicit end state.
+       * The date is set with the signature: both begin on the paper's delay, so
+       * the band enters with the press instead of arriving after the subtitle.
+       */
+      clip-path: inset(0 0 0 0);
+      animation:
+        date-set var(--motion-date) var(--ease-press)
+        var(--motion-after-paper) both;
     }
 
     /*
-     * Scroll-driven reveals belong to the prose and the facts band only. The
-     * hero — the signature, its lockup and subtitle, and the date — is fully
-     * present on the first screen and never waits for the scroll. The band's
-     * two actions are never faded: only their rules are ruled. view() is
-     * recent, so a browser without it serves the static page.
+     * The actions' rule re-inks over the printed one from its left edge, in the
+     * link's own ink, so the hover reads as the rule thickening rather than as
+     * a new element appearing.
+     */
+    .band__actions a::after {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      inset-block-end: 0;
+      block-size: 2px;
+      background: currentColor;
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform var(--motion-quick) var(--ease-press);
+    }
+
+    .band__actions a:hover::after,
+    .band__actions a:focus-visible::after {
+      transform: scaleX(1);
+    }
+
+    /* The label is picked up: the arrow leads and nothing else moves. */
+    .action__arrow {
+      transition: transform var(--motion-quick) var(--ease-press);
+    }
+
+    .band__actions a:hover .action__arrow,
+    .band__actions a:focus-visible .action__arrow {
+      transform: translateX(2px);
+    }
+
+    /*
+     * Scroll-driven reveals belong to the Cantina photograph, the prose and the
+     * facts band. The hero — the signature, its lockup and subtitle, and the
+     * date — is fully present on the first screen and never waits for the
+     * scroll. The band's two actions are never faded: only their rules are
+     * ruled. view() is recent, so a browser without it serves the static page.
      */
     @supports (animation-timeline: view()) {
       .cantina {
         animation: section-rise linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: entry 10% entry 45%;
+      }
+
+      /* The tear is cut in the frame: the view recedes, the edge stays. On a
+       * phone the band is partly on screen at load, so `entry` is already most
+       * of the way through when the page settles and the move would be over
+       * before it was seen. `cover` is measured from first sight to last, so
+       * the recede starts just after the page settles and runs while the
+       * photograph is looked at. It is a zoom and not a fade: the photograph
+       * is the paper, and the reader is walking out from under the arch. */
+      .photo-band img {
+        animation: photograph-recede linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: cover 20% cover 60%;
       }
 
       .facts {
@@ -851,22 +961,25 @@
     }
   }
 
+  /* The date is set from its left edge, hairlines and all, like type being
+   * laid down; a 4 px settle was too small to see. */
   @keyframes date-set {
     from {
-      transform: translateY(4px);
+      clip-path: inset(0 100% 0 0);
     }
     to {
-      transform: none;
+      clip-path: inset(0 0 0 0);
     }
   }
 
-  @keyframes photograph-develop {
+  /* The view steps back out of the arch: the paper starts close to the reader
+   * and recedes until it sits exactly in its frame, so the crop the frame cuts
+   * never comes loose. It is a camera move, not a dissolve — no opacity. */
+  @keyframes photograph-recede {
     from {
-      opacity: 0.55;
-      transform: scale(1.04);
+      transform: scale(1.1);
     }
     to {
-      opacity: 1;
       transform: none;
     }
   }

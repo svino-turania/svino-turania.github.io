@@ -1207,7 +1207,19 @@ test('il foglio di stile isola i token e dichiara l’ordine dei layer', () => {
     assert.match(value, /clamp\(/, `la scala tipografica ${step} non è fluida`);
   }
 
-  for (const token of ['ink', 'rule', 'date', 'quick', 'settle', 'scroll']) {
+  for (const token of [
+    'recede',
+    'press',
+    'ink',
+    'settle',
+    'date',
+    'quick',
+    'rule',
+    'scroll',
+    'after-paper',
+    'after-press',
+    'after-lockup',
+  ]) {
     assert.match(
       tokens,
       new RegExp(`--motion-${token}\\s*:\\s*[^;]+;`),
@@ -2624,13 +2636,39 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
   }
 
   /*
-   * Every duration comes from the motion tokens, in the shorthand above, in
-   * any duration longhand, and in the base transitions. The reduce block's
-   * `transition: none` is the one exception: it is how the page stands still.
+   * The entrance is a sequence, not five simultaneous arrivals: every step
+   * after the paper waits on a delay token, never on a raw number.
+   */
+  const stagger = [...css.matchAll(/var\(--motion-after-[a-z-]+\)/g)];
+  assert.ok(stagger.length >= 4, 'l’ingresso non è sequenziato');
+
+  /*
+   * The photograph is the paper, so it opens by stepping back out of the arch
+   * and is never dissolved: every photograph keyframe moves the view, none
+   * touches its opacity. The fade was what the page read as a template, and a
+   * browser is the only place that can judge it; this guard keeps the rule.
+   */
+  const photograph = atRuleBlocks(css, '@keyframes\\s+photograph-[\\w-]+\\s*\\{');
+  assert.ok(photograph.length > 0, 'manca il movimento della fotografia');
+  for (const block of photograph) {
+    const body = css.slice(block.start, block.end);
+    assert.doesNotMatch(
+      body,
+      /\bopacity\s*:/,
+      'la fotografia sfuma invece di arretrare',
+    );
+    assert.match(body, /transform\s*:\s*scale\(/, 'la fotografia non arretra');
+  }
+
+  /*
+   * Every duration and delay comes from the motion tokens, in the shorthand
+   * above, in any duration or delay longhand, and in the base transitions. The
+   * reduce block's `transition: none` is the one exception: it is how the page
+   * stands still.
    */
   const durations = [
     ...css.matchAll(
-      /(?:^|[;{\s])(animation-duration|transition-duration|transition)\s*:\s*([^;}]+)/g,
+      /(?:^|[;{\s])(animation-duration|animation-delay|transition-duration|transition)\s*:\s*([^;}]+)/g,
     ),
   ];
   assert.ok(durations.length > 0, 'manca una transizione da misurare');
@@ -2642,12 +2680,12 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     assert.match(
       value,
       /var\(--motion-/,
-      `la durata di ${property} non usa un token: ${value}`,
+      `il tempo di ${property} non usa un token: ${value}`,
     );
     assert.doesNotMatch(
       value,
       /\d+(?:\.\d+)?m?s\b/,
-      `la durata di ${property} è un numero magico: ${value}`,
+      `il tempo di ${property} è un numero magico: ${value}`,
     );
   }
 
@@ -2665,9 +2703,10 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
   }
 
   /*
-   * The page reveals only the prose and the band as they enter the viewport.
-   * The hero — the signature, its lockup and subtitle, and the date — is
-   * present on the first screen and never waits for the scroll.
+   * The page reveals only the Cantina photograph, the prose and the band as
+   * they enter the viewport. The hero — the signature, its lockup and
+   * subtitle, and the date — is present on the first screen and never waits
+   * for the scroll.
    */
   const reveals = viewTimelines(css);
   assert.ok(reveals.length > 0, 'manca il reveal scroll della prosa e della banda');
@@ -2687,8 +2726,8 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     );
     assert.match(
       selector,
-      /\.cantina\b|\.facts\b|\.band__actions\b/,
-      `il reveal scroll è fuori dalla prosa e dalla banda: ${selector}`,
+      /\.cantina\b|\.facts\b|\.band__actions\b|\.photo-band\b/,
+      `il reveal scroll è fuori dalla fotografia, dalla prosa e dalla banda: ${selector}`,
     );
     assert.doesNotMatch(
       selector,
@@ -2696,6 +2735,30 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
       'la banda intera sfuma: le due azioni non devono stare in un contenitore che sfuma',
     );
   }
+
+  /*
+   * Two ways the photograph's reveal was silently still, both invisible to a
+   * static check and both found by driving a browser. The frame crops with
+   * `clip`: a `hidden` frame is the nearest scroll container, so the image's
+   * view() timeline is measured against a box that never scrolls and pins at
+   * its end. And the range is measured over the whole crossing (`cover`): on a
+   * phone the band is already most of the way through `entry` when the page
+   * settles, so the recede is over before it is seen. These two assertions
+   * guard the lines that fix it; the rendering itself needs a browser.
+   */
+  const rules = stripCssComments(css);
+  const frame = rules.match(/\.photo-frame\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(
+    frame,
+    /overflow:\s*clip\b/,
+    'la cornice crea un contenitore di scorrimento e ferma il reveal della fotografia',
+  );
+  const photoReveal = rules.match(/\.photo-band\s+img\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(
+    photoReveal,
+    /animation-range:\s*cover\b/,
+    'il reveal della fotografia si misura con entry e finisce prima di essere visto',
+  );
 
   /*
    * Nothing waits for an animation to be usable: the band that holds the two
