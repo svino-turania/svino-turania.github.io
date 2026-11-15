@@ -241,10 +241,19 @@
   /*
    * On the phone the date is a block under the masthead, so it needs a
    * separation of its own: without one the tracked weekday reads as a
-   * continuation of the subtitle. On the spread the grid hangs it instead.
+   * continuation of the subtitle. It is also the page's second strong
+   * surface, so the field gives the page's inline padding back at both edges
+   * — exactly as the photograph does — and pads its content back in by the
+   * same gutters.
    */
   .date {
     margin-block-start: var(--space-6);
+    margin-inline: calc(-1 * var(--page-pad));
+    padding-inline: var(--page-pad);
+    padding-block: var(--space-6);
+    /* At 200% text zoom the date shrinks inside its grid area and its words
+     * wrap there, instead of forcing the page to scroll sideways. */
+    min-inline-size: 0;
   }
 
   .cantina {
@@ -266,16 +275,9 @@
     }
 
     .date {
-      grid-column: 9 / -1;
-      align-self: end;
-      justify-self: start;
-      margin-block-start: 0;
-      /*
-       * A grid item that is not stretched takes its max-content size, so at
-       * 200% text zoom the month could run past the columns and the viewport.
-       * The date stays inside its own columns; its words wrap there instead.
-       */
-      max-inline-size: 100%;
+      /* Until 64 rem the field spans the whole spread: four columns cannot
+       * hold `DICEMBRE 2026` on one line inside a padded block. */
+      grid-column: 1 / -1;
     }
 
     .photo-band {
@@ -286,6 +288,28 @@
 
     .cantina {
       grid-column: 1 / span 8;
+    }
+  }
+
+  /*
+   * The date's own threshold: arithmetic, not taste. `DICEMBRE 2026` needs
+   * about 227 px at 900 px and first fits on one line at 1024 px, where four
+   * columns are about 290 px. From here the field becomes the block — the
+   * masthead's empty right-hand half, flush to the grid and stretched to the
+   * row the masthead already gives it, so it adds no row and no height.
+   */
+  @media (min-width: 64rem) {
+    .date {
+      grid-column: 9 / -1;
+      align-self: stretch;
+      justify-self: stretch;
+      margin-block-start: 0;
+      margin-inline: 0;
+      /* A small inset only: the block spans columns 9–12 without growing the
+       * masthead row it shares, and keeps room for `DICEMBRE 2026` on one
+       * line at this width. */
+      padding-inline: var(--space-4);
+      padding-block: var(--space-2);
     }
   }
 }
@@ -331,10 +355,22 @@
    * grid areas put the weekday above the numeral on screen. Type stays
    * left-aligned, like the print's margin.
    */
+  /*
+   * The date is the page's second strong surface, so it reads the same roles
+   * as the closing band: bordeaux ground, cream ink.
+   */
   .date {
     display: grid;
+    align-content: space-between;
     gap: var(--space-4);
     text-align: start;
+    background: var(--strong);
+    color: var(--strong-ink);
+    --ink: var(--strong-ink);
+    --ink-muted: var(--strong-ink-muted);
+    --link: var(--strong-ink);
+    --link-hover: var(--strong-ink-muted);
+    --rule: var(--strong-rule);
   }
 
   .date-lockup {
@@ -459,8 +495,8 @@
   /* --------------------------------------------------------- banda finale */
   /*
    * One bordeaux band closes the page. Cream carries the text and gold-light
-   * the secondary tone; both clear AA on the strong surface. The band reads
-   * the strong-surface roles, and the strong surface appears only once.
+   * the secondary tone; both clear AA on the strong surface. The band and the
+   * date are the page's two strong surfaces, and both read the same roles.
    */
   .band {
     background: var(--strong);
