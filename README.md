@@ -294,8 +294,9 @@ runs `node --test tests/*.test.mjs`; there is no build to run first. The tests
 read `index.html`, its assets and its metadata as a visitor or link checker
 would: the printed facts and the Cantina prose verbatim, the date literals
 against `datetime`, the map destination, the declared language, headings and
-link names, the absence of JavaScript and third-party hosts, and the content
-policy.
+link names, the three narrow guards — no `<script>`, inline handler or shipped
+`.js`; no host on the documented tracker denylist; no font fetched from outside
+the origin — and the content policy.
 
 The suite also asserts the page's contracts. The date is one `<time>` lockup
 with `datetime="2026-12-06"`, its printed parts in DOM order (day, weekday,
@@ -365,9 +366,10 @@ The lettering comes from Breathing (Din Studio), whose demo is marked
 "Personal Use Only": it is not OFL and its licence does not cover promotional
 use. The font file must never be committed to this repository and must never be
 fetched at runtime — no `@font-face`, no CDN, no font file in the shipped site.
-The outline is the only form in which the lettering is distributed. The test
-that fails on any third-party host catches a font CDN or a tracker; the ban on
-committing the font file itself is a review rule.
+The outline is the only form in which the lettering is distributed. The font
+guard fails on any font fetched from outside the origin, so a font CDN cannot
+slip in; the tracker denylist is a separate guard. The ban on committing the
+font file itself is a review rule.
 
 If the lettering ever changes, re-extract the outline from the updated print
 master. Do not add Breathing to the repository, and do not re-typeset the
