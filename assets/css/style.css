@@ -177,10 +177,6 @@
     color: var(--link);
     text-decoration-thickness: 1px;
     text-underline-offset: 0.2em;
-    transition:
-      color var(--motion-quick) var(--ease-press),
-      text-decoration-thickness var(--motion-quick) var(--ease-press),
-      text-underline-offset var(--motion-quick) var(--ease-press);
   }
 
   a:hover {
@@ -488,17 +484,29 @@
 
   /*
    * The two actions are typographic, not buttons: the print's rule carries the
-   * link and an arrow in the margin points where it goes. The arrow lives in
-   * the pseudo-element so it never enters the link's text or accessible name.
+   * link and an arrow in the margin points where it goes. The rule is a
+   * pseudo-line rather than a border so the motion layer can rule it without
+   * touching the link's text or its focus ring. The arrow lives in the other
+   * pseudo-element so it never enters the link's text or accessible name.
    */
   .band__actions a {
+    position: relative;
     display: inline-block;
-    padding-block-end: 0.3rem;
-    border-block-end: 1px solid var(--rule);
+    padding-block-end: calc(0.3rem + 1px);
     color: var(--link);
     font-weight: 700;
     line-height: 1.2;
     text-decoration: none;
+  }
+
+  .band__actions a::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    block-size: 1px;
+    background: var(--rule);
+    transform-origin: left center;
   }
 
   .band__actions a::after {
@@ -506,16 +514,6 @@
     margin-inline-start: 0.55em;
     color: var(--rule);
     font-weight: 400;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .band__actions a::after {
-      transition: transform var(--motion-quick) var(--ease-press);
-    }
-
-    .band__actions a:hover::after {
-      transform: translateX(0.22em);
-    }
   }
 
   .colophon {
@@ -528,32 +526,60 @@
 
 @layer motion {
   /*
-   * The page prints itself. The signature is pressed in from the left like a
-   * press impression; the lockup follows; the subtitle settles; the photograph
-   * develops. Every duration is a token, and every animation is an addition:
-   * with reduced motion the page is the finished spread, immediately.
+   * The spread prints itself rather than fading in like a template. The
+   * signature is pressed into the paper and its lockup is inked behind it; the
+   * subtitle settles; the date is set; the photograph develops inside the tear
+   * the frame cuts. Below the fold the prose rises and the facts rule draws
+   * itself as they enter the viewport. Every duration is a token, and every
+   * animation is an addition: with reduced motion the page is the finished
+   * spread, immediately.
    */
   @media (prefers-reduced-motion: no-preference) {
+    /* The link's colour and rule; focus never waits for them. */
+    a {
+      transition:
+        color var(--motion-quick) var(--ease-press),
+        text-decoration-thickness var(--motion-quick) var(--ease-press),
+        text-underline-offset var(--motion-quick) var(--ease-press);
+    }
+
+    .band__actions a::after {
+      transition: transform var(--motion-quick) var(--ease-press);
+    }
+
+    .band__actions a:hover::after {
+      transform: translateX(0.22em);
+    }
+
+    /* The press, the lockup and the subtitle are ink laid down on the sheet. */
     .signature path {
       clip-path: inset(0 0 0 0);
       animation: signature-press var(--motion-ink) var(--ease-press) both;
     }
 
     .signature text {
-      animation: lockup-in var(--motion-quick) ease-out 300ms both;
+      animation: ink-in var(--motion-quick) var(--ease-press) both;
     }
 
     .subtitle {
-      animation: settle-in var(--motion-settle) var(--ease-press) 360ms both;
+      animation: ink-in var(--motion-settle) var(--ease-press) both;
     }
 
+    .date {
+      animation: date-set var(--motion-date) var(--ease-press) both;
+    }
+
+    /* The image develops, but the tear is cut in the frame and never moves. */
     .photo-frame img {
       animation: photograph-develop var(--motion-settle) var(--ease-press) both;
     }
 
     /*
-     * Scroll-driven reveals belong to the prose and the closing band, never
-     * the masthead. view() is recent, so the static page is the baseline.
+     * Scroll-driven reveals belong to the prose and the facts band only. The
+     * hero — the signature, its lockup and subtitle, and the date — is fully
+     * present on the first screen and never waits for the scroll. The band's
+     * two actions are never faded: only their rules are ruled. view() is
+     * recent, so a browser without it serves the static page.
      */
     @supports (animation-timeline: view()) {
       .cantina {
@@ -562,8 +588,14 @@
         animation-range: entry 10% entry 45%;
       }
 
-      .band__inner {
+      .facts {
         animation: section-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 10% entry 45%;
+      }
+
+      .band__actions a::before {
+        animation: rule-rule linear var(--motion-rule) both;
         animation-timeline: view();
         animation-range: entry 10% entry 45%;
       }
@@ -579,22 +611,21 @@
     }
   }
 
-  @keyframes lockup-in {
+  /* Text is inked from the left, never faded in like a template. */
+  @keyframes ink-in {
     from {
-      opacity: 0;
+      clip-path: inset(0 100% 0 0);
     }
     to {
-      opacity: 1;
+      clip-path: inset(0 0 0 0);
     }
   }
 
-  @keyframes settle-in {
+  @keyframes date-set {
     from {
-      opacity: 0;
-      transform: translateY(6px);
+      transform: translateY(4px);
     }
     to {
-      opacity: 1;
       transform: none;
     }
   }
@@ -618,6 +649,16 @@
     to {
       opacity: 1;
       transform: none;
+    }
+  }
+
+  /* The rule is drawn from its left edge, like a pencil line. */
+  @keyframes rule-rule {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
     }
   }
 }
