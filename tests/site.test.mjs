@@ -1247,10 +1247,12 @@ test('sul telefono le due azioni stanno una sopra l’altra a tutta riga, con la
     'sul telefono le due azioni non stanno una sopra l’altra a tutta riga',
   );
 
-  const action = css.match(/\.band__actions\s+a\s*\{([^}]*)\}/s)?.[1] ?? '';
+  const action =
+    css.match(/\.band__actions\s*>\s*p\s*>\s*a\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(action, 'sul telefono un’azione non dichiara la larghezza della riga');
   assert.match(
     action,
-    /(?:^|;)\s*display\s*:\s*block/,
+    /(?:^|;)\s*inline-size\s*:\s*100%/,
     'sul telefono un’azione non occupa la riga: la sua riga non la attraversa',
   );
 
@@ -1300,10 +1302,11 @@ test('sul telefono le due azioni stanno una sopra l’altra a tutta riga, con la
     'a 48 rem le azioni non conservano la distanza dello spread',
   );
 
-  const wideAction = wide.match(/\.band__actions\s+a\s*\{([^}]*)\}/s)?.[1] ?? '';
+  const wideAction =
+    wide.match(/\.band__actions\s*>\s*p\s*>\s*a\s*\{([^}]*)\}/s)?.[1] ?? '';
   assert.match(
     wideAction,
-    /(?:^|;)\s*display\s*:\s*inline-block/,
+    /(?:^|;)\s*inline-size\s*:\s*auto/,
     'a 48 rem un’azione non torna alla larghezza del suo testo',
   );
 });

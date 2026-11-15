@@ -265,6 +265,11 @@
     gap: var(--space-3);
   }
 
+  /* Each anchor fills its row, so the pseudo-line below it spans the row. */
+  .band__actions > p > a {
+    inline-size: 100%;
+  }
+
   /*
    * On the phone the photograph sits closer to the date; the spread restores
    * the block margin. This is spacing, not motion.
@@ -330,6 +335,11 @@
       align-items: flex-start;
       align-self: flex-end;
       gap: var(--space-3) var(--space-5);
+    }
+
+    /* The spread restores each action to the width of its text. */
+    .band__actions > p > a {
+      inline-size: auto;
     }
 
     .masthead {
@@ -590,7 +600,7 @@
    */
   .band__actions a {
     position: relative;
-    display: block;
+    display: inline-block;
     padding-block-end: calc(0.3rem + 1px);
     color: var(--link);
     font-weight: 700;
@@ -606,13 +616,6 @@
     block-size: 1px;
     background: var(--rule);
     transform-origin: left center;
-  }
-
-  /* The spread restores each action to the width of its text. */
-  @media (min-width: 48rem) {
-    .band__actions a {
-      display: inline-block;
-    }
   }
 
   /* The decorative arrow inherits the link and keeps the print's spacing. */
