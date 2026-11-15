@@ -72,6 +72,10 @@
      */
     --bordeaux: #5c1a24;
     --cream: #ede1c6;
+    /*
+     * The print's paper tone. It has no consumer on this page, but it is part
+     * of the recorded palette and the tab icon derives from it.
+     */
     --cream-light: #f2e8d5;
     --gold: #a9854f;
     --gold-light: #c9a96a;
@@ -82,7 +86,6 @@
     --ink: var(--bordeaux);
     --ink-muted: var(--bronze);
     --rule: var(--gold);
-    --rule-soft: rgba(169, 133, 79, 0.34);
     --link: var(--bordeaux);
     --link-hover: var(--bronze);
 
@@ -99,7 +102,6 @@
     --step-0: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
     --step-1: clamp(1.05rem, 0.95rem + 0.5vw, 1.35rem);
     --step-2: clamp(1.5rem, 1.2rem + 1.4vw, 2.5rem);
-    --step-3: clamp(2.4rem, 1.5rem + 4vw, 4.5rem);
     --signature-size: clamp(13rem, 50vw, 26rem);
     --date-numeral: clamp(4.25rem, 10vw, 8.5rem);
 
@@ -112,12 +114,15 @@
     --space-6: clamp(2rem, 1.76rem + 1.2vw, 3rem);
     --space-7: clamp(3rem, 2.5rem + 2.5vw, 4.75rem);
     --space-8: clamp(4rem, 3.2rem + 4vw, 7rem);
-    --photo-rise: clamp(4rem, 7vw, 7rem);
+    /* The photograph's block margin: spacing, not motion. */
+    --photo-space: clamp(4rem, 7vw, 7rem);
 
     /* The grid chosen for the spread: 84 rem, twelve columns. */
     --measure: 84rem;
     --gutter-phone: 24px;
     --gutter: clamp(28px, 5.5vw, 96px);
+    /* The page's inline padding: the spread and the band share this one home. */
+    --page-pad: var(--gutter-phone);
     --column-gap: clamp(1.25rem, 2vw, 2rem);
 
     /*
@@ -130,6 +135,7 @@
     --motion-date: 240ms;
     --motion-quick: 240ms;
     --motion-settle: 480ms;
+    /* Placeholder duration for the two view() reveals; the timeline times them. */
     --motion-scroll: 1ms;
     --ease-press: cubic-bezier(0.22, 0.61, 0.36, 1);
   }
@@ -208,7 +214,7 @@
     grid-template-columns: 1fr;
     max-inline-size: var(--measure);
     margin-inline: auto;
-    padding-inline: var(--gutter-phone);
+    padding-inline: var(--page-pad);
     /*
      * Top and bottom use the same step: at 1024x768 the larger closing step
      * pushed the page just past two screens, and the band closes it anyway.
@@ -219,7 +225,7 @@
   }
 
   .photo-band {
-    margin-block-start: var(--photo-rise);
+    margin-block-start: var(--photo-space);
   }
 
   /*
@@ -237,9 +243,12 @@
 
   /* The deliberate large-format spread, not a wider phone. */
   @media (min-width: 48rem) {
+    :root {
+      --page-pad: var(--gutter);
+    }
+
     .spread {
       grid-template-columns: repeat(12, minmax(0, 1fr));
-      padding-inline: var(--gutter);
     }
 
     .masthead {
@@ -459,14 +468,8 @@
     gap: var(--space-4) var(--space-8);
     max-inline-size: var(--measure);
     margin-inline: auto;
-    padding-inline: var(--gutter-phone);
+    padding-inline: var(--page-pad);
     padding-block: var(--space-5);
-  }
-
-  @media (min-width: 48rem) {
-    .band__inner {
-      padding-inline: var(--gutter);
-    }
   }
 
   .facts {
@@ -511,15 +514,15 @@
 
   .map-link,
   .locandina-download {
-    font-size: 1rem;
+    font-size: var(--step-0);
   }
 
   /*
    * The two actions are typographic, not buttons: the print's rule carries the
    * link and an arrow in the margin points where it goes. The rule is a
    * pseudo-line rather than a border so the motion layer can rule it without
-   * touching the link's text or its focus ring. The arrow lives in the other
-   * pseudo-element so it never enters the link's text or accessible name.
+   * touching the link's text or its focus ring. The arrow is a span hidden
+   * from assistive tech, so it never enters the link's accessible name.
    */
   .band__actions a {
     position: relative;
@@ -541,10 +544,10 @@
     transform-origin: left center;
   }
 
-  .band__actions a::after {
-    content: "\2192";
+  /* The decorative arrow inherits the link and keeps the print's spacing. */
+  .action__arrow {
     margin-inline-start: 0.55em;
-    color: var(--rule);
+    color: inherit;
     font-weight: 400;
   }
 
@@ -573,14 +576,6 @@
         color var(--motion-quick) var(--ease-press),
         text-decoration-thickness var(--motion-quick) var(--ease-press),
         text-underline-offset var(--motion-quick) var(--ease-press);
-    }
-
-    .band__actions a::after {
-      transition: transform var(--motion-quick) var(--ease-press);
-    }
-
-    .band__actions a:hover::after {
-      transform: translateX(0.22em);
     }
 
     /* The press, the lockup and the subtitle are ink laid down on the sheet. */
