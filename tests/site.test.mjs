@@ -12,12 +12,13 @@ const SITE = ROOT;
 const SITE_ORIGIN = 'https://svino-turania.github.io';
 const MAP_ORIGIN = 'https://www.google.com';
 
-// The photograph's slot: the 84 rem spread measure less its inline padding.
-// Above 84 rem the page is capped at 84 rem and the gutters are 5.5vw a side;
-// between 48 and 84 rem the page is the viewport less the same gutters; on
-// phone the gutters are 24px.
+// The photograph's slot: edge to edge on the phone; from 48 rem up, the 84 rem
+// spread measure less its inline padding. Above 84 rem the page is capped at
+// 84 rem and the gutters are 5.5vw a side; between 48 and 84 rem the page is
+// the viewport less the same gutters. On the phone the band bleeds past the
+// 24px gutters, so the slot is the whole viewport.
 const PHOTO_SIZES =
-  '(min-width: 84rem) calc(84rem - 2 * min(5.5vw, 96px)), (min-width: 48rem) calc(100vw - 11vw), calc(100vw - 48px)';
+  '(min-width: 84rem) calc(84rem - 2 * min(5.5vw, 96px)), (min-width: 48rem) calc(100vw - 11vw), 100vw';
 
 const CANTINA_PARAGRAPH =
   "Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva, con il bicchiere in mano. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio. Questa pagina sarà aggiornata con tutte le novità dell'evento. Il programma e gli aggiornamenti arriveranno qui presto. Vi aspettiamo.";
@@ -1074,9 +1075,10 @@ test('il foglio di stile isola i token e dichiara l’ordine dei layer', () => {
     'ink-muted',
     'rule',
     'link',
-    'band',
-    'band-ink',
-    'band-ink-muted',
+    'strong',
+    'strong-ink',
+    'strong-ink-muted',
+    'strong-rule',
   ]) {
     assert.match(
       tokens,
@@ -1084,6 +1086,14 @@ test('il foglio di stile isola i token e dichiara l’ordine dei layer', () => {
       `manca il ruolo semantico --${role}`,
     );
   }
+
+  // The strong surface has one vocabulary, and none of it is named after the
+  // closing band that first reads it.
+  assert.doesNotMatch(
+    tokens,
+    /--band(?:-[a-z-]+)?\s*:/,
+    'la palette conserva ruoli intitolati alla banda che chiude la pagina',
+  );
 
   const typeSteps = ['--step--1', '--step-0', '--step-1', '--step-2'];
   for (const step of typeSteps) {
@@ -1363,22 +1373,47 @@ test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', ()
 
   const css = stripCssComments(servedStylesheet());
   const tokens = layerBlock(css, 'tokens');
-  assert.match(tokens, /--band:\s*var\(--bordeaux\)\s*;/, 'la banda non è bordeaux');
-  assert.match(tokens, /--band-ink:\s*var\(--cream\)\s*;/, 'il testo della banda non è crema');
   assert.match(
     tokens,
-    /--band-ink-muted:\s*var\(--gold-light\)\s*;/,
-    'il testo secondario della banda non è oro chiaro',
+    /--strong:\s*var\(--bordeaux\)\s*;/,
+    'la superficie forte non è bordeaux',
+  );
+  assert.match(
+    tokens,
+    /--strong-ink:\s*var\(--cream\)\s*;/,
+    'il testo della superficie forte non è crema',
+  );
+  assert.match(
+    tokens,
+    /--strong-ink-muted:\s*var\(--gold-light\)\s*;/,
+    'il testo secondario della superficie forte non è oro chiaro',
+  );
+  assert.match(
+    tokens,
+    /--strong-rule:\s*var\(--gold-light\)\s*;/,
+    'la riga della superficie forte non è oro chiaro',
   );
   assert.equal(
-    (css.match(/background(?:-color)?:\s*var\(--band\)/g) ?? []).length,
+    (css.match(/background(?:-color)?:\s*var\(--strong\)/g) ?? []).length,
     1,
-    'la banda bordeaux non è l’unica superficie scura della pagina',
+    'la superficie forte non appare una volta sola: la data non è ancora una seconda superficie',
   );
   assert.match(
     css,
-    /\.band\s*\{[^}]*background:\s*var\(--band\)/s,
-    'la banda non dichiara il fondo bordeaux',
+    /\.band\s*\{[^}]*background:\s*var\(--strong\)/s,
+    'la banda non dichiara il fondo della superficie forte',
+  );
+  assert.match(
+    css,
+    /\.band\s*\{[^}]*color:\s*var\(--strong-ink\)/s,
+    'la banda non dichiara il testo della superficie forte',
+  );
+  // The band reads the strong-surface vocabulary, never a raw colour and
+  // never a role named after itself.
+  assert.doesNotMatch(
+    css,
+    /var\(--band(?:-[a-z-]+)?\)/,
+    'un componente legge ancora un ruolo intitolato alla banda',
   );
   assert.doesNotMatch(
     css,
@@ -1386,18 +1421,19 @@ test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', ()
     'il foglio di stile introduce una seconda presentazione',
   );
 
-  // Text on bordeaux is measured, not assumed: both tones clear AA on the band.
+  // Text on bordeaux is measured, not assumed: both tones clear AA on the
+  // strong surface.
   assert.ok(
     contrastRatio(paletteToken('cream'), paletteToken('bordeaux')) >= 4.5,
-    'il crema sul bordeaux non raggiunge il rapporto 4.5:1',
+    'il crema sulla superficie forte non raggiunge il rapporto 4.5:1',
   );
   assert.ok(
     contrastRatio(paletteToken('gold-light'), paletteToken('bordeaux')) >= 4.5,
-    'l’oro chiaro sul bordeaux non raggiunge il rapporto 4.5:1',
+    'l’oro chiaro sulla superficie forte non raggiunge il rapporto 4.5:1',
   );
 });
 
-test('il contrasto sul bordeaux è misurato e annotato accanto alla palette', () => {
+test('il contrasto della superficie forte è misurato e annotato accanto alla palette', () => {
   const css = servedStylesheet();
   const blocks = atRuleBlocks(css, '@layer\\s+tokens\\s*\\{');
   assert.equal(blocks.length, 1, 'manca il layer dei token');
@@ -1411,9 +1447,23 @@ test('il contrasto sul bordeaux è misurato e annotato accanto alla palette', ()
     'il contrasto non è annotato accanto alle primitive',
   );
 
+  // The note describes the surface as a whole, not the band that first
+  // consumed it: the date joins the same vocabulary.
+  assert.match(
+    note,
+    /strong surface/i,
+    'la nota non descrive la superficie forte',
+  );
+  assert.doesNotMatch(
+    note,
+    /bordeaux band/i,
+    'la nota descrive ancora la banda invece della superficie forte',
+  );
+
   // The numbers come from the served primitives, not from memory: each one is
   // recomputed here with WCAG 2.1 relative luminance and must also be written
-  // in the note next to its token. Cream carries the band's body text.
+  // in the note next to its token. The strong surface's base is the bordeaux
+  // primitive, and cream carries its body text.
   const bordeaux = paletteToken('bordeaux');
   for (const [token, expected] of [
     ['cream', '9.94'],
@@ -1426,19 +1476,19 @@ test('il contrasto sul bordeaux è misurato e annotato accanto alla palette', ()
     assert.equal(
       measured,
       expected,
-      `il contrasto misurato di --${token} sul bordeaux è ${measured}:1, non ${expected}:1`,
+      `il contrasto misurato di --${token} sulla superficie forte è ${measured}:1, non ${expected}:1`,
     );
     assert.match(
       note,
       new RegExp(`--${token}\\s[^\\n]*${expected}:1`),
-      `la nota della palette non registra --${token} a ${expected}:1 sul bordeaux`,
+      `la nota della palette non registra --${token} a ${expected}:1 sulla superficie forte`,
     );
   }
 
   assert.match(
     note,
     /bronze[^\n]*(?:mai|non|never)[^\n]*testo|bronze[^\n]*2\.09:1[^\n]*(?:mai|non|never)/i,
-    'la nota non avverte che il bronzo non regge il testo sul bordeaux',
+    'la nota non avverte che il bronzo non regge il testo sulla superficie forte',
   );
 
   const cream = Number(
@@ -1446,7 +1496,7 @@ test('il contrasto sul bordeaux è misurato e annotato accanto alla palette', ()
   );
   assert.ok(
     cream >= 4.5,
-    `il crema sul bordeaux è annotato a ${cream}:1, sotto il minimo di 4.5:1`,
+    `il crema sulla superficie forte è annotato a ${cream}:1, sotto il minimo di 4.5:1`,
   );
 });
 
@@ -1837,6 +1887,46 @@ test('la fotografia tiene la banda 303:191 e un solo strappo misurato sulla band
       'lo strappo esce dalla larghezza della banda',
     );
   }
+});
+
+test('la fotografia esce dai margini della pagina sul telefono e rientra nella misura da 48 rem', () => {
+  const css = stripCssComments(servedStylesheet());
+  const layout = layerBlock(css, 'layout');
+
+  /*
+   * The page's inline padding is where the gutters live. The bleed is the
+   * photograph giving that padding back at both edges — not a viewport-sized
+   * band, which would scroll at 320 px.
+   */
+  assert.match(
+    layout,
+    /\.spread\s*\{[^}]*padding-inline:\s*var\(--page-pad\)/s,
+    'la griglia non dichiara il margine interno da cui la fotografia deve uscire',
+  );
+
+  const phoneBand = layout.match(/\.photo-band\s*\{([^}]*)\}/s);
+  assert.ok(phoneBand, 'manca la banda della fotografia sul telefono');
+  assert.match(
+    phoneBand[1],
+    /margin-inline:\s*calc\(\s*-1\s*\*\s*var\(--page-pad\)\s*\)/,
+    'sotto 48 rem la fotografia non annulla il margine interno della pagina e non arriva ai bordi',
+  );
+  assert.doesNotMatch(
+    phoneBand[1],
+    /\d(?:vw|vmin|vmax)\b/,
+    'la fotografia si dimensiona con il viewport e può scorrere in orizzontale',
+  );
+
+  const wide = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)');
+  assert.equal(wide.length, 1, 'manca il blocco della misura da 48 rem');
+  const wideBody = css.slice(css.indexOf('{', wide[0].start) + 1, wide[0].end);
+  const wideBand = wideBody.match(/\.photo-band\s*\{([^}]*)\}/s);
+  assert.ok(wideBand, 'la fotografia non rientra nella misura da 48 rem');
+  assert.match(
+    wideBand[1],
+    /margin-inline:\s*0\s*;/,
+    'da 48 rem la fotografia non torna dentro i margini della pagina',
+  );
 });
 
 test('la fotografia decodifica in asincrono, ha alta priorità e non è precaricata', () => {
