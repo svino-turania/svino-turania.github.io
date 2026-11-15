@@ -155,7 +155,7 @@ same content.
 The signature has no stroke, so the press edge is a `clip-path` on the filled
 path, not a stroke animation. The actions' rules are pseudo-lines rather than
 borders precisely so they can be ruled; the extra 1px of padding keeps their
-rendered boxes identical. ADR-0005 records the composition the motion sits on;
+rendered boxes identical. ADR-0006 records the composition the motion sits on;
 the motion itself is cheap to reverse and has no ADR.
 
 ## Editor workflow (Comitato)
