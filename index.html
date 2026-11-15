@@ -44,23 +44,19 @@
       - Edizione: "II EDIZIONE" (lockup nella firma, colophon e metadati).
       - Descrizione della fotografia: l'attributo alt dell'immagine.
       - Paragrafo delle Cantine: la regione tra i commenti CANTINA.
-      - Locandina: due link di download, uno nei fatti (solo desktop) e uno nel
-        footer (solo telefono e tablet); puntano allo stesso file e solo uno è
-        visibile per composizione.
+      - Locandina: un solo link di download, nella banda che chiude la pagina.
 
-      L'ordine di lettura è quello della Locandina: firma, data, fotografia,
-      prosa, fatti, footer.
+      L'ordine di lettura è: firma, sottotitolo, data, fotografia, prosa,
+      banda (fatti, mappa, Locandina, colophon).
 
       Non serve alcuna build: la pagina è servita così com'è scritta.
     -->
-    <div class="page">
-      <main>
-        <article class="sheet">
-          <header class="masthead">
-            <h1 class="lockup">
-              <!-- FIRMA: tracciato inline con il nome accessibile; il lockup
-                   II EDIZIONE è testo dentro lo stesso SVG. -->
-              <svg
+    <main class="spread">
+      <header class="masthead">
+        <h1 class="lockup">
+          <!-- FIRMA: tracciato inline con il nome accessibile; il lockup
+               II EDIZIONE è testo dentro lo stesso SVG. -->
+          <svg
               class="signature"
               viewBox="-0.0243333333 -1.3130000000 2.5453333333 1.5600000000"
               role="img"
@@ -85,106 +81,97 @@
                
               >II EDIZIONE</text>
           </svg>
-            </h1>
-            <!-- SOTTOTITOLO: la frase sotto la firma. -->
-            <p class="subtitle">Per le cantine di Turania</p>
-          </header>
+        </h1>
+        <!-- SOTTOTITOLO: la frase sotto la firma. -->
+        <p class="subtitle">Per le cantine di Turania</p>
+      </header>
 
-          <section class="date" aria-label="Data e ora">
-            <!-- DATA E ORARIO: datetime è la fonte di verità; il giorno, il
-                 giorno della settimana e il mese/anno devono concordare con
-                 esso. L'orario compare qui, sotto DALLE ORE, una sola volta. -->
-            <time class="date-lockup" datetime="2026-12-06">
-              <span class="date-day">6</span>
-              <span class="date-weekday">DOMENICA</span>
-              <span class="date-month">DICEMBRE 2026</span>
-            </time>
-            <dl class="date-time">
-              <dt>DALLE ORE</dt>
-              <dd>12:00</dd>
-            </dl>
-          </section>
+      <section class="date" aria-label="Data e ora">
+        <!-- DATA E ORARIO: datetime è la fonte di verità; il giorno, il
+             giorno della settimana e il mese/anno devono concordare con
+             esso. L'orario compare qui, sotto DALLE ORE, una sola volta. -->
+        <time class="date-lockup" datetime="2026-12-06">
+          <span class="date-day">6</span>
+          <span class="date-weekday">DOMENICA</span>
+          <span class="date-month">DICEMBRE 2026</span>
+        </time>
+        <dl class="date-time">
+          <dt>DALLE ORE</dt>
+          <dd>12:00</dd>
+        </dl>
+      </section>
 
-          <figure class="photo-band">
-            <!-- DESCRIZIONE DELLA FOTOGRAFIA: l'attributo alt dell'immagine qui sotto. -->
-            <div class="photo-frame">
-              <picture>
-              <source
-                srcset="/assets/img/svino-cantina-1200.webp 1200w, /assets/img/svino-cantina-2048.webp 2048w"
-                sizes="(min-width: 46rem) 39.5rem, calc(100vw - 4.5rem)"
-                type="image/webp"
-              >
-              <img
-                src="/assets/img/svino-cantina-1200.jpg"
-                srcset="/assets/img/svino-cantina-1200.jpg 1200w, /assets/img/svino-cantina-2048.jpg 2048w"
-                sizes="(min-width: 46rem) 39.5rem, calc(100vw - 4.5rem)"
-                width="1200"
-                height="756"
-                alt="Interno di una cantina scavata nella roccia: soffitto e pareti di pietra grezza, una lampadina nuda appesa a un filo, damigiane di vetro anche dentro cesti di vimini, una botte coricata e un grande tino chiaro con il coperchio; un palo di legno regge la volta."
-                decoding="async"
-              >
+      <figure class="photo-band">
+        <!-- DESCRIZIONE DELLA FOTOGRAFIA: l'attributo alt dell'immagine qui sotto. -->
+        <div class="photo-frame">
+          <picture>
+            <source
+              srcset="/assets/img/svino-cantina-1200.webp 1200w, /assets/img/svino-cantina-2048.webp 2048w"
+              sizes="(min-width: 84rem) calc(84rem - 2 * min(5.5vw, 96px)), (min-width: 48rem) calc(100vw - 11vw), calc(100vw - 48px)"
+              type="image/webp"
+            >
+            <img
+              src="/assets/img/svino-cantina-1200.jpg"
+              srcset="/assets/img/svino-cantina-1200.jpg 1200w, /assets/img/svino-cantina-2048.jpg 2048w"
+              sizes="(min-width: 84rem) calc(84rem - 2 * min(5.5vw, 96px)), (min-width: 48rem) calc(100vw - 11vw), calc(100vw - 48px)"
+              width="1200"
+              height="756"
+              alt="Interno di una cantina scavata nella roccia: soffitto e pareti di pietra grezza, una lampadina nuda appesa a un filo, damigiane di vetro anche dentro cesti di vimini, una botte coricata e un grande tino chiaro con il coperchio; un palo di legno regge la volta."
+              decoding="async"
+              fetchpriority="high"
+            >
           </picture>
-            </div>
-          </figure>
+        </div>
+      </figure>
 
-          <div class="cantina">
-            <!-- CANTINA — INIZIO REGIONE MODIFICABILE: la prosa approvata va qui. -->
-            <p>Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva, con il bicchiere in mano. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio.</p>
-            <p>Questa pagina sarà aggiornata con tutte le novità dell'evento. Il programma e gli aggiornamenti arriveranno qui presto. Vi aspettiamo.</p>
-            <!-- CANTINA — FINE REGIONE MODIFICABILE -->
+      <div class="cantina">
+        <!-- CANTINA — INIZIO REGIONE MODIFICABILE: la prosa approvata va qui. -->
+        <p>Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva, con il bicchiere in mano. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio.</p>
+        <p>Questa pagina sarà aggiornata con tutte le novità dell'evento. Il programma e gli aggiornamenti arriveranno qui presto. Vi aspettiamo.</p>
+        <!-- CANTINA — FINE REGIONE MODIFICABILE -->
+      </div>
+    </main>
+
+    <footer class="band">
+      <div class="band__inner">
+        <dl class="facts" aria-label="Informazioni">
+          <!-- LUOGO: "Turania (RI)" sotto DOVE, una sola volta nel corpo. -->
+          <div class="fact">
+            <dt>DOVE</dt>
+            <dd>Turania (RI)</dd>
           </div>
+          <!-- ORGANIZZATORE: "Comitato Feste Turania" sotto A CURA DI. -->
+          <div class="fact fact--organiser">
+            <dt>A CURA DI</dt>
+            <dd>Comitato Feste Turania</dd>
+          </div>
+        </dl>
 
-          <aside class="facts" aria-label="Informazioni">
-            <dl class="info-grid">
-              <!-- LUOGO: "Turania (RI)" sotto DOVE, una sola volta nel corpo. -->
-              <div class="info-item">
-                <dt>DOVE</dt>
-                <dd>Turania (RI)</dd>
-              </div>
-              <!-- ORGANIZZATORE: "Comitato Feste Turania" sotto A CURA DI. -->
-              <div class="info-item info-item--organiser">
-                <dt>A CURA DI</dt>
-                <dd>Comitato Feste Turania</dd>
-              </div>
-            </dl>
+        <div class="band__actions">
+          <!-- MAPPA: apre la ricerca del luogo su Google Maps, in un nuovo contesto. -->
+          <p class="map-link">
+            <a
+              href="https://www.google.com/maps/search/?api=1&amp;query=Turania%20(RI)"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Apri la mappa</a>
+          </p>
 
-            <!-- LOCANDINA (FATTI): visibile solo da 64rem; sotto è nel footer. -->
-            <p class="locandina-download">
-              <a
-                href="/assets/download/locandina-svino-ii-edizione.jpg"
-                download
-                type="image/jpeg"
-              >Scarica la Locandina (immagine JPEG)</a>
-            </p>
-          </aside>
-        </article>
-      </main>
-
-      <footer class="site-footer">
-        <!-- MAPPA: apre la ricerca del luogo su Google Maps, in un nuovo contesto. -->
-        <p class="map-link">
-          <a
-            href="https://www.google.com/maps/search/?api=1&amp;query=Turania%20(RI)"
-            target="_blank"
-            rel="noopener noreferrer"
-          >Apri la mappa</a>
-        </p>
-
-        <!-- LOCANDINA (FOOTER): visibile sotto 64rem, dopo il link alla mappa;
-             su desktop è nei fatti e questa copia è nascosta. -->
-        <p class="locandina-download">
-          <a
-            href="/assets/download/locandina-svino-ii-edizione.jpg"
-            download
-            type="image/jpeg"
-          >Scarica la Locandina (immagine JPEG)</a>
-        </p>
+          <!-- LOCANDINA: un solo link, nella banda; nessuna seconda copia. -->
+          <p class="locandina-download">
+            <a
+              href="/assets/download/locandina-svino-ii-edizione.jpg"
+              download
+              type="image/jpeg"
+            >Scarica la Locandina (immagine JPEG)</a>
+          </p>
+        </div>
 
         <!-- COLOPHON: l'edizione chiude la pagina; il luogo è già sotto DOVE. -->
         <div class="colophon">
           <p>sVino — II EDIZIONE</p>
         </div>
-      </footer>
-    </div>
+      </div>
+    </footer>
   </body>
 </html>
