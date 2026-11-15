@@ -42,16 +42,20 @@
       - Organizzatore: "Comitato Feste Turania" sotto A CURA DI.
       - Sottotitolo: "Per le cantine di Turania", sotto la firma.
       - Edizione: "II EDIZIONE" (lockup nella firma, colophon e metadati).
-      - Descrizione della fotografia: l'attributo alt dell'immagine.
+      - Descrizione dell'immagine di apertura: l'attributo alt dell'immagine
+        nel blocco .hero-photo, dietro la testata.
+      - Descrizione della fotografia della cantina: l'attributo alt
+        dell'immagine nel blocco .photo-band, sopra la prosa.
       - Paragrafo delle Cantine: la regione tra i commenti CANTINA.
       - Locandina: un solo link di download, nella banda che chiude la pagina.
 
-      L'ordine di lettura è: firma, sottotitolo, data, fotografia, prosa,
-      banda (fatti, mappa, Locandina, colophon).
+      L'ordine di lettura è: firma e sottotitolo sull'immagine di apertura
+      (in basso a sinistra), data, fotografia della cantina, prosa, banda
+      (fatti, mappa, Locandina, colophon).
 
       Non serve alcuna build: la pagina è servita così com'è scritta.
     -->
-    <main class="spread">
+    <main class="page">
       <header class="masthead">
         <h1 class="lockup">
           <!-- FIRMA: tracciato inline con il nome accessibile; il lockup
@@ -86,6 +90,33 @@
         <p class="subtitle">Per le cantine di Turania</p>
       </header>
 
+      <!--
+        IMMAGINE DI APERTURA: occupa tutta la larghezza della pagina; la
+        testata le sta sopra, in basso a sinistra, su una velatura bordeaux.
+        Il suo alt descrive ciò che si vede; è la prima immagine della pagina
+        e viene servita a due larghezze, 720 px e 1033 px, scelte dal browser.
+      -->
+      <figure class="hero-photo">
+        <!-- DESCRIZIONE DELL'IMMAGINE DI APERTURA: l'attributo alt qui sotto. -->
+        <picture>
+          <source
+            srcset="/assets/img/svino-borgo-hero-720.webp 720w, /assets/img/svino-borgo-hero-1033.webp 1033w"
+            sizes="100vw"
+            type="image/webp"
+          >
+          <img
+            src="/assets/img/svino-borgo-hero-720.jpg"
+            srcset="/assets/img/svino-borgo-hero-720.jpg 720w, /assets/img/svino-borgo-hero-1033.jpg 1033w"
+            sizes="100vw"
+            width="720"
+            height="900"
+            alt="Vicolo di un borgo in luce dorata: in primo piano una botte di legno con un grappolo d'uva nera, una bottiglia di vino rosso e un bicchiere colmo; dietro, case in pietra con balconi, una torre con l'orologio e il selciato del vicolo, fuori fuoco."
+            decoding="async"
+            fetchpriority="high"
+          >
+        </picture>
+      </figure>
+
       <section class="date" aria-label="Data e ora">
         <!-- DATA E ORARIO: datetime è la fonte di verità; il giorno, il
              giorno della settimana e il mese/anno devono concordare con
@@ -107,18 +138,18 @@
           <picture>
             <source
               srcset="/assets/img/svino-cantina-1200.webp 1200w, /assets/img/svino-cantina-2048.webp 2048w"
-              sizes="(min-width: 84rem) calc(84rem - 2 * min(5.5vw, 96px)), (min-width: 48rem) calc(100vw - 11vw), 100vw"
+              sizes="100vw"
               type="image/webp"
             >
             <img
               src="/assets/img/svino-cantina-1200.jpg"
               srcset="/assets/img/svino-cantina-1200.jpg 1200w, /assets/img/svino-cantina-2048.jpg 2048w"
-              sizes="(min-width: 84rem) calc(84rem - 2 * min(5.5vw, 96px)), (min-width: 48rem) calc(100vw - 11vw), 100vw"
+              sizes="100vw"
               width="1200"
               height="756"
               alt="Interno di una cantina scavata nella roccia: soffitto e pareti di pietra grezza, una lampadina nuda appesa a un filo, damigiane di vetro anche dentro cesti di vimini, una botte coricata e un grande tino chiaro con il coperchio; un palo di legno regge la volta."
               decoding="async"
-              fetchpriority="high"
+              fetchpriority="low"
             >
           </picture>
         </div>

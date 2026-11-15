@@ -1,6 +1,6 @@
 # The spread gains a tonal rhythm and a phone that uses its width
 
-- **Status:** accepted
+- **Status:** accepted, superseded in part by ADR-0007
 - **Date:** 2026-11-15
 - **Supersedes in part:** ADR-0005 (the single dark surface; the phone as one
   left-aligned column)
