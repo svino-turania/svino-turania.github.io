@@ -12,12 +12,13 @@ const SITE = ROOT;
 const SITE_ORIGIN = 'https://svino-turania.github.io';
 const MAP_ORIGIN = 'https://www.google.com';
 
-// The photograph's slot: the 84 rem spread measure less its inline padding.
-// Above 84 rem the page is capped at 84 rem and the gutters are 5.5vw a side;
-// between 48 and 84 rem the page is the viewport less the same gutters; on
-// phone the gutters are 24px.
+// The photograph's slot: edge to edge on the phone; from 48 rem up, the 84 rem
+// spread measure less its inline padding. Above 84 rem the page is capped at
+// 84 rem and the gutters are 5.5vw a side; between 48 and 84 rem the page is
+// the viewport less the same gutters. On the phone the band bleeds past the
+// 24px gutters, so the slot is the whole viewport.
 const PHOTO_SIZES =
-  '(min-width: 84rem) calc(84rem - 2 * min(5.5vw, 96px)), (min-width: 48rem) calc(100vw - 11vw), calc(100vw - 48px)';
+  '(min-width: 84rem) calc(84rem - 2 * min(5.5vw, 96px)), (min-width: 48rem) calc(100vw - 11vw), 100vw';
 
 const CANTINA_PARAGRAPH =
   "Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva, con il bicchiere in mano. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio. Questa pagina sarà aggiornata con tutte le novità dell'evento. Il programma e gli aggiornamenti arriveranno qui presto. Vi aspettiamo.";
@@ -1636,6 +1637,46 @@ test('la fotografia tiene la banda 303:191 e un solo strappo misurato sulla band
       'lo strappo esce dalla larghezza della banda',
     );
   }
+});
+
+test('la fotografia esce dai margini della pagina sul telefono e rientra nella misura da 48 rem', () => {
+  const css = stripCssComments(servedStylesheet());
+  const layout = layerBlock(css, 'layout');
+
+  /*
+   * The page's inline padding is where the gutters live. The bleed is the
+   * photograph giving that padding back at both edges — not a viewport-sized
+   * band, which would scroll at 320 px.
+   */
+  assert.match(
+    layout,
+    /\.spread\s*\{[^}]*padding-inline:\s*var\(--page-pad\)/s,
+    'la griglia non dichiara il margine interno da cui la fotografia deve uscire',
+  );
+
+  const phoneBand = layout.match(/\.photo-band\s*\{([^}]*)\}/s);
+  assert.ok(phoneBand, 'manca la banda della fotografia sul telefono');
+  assert.match(
+    phoneBand[1],
+    /margin-inline:\s*calc\(\s*-1\s*\*\s*var\(--page-pad\)\s*\)/,
+    'sotto 48 rem la fotografia non annulla il margine interno della pagina e non arriva ai bordi',
+  );
+  assert.doesNotMatch(
+    phoneBand[1],
+    /\d(?:vw|vmin|vmax)\b/,
+    'la fotografia si dimensiona con il viewport e può scorrere in orizzontale',
+  );
+
+  const wide = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*48rem\\)');
+  assert.equal(wide.length, 1, 'manca il blocco della misura da 48 rem');
+  const wideBody = css.slice(css.indexOf('{', wide[0].start) + 1, wide[0].end);
+  const wideBand = wideBody.match(/\.photo-band\s*\{([^}]*)\}/s);
+  assert.ok(wideBand, 'la fotografia non rientra nella misura da 48 rem');
+  assert.match(
+    wideBand[1],
+    /margin-inline:\s*0\s*;/,
+    'da 48 rem la fotografia non torna dentro i margini della pagina',
+  );
 });
 
 test('la fotografia decodifica in asincrono, ha alta priorità e non è precaricata', () => {

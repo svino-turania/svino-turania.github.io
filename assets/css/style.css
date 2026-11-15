@@ -226,6 +226,12 @@
 
   .photo-band {
     margin-block-start: var(--photo-space);
+    /*
+     * The phone spends no gutter on the page's one photograph: the band gives
+     * the page padding back at both edges. Negative margins against the page's
+     * own padding are exact and cannot scroll at 320 px, where 100vw can.
+     */
+    margin-inline: calc(-1 * var(--page-pad));
   }
 
   /*
@@ -270,6 +276,8 @@
 
     .photo-band {
       grid-column: 1 / -1;
+      /* From the spread up the photograph sits inside the page gutters. */
+      margin-inline: 0;
     }
 
     .cantina {
