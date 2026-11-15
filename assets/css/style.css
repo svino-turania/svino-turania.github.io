@@ -61,13 +61,14 @@
      * Contrast on the cream ground, measured at these rendered colours:
      *   --bordeaux 9.94:1, --bronze 4.76:1.
      *
-     * Contrast on the bordeaux band, measured fresh against #5c1a24 with
-     * WCAG 2.1 relative luminance — not inferred from the cream ground:
+     * Contrast on the strong surface, measured fresh against its bordeaux
+     * base (#5c1a24) with WCAG 2.1 relative luminance — not inferred from
+     * the cream ground:
      *   --cream       9.94:1   body text and values
-     *   --cream-light 10.61:1  emphasis on the band, if any
-     *   --gold-light  5.75:1   the DOVE / A CURA DI role labels
+     *   --cream-light 10.61:1  emphasis on the strong surface, if any
+     *   --gold-light  5.75:1   the strong surface's muted ink
      *   --gold        3.78:1   rules and non-text only
-     *   --bronze      2.09:1   never for text on bordeaux
+     *   --bronze      2.09:1   never for text on the strong surface
      * Cream and gold-light clear AA (4.5:1) for normal text; bronze does not.
      */
     --bordeaux: #5c1a24;
@@ -89,11 +90,14 @@
     --link: var(--bordeaux);
     --link-hover: var(--bronze);
 
-    /* The closing band is the page's only dark surface. */
-    --band: var(--bordeaux);
-    --band-ink: var(--cream);
-    --band-ink-muted: var(--gold-light);
-    --band-rule: var(--gold-light);
+    /*
+     * The strong surface: the semantic vocabulary for the page's dark
+     * surfaces. Components read these roles, never a primitive.
+     */
+    --strong: var(--bordeaux);
+    --strong-ink: var(--cream);
+    --strong-ink-muted: var(--gold-light);
+    --strong-rule: var(--gold-light);
 
     /* Type families and the fluid scale. */
     --serif: "SV Serif", Georgia, "Times New Roman", serif;
@@ -455,17 +459,17 @@
   /* --------------------------------------------------------- banda finale */
   /*
    * One bordeaux band closes the page. Cream carries the text and gold-light
-   * the secondary tone; both clear AA on the bordeaux primitive. The band is
-   * the only dark surface, and it appears only once.
+   * the secondary tone; both clear AA on the strong surface. The band reads
+   * the strong-surface roles, and the strong surface appears only once.
    */
   .band {
-    background: var(--band);
-    color: var(--band-ink);
-    --ink: var(--band-ink);
-    --ink-muted: var(--band-ink-muted);
-    --link: var(--band-ink);
-    --link-hover: var(--band-ink-muted);
-    --rule: var(--band-rule);
+    background: var(--strong);
+    color: var(--strong-ink);
+    --ink: var(--strong-ink);
+    --ink-muted: var(--strong-ink-muted);
+    --link: var(--strong-ink);
+    --link-hover: var(--strong-ink-muted);
+    --rule: var(--strong-rule);
   }
 
   .band__inner {

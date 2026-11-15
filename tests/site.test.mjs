@@ -1065,9 +1065,10 @@ test('il foglio di stile isola i token e dichiara l’ordine dei layer', () => {
     'ink-muted',
     'rule',
     'link',
-    'band',
-    'band-ink',
-    'band-ink-muted',
+    'strong',
+    'strong-ink',
+    'strong-ink-muted',
+    'strong-rule',
   ]) {
     assert.match(
       tokens,
@@ -1075,6 +1076,14 @@ test('il foglio di stile isola i token e dichiara l’ordine dei layer', () => {
       `manca il ruolo semantico --${role}`,
     );
   }
+
+  // The strong surface has one vocabulary, and none of it is named after the
+  // closing band that first reads it.
+  assert.doesNotMatch(
+    tokens,
+    /--band(?:-[a-z-]+)?\s*:/,
+    'la palette conserva ruoli intitolati alla banda che chiude la pagina',
+  );
 
   const typeSteps = ['--step--1', '--step-0', '--step-1', '--step-2'];
   for (const step of typeSteps) {
@@ -1163,22 +1172,47 @@ test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', ()
 
   const css = stripCssComments(servedStylesheet());
   const tokens = layerBlock(css, 'tokens');
-  assert.match(tokens, /--band:\s*var\(--bordeaux\)\s*;/, 'la banda non è bordeaux');
-  assert.match(tokens, /--band-ink:\s*var\(--cream\)\s*;/, 'il testo della banda non è crema');
   assert.match(
     tokens,
-    /--band-ink-muted:\s*var\(--gold-light\)\s*;/,
-    'il testo secondario della banda non è oro chiaro',
+    /--strong:\s*var\(--bordeaux\)\s*;/,
+    'la superficie forte non è bordeaux',
+  );
+  assert.match(
+    tokens,
+    /--strong-ink:\s*var\(--cream\)\s*;/,
+    'il testo della superficie forte non è crema',
+  );
+  assert.match(
+    tokens,
+    /--strong-ink-muted:\s*var\(--gold-light\)\s*;/,
+    'il testo secondario della superficie forte non è oro chiaro',
+  );
+  assert.match(
+    tokens,
+    /--strong-rule:\s*var\(--gold-light\)\s*;/,
+    'la riga della superficie forte non è oro chiaro',
   );
   assert.equal(
-    (css.match(/background(?:-color)?:\s*var\(--band\)/g) ?? []).length,
+    (css.match(/background(?:-color)?:\s*var\(--strong\)/g) ?? []).length,
     1,
-    'la banda bordeaux non è l’unica superficie scura della pagina',
+    'la superficie forte non appare una volta sola: la data non è ancora una seconda superficie',
   );
   assert.match(
     css,
-    /\.band\s*\{[^}]*background:\s*var\(--band\)/s,
-    'la banda non dichiara il fondo bordeaux',
+    /\.band\s*\{[^}]*background:\s*var\(--strong\)/s,
+    'la banda non dichiara il fondo della superficie forte',
+  );
+  assert.match(
+    css,
+    /\.band\s*\{[^}]*color:\s*var\(--strong-ink\)/s,
+    'la banda non dichiara il testo della superficie forte',
+  );
+  // The band reads the strong-surface vocabulary, never a raw colour and
+  // never a role named after itself.
+  assert.doesNotMatch(
+    css,
+    /var\(--band(?:-[a-z-]+)?\)/,
+    'un componente legge ancora un ruolo intitolato alla banda',
   );
   assert.doesNotMatch(
     css,
@@ -1186,18 +1220,19 @@ test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', ()
     'il foglio di stile introduce una seconda presentazione',
   );
 
-  // Text on bordeaux is measured, not assumed: both tones clear AA on the band.
+  // Text on bordeaux is measured, not assumed: both tones clear AA on the
+  // strong surface.
   assert.ok(
     contrastRatio(paletteToken('cream'), paletteToken('bordeaux')) >= 4.5,
-    'il crema sul bordeaux non raggiunge il rapporto 4.5:1',
+    'il crema sulla superficie forte non raggiunge il rapporto 4.5:1',
   );
   assert.ok(
     contrastRatio(paletteToken('gold-light'), paletteToken('bordeaux')) >= 4.5,
-    'l’oro chiaro sul bordeaux non raggiunge il rapporto 4.5:1',
+    'l’oro chiaro sulla superficie forte non raggiunge il rapporto 4.5:1',
   );
 });
 
-test('il contrasto sul bordeaux è misurato e annotato accanto alla palette', () => {
+test('il contrasto della superficie forte è misurato e annotato accanto alla palette', () => {
   const css = servedStylesheet();
   const blocks = atRuleBlocks(css, '@layer\\s+tokens\\s*\\{');
   assert.equal(blocks.length, 1, 'manca il layer dei token');
@@ -1211,9 +1246,23 @@ test('il contrasto sul bordeaux è misurato e annotato accanto alla palette', ()
     'il contrasto non è annotato accanto alle primitive',
   );
 
+  // The note describes the surface as a whole, not the band that first
+  // consumed it: the date joins the same vocabulary.
+  assert.match(
+    note,
+    /strong surface/i,
+    'la nota non descrive la superficie forte',
+  );
+  assert.doesNotMatch(
+    note,
+    /bordeaux band/i,
+    'la nota descrive ancora la banda invece della superficie forte',
+  );
+
   // The numbers come from the served primitives, not from memory: each one is
   // recomputed here with WCAG 2.1 relative luminance and must also be written
-  // in the note next to its token. Cream carries the band's body text.
+  // in the note next to its token. The strong surface's base is the bordeaux
+  // primitive, and cream carries its body text.
   const bordeaux = paletteToken('bordeaux');
   for (const [token, expected] of [
     ['cream', '9.94'],
@@ -1226,19 +1275,19 @@ test('il contrasto sul bordeaux è misurato e annotato accanto alla palette', ()
     assert.equal(
       measured,
       expected,
-      `il contrasto misurato di --${token} sul bordeaux è ${measured}:1, non ${expected}:1`,
+      `il contrasto misurato di --${token} sulla superficie forte è ${measured}:1, non ${expected}:1`,
     );
     assert.match(
       note,
       new RegExp(`--${token}\\s[^\\n]*${expected}:1`),
-      `la nota della palette non registra --${token} a ${expected}:1 sul bordeaux`,
+      `la nota della palette non registra --${token} a ${expected}:1 sulla superficie forte`,
     );
   }
 
   assert.match(
     note,
     /bronze[^\n]*(?:mai|non|never)[^\n]*testo|bronze[^\n]*2\.09:1[^\n]*(?:mai|non|never)/i,
-    'la nota non avverte che il bronzo non regge il testo sul bordeaux',
+    'la nota non avverte che il bronzo non regge il testo sulla superficie forte',
   );
 
   const cream = Number(
@@ -1246,7 +1295,7 @@ test('il contrasto sul bordeaux è misurato e annotato accanto alla palette', ()
   );
   assert.ok(
     cream >= 4.5,
-    `il crema sul bordeaux è annotato a ${cream}:1, sotto il minimo di 4.5:1`,
+    `il crema sulla superficie forte è annotato a ${cream}:1, sotto il minimo di 4.5:1`,
   );
 });
 
