@@ -343,7 +343,7 @@
 
   .date-time dd {
     font-family: var(--serif);
-    font-size: 1.25rem;
+    font-size: var(--step-0);
     font-variant-numeric: lining-nums tabular-nums;
   }
 
