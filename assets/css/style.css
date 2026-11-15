@@ -125,7 +125,11 @@
     --measure: 84rem;
     --gutter-phone: 24px;
     --gutter: clamp(28px, 5.5vw, 96px);
-    /* The page's inline padding: the spread and the band share this one home. */
+    /*
+     * The page's inline padding: the distance from the viewport edge to the
+     * content. The photograph and the date give it back at both edges to
+     * bleed, then pad their content in by it again.
+     */
     --page-pad: var(--gutter-phone);
     --column-gap: clamp(1.25rem, 2vw, 2rem);
 
@@ -209,9 +213,12 @@
 
 @layer layout {
   /*
-   * Phone first: one left-aligned column with 24 px gutters. The measure is
-   * the page itself — 84 rem, centred, with the gutters inside it — so the
-   * photograph can run to the measure at every width.
+   * Phone first: the page uses its width. The signature fills the measure, the
+   * date is a full-width field, the facts pair and the actions stack, and the
+   * photograph bleeds past the 24 px gutters to the viewport edges. The
+   * measure is the page itself — 84 rem, centred, with the gutters inside it.
+   * At 48 rem the spread becomes the twelve-column grid and the photograph
+   * returns to the measure.
    */
   .spread {
     display: grid;
