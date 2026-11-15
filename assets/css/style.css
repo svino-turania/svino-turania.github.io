@@ -296,7 +296,7 @@
     margin-block-start: var(--space-6);
     margin-inline: calc(-1 * var(--page-pad));
     padding-inline: var(--page-pad);
-    padding-block: var(--space-6);
+    padding-block: var(--space-4);
     /* At 200% text zoom the date shrinks inside its grid area and its words
      * wrap there, instead of forcing the page to scroll sideways. */
     min-inline-size: 0;
