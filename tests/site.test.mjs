@@ -127,6 +127,29 @@ function layerBlock(css, name, source = servedStylesheet()) {
   return clean.slice(blocks[0].start, blocks[0].end + 1);
 }
 
+/* The body's rule: the cream ground the page is painted on. */
+function bodyRule(css = servedStylesheet()) {
+  const clean = stripCssComments(css);
+  const rule = clean.match(/(?:^|})\s*body\s*\{([^}]*)\}/s);
+  assert.ok(rule, 'manca la regola del corpo');
+  return rule[1];
+}
+
+/* One token's declared value, as the stylesheet ships it. */
+function tokenValue(name, css = servedStylesheet()) {
+  const tokens = layerBlock(css, 'tokens');
+  const match = tokens.match(new RegExp(`--${name}\\s*:\\s*([^;]+);`));
+  assert.ok(match, `manca il token --${name}`);
+  return match[1].trim();
+}
+
+/* The inline SVG behind a data URI token, decoded to the markup a browser reads. */
+function inlineSvg(value) {
+  const uri = value.match(/^url\("(data:image\/svg\+xml,([^"]+))"\)$/s);
+  assert.ok(uri, 'il valore non è un data URI SVG in linea');
+  return decodeURIComponent(uri[2]);
+}
+
 /*
  * The page has one base composition and one desktop composition at 64 rem.
  * No 48 rem override may return, and the 64 rem block is the only threshold:
@@ -1145,6 +1168,155 @@ test('la pagina è la carta: nessun pannello, nessuna ombra, nessun foglio', () 
     css,
     /body\s*\{[^}]*background:\s*var\(--surface\)/s,
     'la superficie del corpo non è la carta di crema',
+  );
+});
+
+test('la carta del corpo posa la grana come un tassello SVG in linea', () => {
+  const css = stripCssComments(servedStylesheet());
+  const body = bodyRule(css);
+  const grain = tokenValue('grain-image', css);
+
+  /*
+   * The cream surface is declared first and stays; the grain is an image
+   * layer added after it, because the shorthand resets the layer list.
+   */
+  const surface = body.indexOf('background: var(--surface)');
+  const image = body.indexOf('background-image: var(--grain-image)');
+  assert.ok(surface >= 0, 'il corpo perde la carta di crema');
+  assert.ok(
+    image > surface,
+    'la grana sostituisce la carta invece di posarsi sopra',
+  );
+
+  // Inline turbulence, tiled from its own square and stitched at the seam.
+  const svg = inlineSvg(grain);
+  assert.match(
+    svg,
+    /<feTurbulence\b[^>]*type=['"]fractalNoise['"]/,
+    'la grana non è rumore frattale',
+  );
+  assert.match(
+    svg,
+    /<feTurbulence\b[^>]*stitchTiles=['"]stitch['"]/,
+    'la grana non è cucita: il tassello ripete la cucitura',
+  );
+  const tile = svg.match(
+    /<svg\b[^>]*width=['"](\d+)['"][^>]*height=['"](\d+)['"]/,
+  );
+  assert.ok(tile, 'il tassello della grana non dichiara la propria misura');
+  assert.equal(tile[1], tile[2], 'il tassello della grana non è quadrato');
+  assert.ok(
+    Number(tile[1]) >= 128,
+    `il tassello della grana è troppo piccolo: ${tile[1]} px`,
+  );
+  // The grain is the first background layer, so its repeat value comes
+  // first; later ground layers may extend the list.
+  const repeat = body.match(/background-repeat:\s*([^;]+);/)?.[1].trim() ?? '';
+  assert.match(
+    repeat,
+    /^repeat(?:\s*,|$)/,
+    `la grana non è il primo strato a tasselli: ${repeat}`,
+  );
+});
+
+test('la grana è neutra e non attinge alla palette', () => {
+  const css = stripCssComments(servedStylesheet());
+  const svg = inlineSvg(tokenValue('grain-image', css));
+
+  // The noise is reduced to a neutral scale before it is laid down.
+  assert.match(
+    svg,
+    /<feColorMatrix\b/,
+    'la grana conserva i canali di colore del rumore',
+  );
+  assert.doesNotMatch(
+    svg,
+    /#[0-9a-fA-F]{3,8}\b/,
+    'la grana dichiara un colore invece di restare neutra',
+  );
+  assert.doesNotMatch(
+    svg,
+    /var\(--[a-z-]+\)/,
+    'la grana legge un ruolo della palette',
+  );
+  assert.doesNotMatch(
+    svg,
+    /(?:--|#)(?:bordeaux|cream|gold|bronze)/i,
+    'la grana nomina una primitiva della palette',
+  );
+});
+
+test('l’opacità della grana vive in un token semantico sotto il tetto di 0.03', () => {
+  const css = stripCssComments(servedStylesheet());
+  const opacity = tokenValue('grain-opacity', css);
+
+  // A bare number in the tokens layer, not a colour and not a magic decimal
+  // buried in the base rule.
+  assert.match(
+    opacity,
+    /^(?:0(?:\.\d+)?|1(?:\.0+)?)$/,
+    `l’opacità della grana non è un numero: ${opacity}`,
+  );
+  const value = Number(opacity);
+  assert.ok(value > 0, 'la grana non è visibile');
+  assert.ok(
+    value <= 0.03,
+    `la grana supera il tetto concordato di 0.03: ${value}`,
+  );
+
+  // The inline SVG cannot read this document's custom properties, so the
+  // shipped tile repeats the value; the contract is that the two agree.
+  const svg = inlineSvg(tokenValue('grain-image', css));
+  const embedded = svg.match(/\bopacity=['"]([0-9.]+)['"]/);
+  assert.ok(embedded, 'il tassello della grana non dichiara la propria opacità');
+  assert.equal(
+    Number(embedded[1]),
+    value,
+    `la grana spedita (${embedded[1]}) non segue il token (${value})`,
+  );
+});
+
+test('il fondo non aggiunge un file, una richiesta o un movimento', () => {
+  const css = stripCssComments(servedStylesheet());
+  const body = bodyRule(css);
+  const grain = tokenValue('grain-image', css);
+  const svg = inlineSvg(grain);
+
+  // The ground is inline: the only image is the data URI, and the SVG's own
+  // references stay inside the tile.
+  assert.match(
+    grain,
+    /^url\("data:image\/svg\+xml,/,
+    'la grana non è un data URI: è un file da caricare',
+  );
+  assert.doesNotMatch(
+    svg,
+    /<(?:animate|animateTransform|animateMotion|set)\b/,
+    'il tassello della grana contiene un movimento',
+  );
+  assert.doesNotMatch(
+    svg,
+    /url\((?!#)/,
+    'il tassello della grana richiede una risorsa fuori da sé',
+  );
+  for (const file of shippedFiles()) {
+    assert.doesNotMatch(
+      file,
+      /(?:grain|noise|paper|texture|fibre|fiber)/i,
+      `la grana aggiunge un file: ${file}`,
+    );
+  }
+
+  // Still and flat: the ground adds no motion, shadow or rounding to the page.
+  assert.doesNotMatch(
+    body,
+    /\b(?:animation|transition|transform|will-change|box-shadow|border-radius)\s*:/,
+    'il fondo del corpo aggiunge movimento o un pannello',
+  );
+  assert.doesNotMatch(
+    css,
+    /@keyframes\s+(?:grain|ground|paper|noise)\b/i,
+    'il fondo ha una sequenza di fotogrammi',
   );
 });
 
