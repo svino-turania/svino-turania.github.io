@@ -12,8 +12,12 @@ const SITE = ROOT;
 const SITE_ORIGIN = 'https://svino-turania.github.io';
 const MAP_ORIGIN = 'https://www.google.com';
 
-// The photograph's slot: the label panel's content width, not the viewport.
-const PHOTO_SIZES = '(min-width: 46rem) 39.5rem, calc(100vw - 4.5rem)';
+// The photograph's slot: the 84 rem spread measure less its inline padding.
+// Above 84 rem the page is capped at 84 rem and the gutters are 5.5vw a side;
+// between 48 and 84 rem the page is the viewport less the same gutters; on
+// phone the gutters are 24px.
+const PHOTO_SIZES =
+  '(min-width: 84rem) calc(84rem - 2 * min(5.5vw, 96px)), (min-width: 48rem) calc(100vw - 11vw), calc(100vw - 48px)';
 
 const CANTINA_PARAGRAPH =
   "Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva, con il bicchiere in mano. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio. Questa pagina sarà aggiornata con tutte le novità dell'evento. Il programma e gli aggiornamenti arriveranno qui presto. Vi aspettiamo.";
@@ -71,12 +75,39 @@ function paletteToken(name) {
   return source[1].toLowerCase();
 }
 
+function stripCssComments(css) {
+  return css.replace(/\/\*[\s\S]*?\*\//g, '');
+}
+
+/* The declarations of one named cascade layer, braces included. */
+function layerBlock(css, name, source = servedStylesheet()) {
+  const clean = stripCssComments(source);
+  const blocks = atRuleBlocks(clean, `@layer\\s+${name}\\s*\\{`);
+  assert.equal(blocks.length, 1, `manca il layer ${name} nel foglio di stile`);
+  return clean.slice(blocks[0].start, blocks[0].end + 1);
+}
+
 function rgb(hexColour) {
   return {
     r: Number.parseInt(hexColour.slice(1, 3), 16),
     g: Number.parseInt(hexColour.slice(3, 5), 16),
     b: Number.parseInt(hexColour.slice(5, 7), 16),
   };
+}
+
+/* WCAG 2.1 relative-luminance contrast, computed from the served primitives. */
+function contrastRatio(foreground, background) {
+  const channel = (value) => {
+    const c = value / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = (hex) => {
+    const { r, g, b } = rgb(hex);
+    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+  };
+  const lighter = Math.max(luminance(foreground), luminance(background));
+  const darker = Math.min(luminance(foreground), luminance(background));
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 /*
@@ -477,89 +508,54 @@ test('il link alla mappa porta a Turania (RI) e si apre in un nuovo contesto sic
   assert.ok(rel.includes('noreferrer'), 'il link alla mappa non ha rel="noreferrer"');
 });
 
-test('il download della Locandina è un’immagine dello stesso sito con tipo dichiarato', () => {
+test('la Locandina si scarica da un solo link nella banda che chiude la pagina', () => {
   const document = loadSite();
-  const rail = document.querySelector('aside[aria-label="Informazioni"]');
-  const footer = document.querySelector('footer');
-  assert.ok(rail, 'manca il rail dei fatti');
-  assert.ok(footer, 'manca il footer della pagina');
+  const band = document.querySelector('footer.band');
+  assert.ok(band, 'manca la banda bordeaux che chiude la pagina');
 
   const downloads = [...document.querySelectorAll('a[download]')];
   assert.equal(
     downloads.length,
-    2,
-    'la pagina deve offrire un link per scaricare la Locandina nel rail e uno nel footer',
+    1,
+    'la pagina deve offrire un solo link per scaricare la Locandina',
   );
 
-  const railLink = rail.querySelector('a[download]');
-  const footerLink = footer.querySelector('a[download]');
-  assert.ok(railLink, 'manca il link della Locandina nel rail dei fatti');
-  assert.ok(footerLink, 'manca il link della Locandina nel footer');
+  const link = downloads[0];
+  assert.ok(
+    band.contains(link),
+    'il link della Locandina non è dentro la banda che chiude la pagina',
+  );
+  assert.ok(
+    !document.querySelector('.site-footer .locandina-download'),
+    'la vecchia copia del download è ancora nella pagina',
+  );
 
-  const railName = accessibleName(document, railLink);
-  const footerName = accessibleName(document, footerLink);
-  assert.ok(
-    railName.length > 0,
-    'il link della Locandina nel rail non ha testo discernibile',
-  );
-  assert.ok(
-    footerName.length > 0,
-    'il link della Locandina nel footer non ha testo discernibile',
-  );
-  assert.equal(
-    railName,
-    footerName,
-    'i due link della Locandina non hanno lo stesso nome discernibile',
-  );
+  const name = accessibleName(document, link);
   assert.match(
-    railName,
+    name,
     /Scarica la Locandina/i,
     'il link non dice che scarica la Locandina',
   );
 
-  // On phone and tablet the footer reads map link, download, colophon.
-  const mapLink = footer.querySelector('a[href*="google.com/maps"]');
-  assert.ok(mapLink, 'manca il link alla mappa nel footer');
-  const footerLinks = [...footer.querySelectorAll('a[href]')];
-  assert.ok(
-    footerLinks.indexOf(footerLink) > footerLinks.indexOf(mapLink),
-    'il download nel footer non segue il link alla mappa',
+  assert.notEqual(
+    link.getAttribute('download'),
+    null,
+    'il link della Locandina non ha l’attributo download',
   );
+  const href = link.getAttribute('href');
+  assert.ok(href, 'il link della Locandina non ha un href');
 
-  const railHref = railLink.getAttribute('href');
-  const footerHref = footerLink.getAttribute('href');
-  assert.ok(railHref, 'il link della Locandina nel rail non ha un href');
-  assert.ok(footerHref, 'il link della Locandina nel footer non ha un href');
-
-  const railFile = siteFileFor(railHref);
-  const footerFile = siteFileFor(footerHref);
-  assert.equal(
-    decodeURIComponent(railFile.url.pathname),
-    decodeURIComponent(footerFile.url.pathname),
-    'i due download non puntano allo stesso file',
-  );
-
-  const extension = extname(decodeURIComponent(railFile.url.pathname)).toLowerCase();
+  const { file, url } = siteFileFor(href);
+  const extension = extname(decodeURIComponent(url.pathname)).toLowerCase();
   const expectedType = IMAGE_TYPE_BY_EXTENSION.get(extension);
   assert.ok(expectedType, `il download non è un’immagine web: ${extension}`);
+  assert.equal(
+    link.getAttribute('type'),
+    expectedType,
+    'il tipo dichiarato dal link non corrisponde all’estensione del file',
+  );
 
-  for (const [where, link] of [
-    ['rail', railLink],
-    ['footer', footerLink],
-  ]) {
-    assert.notEqual(
-      link.getAttribute('download'),
-      null,
-      `il link della Locandina nel ${where} non ha l’attributo download`,
-    );
-    assert.equal(
-      link.getAttribute('type'),
-      expectedType,
-      `il tipo dichiarato dal link nel ${where} non corrisponde all’estensione del file`,
-    );
-  }
-
-  const bytes = readFileSync(railFile.file);
+  const bytes = readFileSync(file);
   assert.ok(bytes.length > 0, 'il file scaricabile è vuoto');
 
   const image = jpegFrame(bytes);
@@ -571,6 +567,15 @@ test('il download della Locandina è un’immagine dello stesso sito con tipo di
     image.components,
     4,
     'il download è un’immagine CMYK, non una copia RGB per il web',
+  );
+
+  // The label duplicated the link and hid one copy by composition. The spread
+  // has one anchor, so no download may be display:none at any width.
+  const css = stripCssComments(servedStylesheet());
+  assert.doesNotMatch(
+    css,
+    /locandina-download[^{}]*\{[^}]*display\s*:\s*none/s,
+    'un link della Locandina è ancora nascosto per composizione',
   );
 });
 
@@ -864,12 +869,12 @@ test('la pagina è indicizzabile e dichiarata in italiano', () => {
   }
 });
 
-test('le sezioni compaiono nell’ordine della Locandina', () => {
+test('la pagina si legge dalla firma e chiude sulla banda', () => {
   const document = loadSite();
   const text = normalize(document.body.textContent);
-  // The strip's time precedes the prose; the facts follow it; the map link and
-  // the colophon close the page. "sVino — II EDIZIONE" names the colophon
-  // without matching the signature's lockup earlier in the page.
+  // Brand first: the signature, then its subtitle, the date, the prose, and one
+  // closing band in the order facts, map, download, colophon. There is one
+  // download in the page, so the old desktop-before-phone order cannot hold.
   const order = [
     'sVino',
     'Per le cantine di Turania',
@@ -878,8 +883,8 @@ test('le sezioni compaiono nell’ordine della Locandina', () => {
     'Per la seconda edizione',
     'DOVE',
     'A CURA DI',
-    'Scarica la Locandina',
     'mappa',
+    'Scarica la Locandina',
     'sVino — II EDIZIONE',
   ];
 
@@ -890,6 +895,293 @@ test('le sezioni compaiono nell’ordine della Locandina', () => {
     assert.ok(index > previous, `"${token}" è fuori ordine`);
     previous = index;
   }
+});
+
+test('la pagina è la carta: nessun pannello, nessuna ombra, nessun foglio', () => {
+  const document = loadSite();
+  const css = stripCssComments(servedStylesheet());
+
+  assert.ok(
+    !document.querySelector('.sheet'),
+    'la pagina contiene ancora il pannello .sheet',
+  );
+  assert.ok(
+    !document.querySelector('.page'),
+    'la pagina contiene ancora il contenitore .page',
+  );
+  assert.doesNotMatch(css, /\.sheet\b/, 'il foglio di stile conserva .sheet');
+  assert.doesNotMatch(css, /\.page\b/, 'il foglio di stile conserva .page');
+  assert.doesNotMatch(
+    css,
+    /box-shadow/i,
+    'la pagina usa un’ombra: un pannello flottante è ancora presente',
+  );
+  assert.match(
+    css,
+    /body\s*\{[^}]*background:\s*var\(--surface\)/s,
+    'la superficie del corpo non è la carta di crema',
+  );
+});
+
+test('il foglio di stile isola i token e dichiara l’ordine dei layer', () => {
+  const css = servedStylesheet();
+  const clean = stripCssComments(css);
+
+  assert.match(
+    clean,
+    /@layer\s+tokens\s*,\s*base\s*,\s*layout\s*,\s*components\s*,\s*motion\s*;/,
+    'l’ordine dei layer non è dichiarato',
+  );
+
+  const tokens = layerBlock(css, 'tokens');
+  for (const primitive of [
+    'bordeaux',
+    'cream',
+    'cream-light',
+    'gold',
+    'gold-light',
+    'bronze',
+  ]) {
+    assert.match(
+      tokens,
+      new RegExp(`--${primitive}\\s*:\\s*#[0-9a-fA-F]{6}\\s*;`),
+      `manca la primitiva --${primitive}`,
+    );
+  }
+
+  for (const role of [
+    'surface',
+    'ink',
+    'ink-muted',
+    'rule',
+    'link',
+    'band',
+    'band-ink',
+    'band-ink-muted',
+  ]) {
+    assert.match(
+      tokens,
+      new RegExp(`--${role}\\s*:\\s*var\\(--[a-z-]+\\)\\s*;`),
+      `manca il ruolo semantico --${role}`,
+    );
+  }
+
+  const typeSteps = ['--step--1', '--step-0', '--step-1', '--step-2', '--step-3'];
+  for (const step of typeSteps) {
+    const value = tokens.match(new RegExp(`${step}\\s*:\\s*([^;]+);`))?.[1] ?? '';
+    assert.match(value, /clamp\(/, `la scala tipografica ${step} non è fluida`);
+  }
+
+  for (let step = 1; step <= 8; step += 1) {
+    const value = tokens.match(new RegExp(`--space-${step}\\s*:\\s*([^;]+);`))?.[1] ?? '';
+    assert.match(value, /clamp\(/, `la spaziatura --space-${step} non è fluida`);
+  }
+
+  for (const token of ['ink', 'rule', 'date', 'quick', 'settle', 'scroll']) {
+    assert.match(
+      tokens,
+      new RegExp(`--motion-${token}\\s*:\\s*[^;]+;`),
+      `manca il token --motion-${token}`,
+    );
+  }
+
+  // No raw hex outside the primitive block: the semantic layer is the only
+  // channel a component may read colour through.
+  const outside = clean.replace(tokens, '');
+  assert.doesNotMatch(
+    outside,
+    /#[0-9a-fA-F]{3,8}\b/,
+    'una regola fuori dal blocco delle primitive usa un colore esadecimale',
+  );
+});
+
+test('la griglia è la misura larga scelta: 84 rem, dodici colonne, margini generosi', () => {
+  const css = servedStylesheet();
+  const clean = stripCssComments(css);
+  const tokens = layerBlock(css, 'tokens');
+
+  assert.match(tokens, /--measure:\s*84rem\s*;/, 'la misura della pagina non è 84 rem');
+  assert.match(
+    tokens,
+    /--column-gap:\s*clamp\(1\.25rem,\s*2vw,\s*2rem\)\s*;/,
+    'la distanza fra le colonne non è quella scelta',
+  );
+  assert.match(
+    tokens,
+    /--signature-size:\s*clamp\(13rem,\s*50vw,\s*26rem\)\s*;/,
+    'la firma non ha la misura scelta',
+  );
+  assert.match(
+    tokens,
+    /--date-numeral:\s*clamp\(4\.25rem,\s*10vw,\s*8\.5rem\)\s*;/,
+    'il numero del giorno non ha la misura scelta',
+  );
+  assert.match(
+    tokens,
+    /--photo-rise:\s*clamp\(4rem,\s*7vw,\s*7rem\)\s*;/,
+    'la fotografia non ha il margine scelto',
+  );
+
+  assert.match(
+    clean,
+    /\.spread\s*\{[^}]*grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\)/s,
+    'la pagina non è una griglia di dodici colonne',
+  );
+  assert.match(
+    clean,
+    /\.masthead\s*\{[^}]*grid-column:\s*1\s*\/\s*span\s*8/s,
+    'la testata non occupa le colonne 1–8',
+  );
+  assert.match(
+    clean,
+    /\.date\s*\{[^}]*grid-column:\s*9\s*\/\s*-1[^}]*align-self:\s*end/s,
+    'la data non è appoggiata alle colonne 9–12',
+  );
+  assert.match(
+    clean,
+    /\.photo-band\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/s,
+    'la fotografia non attraversa la griglia',
+  );
+  assert.match(
+    clean,
+    /\.photo-band\s*\{[^}]*margin-block-start:\s*var\(--photo-rise\)/s,
+    'la fotografia non ha il margine della griglia',
+  );
+  assert.match(
+    clean,
+    /\.cantina\s*\{[^}]*grid-column:\s*1\s*\/\s*span\s*8/s,
+    'la prosa non è collocata nelle colonne 1–8',
+  );
+  assert.match(
+    clean,
+    /\.cantina\s*\{[^}]*max-inline-size:\s*36rem/s,
+    'la prosa non ha una misura di lettura',
+  );
+  assert.match(
+    clean,
+    /@media\s*\(min-width:\s*48rem\)/,
+    'manca il punto di rottura della griglia a 48 rem',
+  );
+});
+
+test('il telefono è una colonna con 24 px di gutter', () => {
+  const css = servedStylesheet();
+  const clean = stripCssComments(css);
+  const tokens = layerBlock(css, 'tokens');
+
+  assert.match(tokens, /--gutter-phone:\s*24px\s*;/, 'il gutter del telefono non è 24 px');
+  assert.match(
+    clean,
+    /\.spread\s*\{[^}]*grid-template-columns:\s*1fr/s,
+    'sotto 48 rem la pagina non è una colonna',
+  );
+  assert.match(
+    clean,
+    /\.spread\s*\{[^}]*padding-inline:\s*var\(--gutter-phone\)/s,
+    'sotto 48 rem la pagina non usa il gutter del telefono',
+  );
+  assert.doesNotMatch(
+    clean,
+    /\bwidth:\s*100vw/,
+    'la pagina usa 100vw, che può produrre scorrimento orizzontale',
+  );
+});
+
+test('la testata apre la pagina: firma grande a sinistra e sottotitolo sotto', () => {
+  const document = loadSite();
+  const spread = document.querySelector('main.spread');
+  assert.ok(spread, 'manca la griglia della pagina');
+
+  const header = spread.firstElementChild;
+  assert.equal(header?.tagName, 'HEADER', 'la testata non apre la pagina');
+  assert.equal(
+    header.getAttribute('class'),
+    'masthead',
+    'il primo blocco della pagina non è la testata',
+  );
+
+  const h1 = header.querySelector('h1');
+  assert.ok(h1, 'manca il titolo principale nella testata');
+  const signature = h1.querySelector('svg.signature[role="img"]');
+  assert.ok(signature, 'la firma non è nella testata');
+  const subtitle = header.querySelector('.subtitle');
+  assert.ok(subtitle, 'manca il sottotitolo sotto la firma');
+
+  const elements = [...document.querySelectorAll('*')];
+  assert.ok(
+    elements.indexOf(signature) < elements.indexOf(subtitle),
+    'il sottotitolo non segue la firma',
+  );
+
+  const date = document.querySelector('section.date');
+  assert.ok(date, 'manca la data');
+  assert.ok(
+    elements.indexOf(header) < elements.indexOf(date),
+    'la data non segue la testata',
+  );
+});
+
+test('una sola banda bordeaux chiude la pagina con fatti, azioni e colophon', () => {
+  const document = loadSite();
+  const bands = [...document.querySelectorAll('.band')];
+  assert.equal(bands.length, 1, 'la pagina non ha una sola banda');
+
+  const band = bands[0];
+  assert.equal(band.tagName, 'FOOTER', 'la banda non chiude la pagina');
+  const text = normalize(band.textContent);
+  for (const fact of [
+    'DOVE',
+    'A CURA DI',
+    'Turania (RI)',
+    'Comitato Feste Turania',
+  ]) {
+    assert.ok(text.includes(fact), `la banda non riporta "${fact}"`);
+  }
+  assert.ok(
+    band.querySelector('a[href*="google.com/maps"]'),
+    'la banda non contiene il link alla mappa',
+  );
+  assert.ok(band.querySelector('a[download]'), 'la banda non contiene il download');
+  assert.match(
+    normalize(band.querySelector('.colophon')?.textContent ?? ''),
+    /sVino — II EDIZIONE/,
+    'la banda non chiude con il colophon',
+  );
+
+  const css = stripCssComments(servedStylesheet());
+  const tokens = layerBlock(css, 'tokens');
+  assert.match(tokens, /--band:\s*var\(--bordeaux\)\s*;/, 'la banda non è bordeaux');
+  assert.match(tokens, /--band-ink:\s*var\(--cream\)\s*;/, 'il testo della banda non è crema');
+  assert.match(
+    tokens,
+    /--band-ink-muted:\s*var\(--gold-light\)\s*;/,
+    'il testo secondario della banda non è oro chiaro',
+  );
+  assert.equal(
+    (css.match(/background(?:-color)?:\s*var\(--band\)/g) ?? []).length,
+    1,
+    'la banda bordeaux non è l’unica superficie scura della pagina',
+  );
+  assert.match(
+    css,
+    /\.band\s*\{[^}]*background:\s*var\(--band\)/s,
+    'la banda non dichiara il fondo bordeaux',
+  );
+  assert.doesNotMatch(
+    css,
+    /prefers-color-scheme/,
+    'il foglio di stile introduce una seconda presentazione',
+  );
+
+  // Text on bordeaux is measured, not assumed: both tones clear AA on the band.
+  assert.ok(
+    contrastRatio(paletteToken('cream'), paletteToken('bordeaux')) >= 4.5,
+    'il crema sul bordeaux non raggiunge il rapporto 4.5:1',
+  );
+  assert.ok(
+    contrastRatio(paletteToken('gold-light'), paletteToken('bordeaux')) >= 4.5,
+    'l’oro chiaro sul bordeaux non raggiunge il rapporto 4.5:1',
+  );
 });
 
 test('la pagina non carica JavaScript né risorse di terze parti', () => {
@@ -986,21 +1278,21 @@ test('la pagina non promette nulla che il comitato non abbia deciso', () => {
   }
 });
 
-test('la fotografia della Cantina segue la data ed è dentro il pannello', () => {
+test('la fotografia segue la data e precede la prosa nella griglia', () => {
   const document = loadSite();
   const header = document.querySelector('header');
   const picture = document.querySelector('picture');
   const photo = picture?.querySelector('img');
   const date = document.querySelector('section[aria-label="Data e ora"]');
   const prose = document.querySelector('.cantina');
-  const panel = document.querySelector('.sheet');
+  const spread = document.querySelector('main.spread');
 
   assert.ok(header, 'manca la testata della pagina');
   assert.ok(picture, 'la fotografia non è servita dentro un elemento picture');
   assert.ok(photo, 'manca la fotografia');
   assert.ok(date, 'manca il blocco della data');
   assert.ok(prose, 'manca la prosa delle Cantine');
-  assert.ok(panel, 'manca il pannello della pagina');
+  assert.ok(spread, 'manca la griglia della pagina');
 
   const elements = [...document.querySelectorAll('*')];
   const headerAt = elements.indexOf(header);
@@ -1011,8 +1303,8 @@ test('la fotografia della Cantina segue la data ed è dentro il pannello', () =>
   assert.ok(dateAt < photoAt, 'la fotografia non segue la data');
   assert.ok(photoAt < proseAt, 'la fotografia non precede la prosa');
   assert.ok(
-    [...panel.querySelectorAll('img')].includes(photo),
-    'la fotografia non è dentro il pannello della pagina',
+    spread.contains(photo),
+    'la fotografia non è dentro la griglia della pagina',
   );
 
   const alt = normalize(photo.getAttribute('alt') ?? '');
@@ -1048,7 +1340,7 @@ test('la fotografia della Cantina segue la data ed è dentro il pannello', () =>
   assert.ok(webpBytes.length > 0, 'il WebP della fotografia è vuoto');
 });
 
-test('la fotografia offre una sorgente di almeno 2048 px per gli schermi larghi', () => {
+test('la fotografia offre una sorgente di almeno 2048 px e dichiara la misura della griglia', () => {
   const document = loadSite();
   const picture = document.querySelector('picture');
   const photo = picture?.querySelector('img');
@@ -1098,12 +1390,12 @@ test('la fotografia offre una sorgente di almeno 2048 px per gli schermi larghi'
   assert.equal(
     webp.getAttribute('sizes'),
     PHOTO_SIZES,
-    'la sorgente non dichiara la misura del pannello',
+    'la sorgente non dichiara la misura della griglia',
   );
   assert.equal(
     photo.getAttribute('sizes'),
     PHOTO_SIZES,
-    'il ripiego non dichiara la misura del pannello',
+    'il ripiego non dichiara la misura della griglia',
   );
 
   assert.deepEqual(
@@ -1132,30 +1424,41 @@ test('il sito non spedisce alcuna immagine di strappo', () => {
   );
 });
 
-test('lo strappo è vettoriale e misurato sulla larghezza del pannello', () => {
-  const css = servedStylesheet();
+test('la fotografia tiene la banda 303:191 e un solo strappo in basso', () => {
+  const css = stripCssComments(servedStylesheet());
 
   assert.match(
     css,
-    /\.photo-band\s*\{[^}]*container-type:\s*inline-size/s,
-    'la fotografia non è un contenitore di larghezza: lo strappo non ha riferimento',
+    /\.photo-frame\s*\{[^}]*aspect-ratio:\s*303\s*\/\s*191/s,
+    'la fotografia non tiene la banda 303:191 della stampa',
   );
 
-  const rule = css.match(
-    /\.photo-frame\s*\{[^}]*?clip-path:\s*(polygon\(.*?\));/s,
+  const rules = [...css.matchAll(/clip-path:\s*(polygon\([^;]+\))\s*;/g)];
+  assert.equal(rules.length, 1, 'la fotografia non ha esattamente uno strappo');
+  const polygon = rules[0][1];
+  const points = [...polygon.matchAll(/(-?[\d.]+%)\s+(-?[\d.]+%|calc\([^)]+\))/g)].map(
+    ([, x, y]) => ({ x, y }),
   );
-  assert.ok(rule, 'manca lo strappo vettoriale sul pannello');
+  assert.ok(points.length > 10, 'lo strappo non è abbastanza fine per una carta');
 
-  assert.match(
-    rule[1],
-    /cqw/,
-    'lo strappo non è espresso contro la larghezza del pannello',
-  );
-  assert.doesNotMatch(
-    rule[1],
-    /\dvw\b/,
-    'lo strappo usa ancora la larghezza del viewport',
-  );
+  assert.equal(points[0].x, '0%', 'lo strappo non parte dall’angolo in alto a sinistra');
+  assert.equal(points[0].y, '0%', 'il bordo superiore non è dritto');
+  assert.equal(points[1].x, '100%', 'il bordo superiore non arriva a destra');
+  assert.equal(points[1].y, '0%', 'il bordo superiore non è dritto');
+
+  // Exactly one edge is torn: every point after the two top corners sits on the
+  // lower edge, whose vertical coordinate is a calc() against the band width.
+  for (const point of points.slice(2)) {
+    assert.match(
+      point.y,
+      /calc\(100%\s*-/,
+      'un punto dello strappo non è sul bordo inferiore',
+    );
+    assert.ok(
+      Number.parseFloat(point.x) >= 0 && Number.parseFloat(point.x) <= 100,
+      'lo strappo esce dalla larghezza della banda',
+    );
+  }
 });
 
 test('la testata riporta la firma come tracciato inline con nome accessibile e il lockup come testo', () => {
