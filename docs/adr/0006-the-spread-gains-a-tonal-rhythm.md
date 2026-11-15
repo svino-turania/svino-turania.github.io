@@ -66,8 +66,9 @@ the comment map the Comitato edits by.
 - **The block is a colour field, not a panel.** ADR-0004 rejected a floating
   panel; sharp edges flush to the measure's column edge keep this a printed
   colour block. No shadow, and `box-shadow` stays banned.
-- **README changes with the implementation.** *Composition* and *Motion* are
-  rewritten as the shipped page, as ADR-0005 established.
+- **README changes with the implementation.** *Composition* is rewritten as
+  the shipped page, as ADR-0005 established. *Motion* is unchanged apart from
+  the record it names.
 
 ## Considered options
 
