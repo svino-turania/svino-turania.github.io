@@ -72,8 +72,10 @@ column with 24 px gutters and a full-width photograph.
 The date keeps the print's vertical lockup: the tracked weekday, the day
 numeral at display scale, the month beneath, the time under `DALLE ORE`. The
 photograph keeps the exact 303:191 print crop and exactly one torn lower edge,
-the boundary between the photographic section and the prose. The tear is a
-vector polygon expressed against the photograph band's own width (`cqw`, with
+the boundary between the photographic section and the prose. The Cantina prose
+is set directly under that torn edge: the tear is the boundary between the
+photograph and the prose, so no extra separation is inserted between them. The
+tear is a vector polygon expressed against the photograph band's own width (`cqw`, with
 `container-type: inline-size` on `.photo-band`), so the measure cannot compress
 its teeth. No raster tear is shipped.
 
@@ -244,29 +246,37 @@ against `datetime`, the map destination, the declared language, headings and
 link names, the absence of JavaScript and third-party hosts, and the content
 policy.
 
-The suite also asserts the spread's contracts: `main.spread` is a twelve-column
-grid with a measure of 84 rem and the masthead in columns 1–8; the date is a
-left-aligned vertical lockup in columns 9–12 with one home for `DALLE ORE`; the
-photograph spans the grid, keeps the 303:191 band and has exactly one torn edge
-measured in `cqw` against the photograph band (`container-type: inline-size` on
-`.photo-band`), with no raster tear shipped; the prose is in columns 1–8 at most
-36 rem wide; the phone is one column with 24 px gutters; and one bordeaux band is
-the page's only dark surface, carrying `DOVE`, `A CURA DI`, the map link, the
-single Locandina download and the colophon. The one download is present at every
-width and the stylesheet contains no rule that hides content. The time, place,
-organiser and the `DALLE ORE`, `DOVE`, `A CURA DI` labels each occur exactly once
-in the visible body text; the map link opens `Turania (RI)` on Google Maps in a
-new context with `noopener noreferrer` and its text need not repeat the place;
-and the reading order is brand first. The suite also measures cream and
-gold-light on bordeaux and records the ratios beside the palette, pins the
-favicon's path data to the inline signature path, and asserts the two actions
-are typographic rules with arrows rather than buttons. The motion rules are
-asserted as well: no looping animation, every animation inside
-`prefers-reduced-motion: no-preference` and taking its duration from a motion
-token, every `view()` timeline behind `@supports`, the hero free of scroll
-reveals, the prose and facts revealed, and the band's actions never faded. The
-layout itself is verified by rendering at 320, 390, 768, 1024, 1440 and 1920 and
-at 200% text zoom, not by asserting the stylesheet.
+The suite also asserts the spread's contracts. The date is one `<time>` lockup
+with `datetime="2026-12-06"`, its printed parts in DOM order (day, weekday,
+month), and a `dl.date-time` directly after it holding `DALLE ORE` and an
+`HH:MM` value: the time has one home. The photograph keeps the 303:191 band and
+has exactly one torn edge measured in `cqw` against the photograph band
+(`container-type: inline-size` on `.photo-band`), with no raster tear shipped.
+One bordeaux band is the page's only dark surface, carrying `DOVE`, `A CURA DI`,
+the map link, the single Locandina download and the colophon; the stylesheet
+declares no dark-mode block. The suite measures cream and gold-light on bordeaux
+and records the ratios beside the palette, and pins the favicon's path data to
+the inline signature path.
+
+The Locandina is one `a[download]`, inside `footer.band`, with an `href`,
+`download`, `type` and a discernible name, pointing at a file that exists and is
+a readable RGB JPEG; no rule that styles the band or its actions hides it. The
+time, place, organiser and the `DALLE ORE`, `DOVE`, `A CURA DI` labels each occur
+exactly once in the visible body text; the map link opens `Turania (RI)` on
+Google Maps in a new context with `noopener noreferrer` and its text need not
+repeat the place; and the reading order is brand first. The two actions are
+typographic rules, not buttons; each carries exactly one `aria-hidden` arrow
+that is absent from the name computed from the markup.
+
+The stylesheet keeps its own maintainability contracts: the layer order, the
+token isolation (no raw hex outside the tokens layer), and the primitives and
+semantic roles the composition reads. The motion rules are asserted as well: no
+looping animation, every animation inside `prefers-reduced-motion:
+no-preference`, every animation and transition duration taken from a
+`--motion-*` token, every `view()` timeline behind `@supports`, the hero free of
+scroll reveals, the prose and facts revealed, and the band's actions never
+faded. The layout itself is verified by rendering at 320, 390, 768, 1024, 1440
+and 1920 and at 200% text zoom, not by asserting the stylesheet.
 
 The label's contracts were replaced by these spread contracts, and each
 replacement is named in the commit that replaced it.

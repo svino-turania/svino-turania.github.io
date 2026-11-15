@@ -30,7 +30,7 @@ The page is an editorial spread.
 - The page is the paper, not a sheet floating on a ground.
 - A wide grid, about 84 rem, with generous margins and asymmetric placement;
   type is left-aligned throughout. (The prototype in #34 fixed the measure at
-  84 rem; the shape of the decision, not the number, is what this record holds.)
+  84 rem, so the record and the code agree.)
 - The date keeps its vertical numeral — weekday above, the day at display
   scale, the month beneath, the time under `DALLE ORE`.
 - The photograph spans the grid, keeps the print crop and keeps its single torn
