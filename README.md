@@ -69,6 +69,15 @@ at its foot, inside the content shell, in cream on a bordeaux scrim. The order
 is the cover, the date, the Cantina photograph, the Cantina prose and one
 closing bordeaux band.
 
+The cream ground is paper (ADR-0011). The body keeps `--surface` as its
+background colour and lays two image layers over it: a fine, neutral grain
+tiled from an inline 240 px SVG `data:` URI at 0.03 opacity, and one continuous
+vertical field that holds near `--cream-light` behind the date, settles to
+`--surface` through the prose and deepens slightly toward the closing band. The
+field's lightest ground is `#e9dec9` (luminance 0.7391) and its darkest
+`#e3d6bc` (0.6816), a 5.75-point delta under the 6% cap; bordeaux reads 9.69:1
+and 8.99:1 on the two ends. The grain adds no file, no request and no motion.
+
 Sections run to the viewport's edges and inset their own content with one
 computed value, `--shell-pad: max(var(--gutter), calc((100% - var(--shell)) /
 2))`. The shell is 76 rem and the gutter is fluid (`clamp(1.25rem, 4vw,
