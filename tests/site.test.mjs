@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
 import { inflateSync } from 'node:zlib';
 import { parseHTML } from 'linkedom';
@@ -1789,6 +1789,124 @@ test('la pagina non carica JavaScript né risorse di terze parti', () => {
   }
 });
 
+/*
+ * First of the three narrow guards. It states the no-JavaScript contract on
+ * its own so that the blanket third-party assertion can be removed without
+ * silently dropping it: no script element, no inline handler, no shipped .js.
+ */
+test('la pagina fa a meno di JavaScript: nessuno script, nessun gestore inline, nessun file .js', () => {
+  const document = loadSite();
+  assert.equal(
+    document.querySelectorAll('script').length,
+    0,
+    'la pagina contiene un elemento script',
+  );
+
+  for (const element of document.querySelectorAll('*')) {
+    for (const attribute of element.getAttributeNames()) {
+      assert.ok(
+        !attribute.startsWith('on'),
+        `attributo JavaScript inline: ${attribute}`,
+      );
+    }
+  }
+
+  const scripts = shippedFiles().filter((file) => /\.js$/i.test(file));
+  assert.deepEqual(
+    scripts,
+    [],
+    `il sito spedisce file JavaScript: ${scripts.join(', ')}`,
+  );
+});
+
+/*
+ * Second of the three narrow guards: a documented denylist of hosts that
+ * ship analytics, advertising or session recording. Entries are hostnames,
+ * and a subdomain matches its entry, so the map's google.com destination
+ * stays allowed while google-analytics.com does not. A match anywhere in the
+ * page, the stylesheet or a shipped asset fails the suite.
+ */
+const TRACKER_HOSTS = Object.freeze([
+  // Analytics
+  'google-analytics.com',
+  'googletagmanager.com',
+  'googlesyndication.com',
+  'googleadservices.com',
+  'matomo.cloud',
+  'plausible.io',
+  'segment.com',
+  'segment.io',
+  'mixpanel.com',
+  'amplitude.com',
+  'heap.io',
+  'heapanalytics.com',
+  'statcounter.com',
+  'chartbeat.com',
+  'parsely.com',
+  'quantserve.com',
+  'scorecardresearch.com',
+  'mc.yandex.ru',
+  'bat.bing.com',
+  'analytics.tiktok.com',
+  // Advertising and social pixels
+  'doubleclick.net',
+  'adservice.google.com',
+  'connect.facebook.net',
+  'ads.linkedin.com',
+  'ads.twitter.com',
+  'static.ads-twitter.com',
+  'criteo.com',
+  'criteo.net',
+  'taboola.com',
+  'outbrain.com',
+  'adroll.com',
+  // Session recording and behaviour analytics
+  'hotjar.com',
+  'fullstory.com',
+  'clarity.ms',
+  'smartlook.com',
+  'logrocket.com',
+  'mouseflow.com',
+  'inspectlet.com',
+  'crazyegg.com',
+  'luckyorange.com',
+]);
+
+/*
+ * Every hostname-looking token in the text, so the denylist is matched on
+ * host boundaries instead of on bare substrings.
+ */
+function hostTokens(text) {
+  return text.match(/[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}/gi) ?? [];
+}
+
+function deniedTrackerHost(text) {
+  for (const token of hostTokens(text)) {
+    const host = token.toLowerCase().replace(/\.$/, '');
+    const denied = TRACKER_HOSTS.find(
+      (entry) => host === entry || host.endsWith(`.${entry}`),
+    );
+    if (denied) {
+      return { host, denied };
+    }
+  }
+  return null;
+}
+
+test('nessun host di tracciamento, pubblicità o registrazione sessione compare nel sito', () => {
+  const files = shippedFiles().filter((file) =>
+    statSync(join(SITE, file)).isFile(),
+  );
+  for (const file of files) {
+    const text = readFileSync(join(SITE, file), 'utf8');
+    const hit = deniedTrackerHost(text);
+    assert.ok(
+      !hit,
+      `${file} nomina un host in denylist: ${hit?.host ?? ''}`,
+    );
+  }
+});
+
 test('la pagina non promette nulla che il comitato non abbia deciso', () => {
   const document = loadSite();
   const text = wholeDocumentText(document);
@@ -2458,6 +2576,72 @@ test('i font auto-ospitati sono WOFF2 dello stesso sito', () => {
   }
 
   assert.doesNotMatch(css, /https?:\/\//i, 'il CSS richiama un host esterno');
+});
+
+/*
+ * Third of the three narrow guards. It keeps the unlicensed demo font out of
+ * the site and every font request on the origin: no Breathing file, no
+ * shipped signature file, no Google Fonts host, no url(http...) in the
+ * stylesheet, and every @font-face resolving to a local WOFF2.
+ */
+test('il font Breathing, la firma spedita e i font fuori sede restano fuori dal sito', () => {
+  const files = shippedFiles().filter((file) =>
+    statSync(join(SITE, file)).isFile(),
+  );
+  assert.deepEqual(
+    files.filter((file) => /breathing/i.test(file)),
+    [],
+    'il sito distribuisce il font Breathing',
+  );
+  assert.deepEqual(
+    files.filter((file) => /signature/i.test(file)),
+    [],
+    'la firma è distribuita come file separato invece che inline',
+  );
+
+  const fontFiles = files.filter((file) => /\.(?:woff2?|ttf|otf)$/i.test(file));
+  for (const file of fontFiles) {
+    assert.match(
+      file,
+      /(?:^|\/)assets\/fonts\/(?:SVSerif|SVSans)-(?:Regular|Bold)\.woff2$/,
+      `il sito contiene un font non ammesso: ${file}`,
+    );
+  }
+
+  const html = readFileSync(join(SITE, 'index.html'), 'utf8');
+  assert.doesNotMatch(
+    html,
+    /breathing|fonts\.(?:googleapis|gstatic)\.com|@font-face/i,
+    'la pagina richiede o nomina un font esterno',
+  );
+
+  const css = servedStylesheet();
+  const faces = [...css.matchAll(/@font-face\s*\{([^}]*)\}/gi)].map(
+    (match) => match[1],
+  );
+  assert.ok(faces.length > 0, 'il foglio di stile non dichiara facce @font-face');
+
+  for (const face of faces) {
+    const source = face.match(/src\s*:\s*url\(\s*["']?([^"')]+)["']?\s*\)/i);
+    assert.ok(source, `una faccia @font-face non dichiara un src: ${face}`);
+    const url = source[1].trim();
+    assert.match(url, /\.woff2$/i, `il font non è un WOFF2 locale: ${url}`);
+    assert.ok(
+      !/^(?:[a-z]+:)?\/\//i.test(url) && !url.startsWith('/'),
+      `il font è richiesto fuori sede: ${url}`,
+    );
+  }
+
+  assert.doesNotMatch(
+    css,
+    /fonts\.(?:googleapis|gstatic)\.com/i,
+    'il foglio di stile nomina Google Fonts',
+  );
+  assert.doesNotMatch(
+    css,
+    /url\(\s*['"]?https?:\/\//i,
+    'il foglio di stile richiede un font da un host esterno',
+  );
 });
 
 test('la licenza dei font è la OFL 1.1 completa e nomina i titolari dei diritti', () => {
