@@ -22,7 +22,9 @@
 /*
  * Identity type, self-hosted. SV Serif and SV Sans are the OFL subsets of
  * Lora and Lato renamed for the Reserved Font Name condition; the licence
- * ships beside them as OFL-1.1.txt. No request leaves the origin.
+ * ships beside them as OFL-1.1.txt. These are the only fonts the page
+ * requests, and they are served from this origin: the font guard in the suite
+ * fails on any font fetched from outside it.
  */
 @font-face {
   font-family: "SV Serif";
