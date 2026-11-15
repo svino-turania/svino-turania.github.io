@@ -301,8 +301,14 @@ looping animation, every animation inside `prefers-reduced-motion:
 no-preference`, every animation and transition duration taken from a
 `--motion-*` token, every `view()` timeline behind `@supports`, the hero free of
 scroll reveals, the prose and facts revealed, and the band's actions never
-faded. The layout itself is verified by rendering at 320, 390, 768, 1024, 1440
-and 1920 and at 200% text zoom, not by asserting the stylesheet.
+faded.
+
+The suite asserts what a visitor observes and the CSS contracts the stylesheet
+declares for geometry: the photograph's bleed and its measure, the date's field
+and block, the paired facts and the stacked actions. Each breakpoint has one
+home in the stylesheet — one 48 rem block and one 64 rem block — and one place
+in the suite states it. The layout itself is verified by rendering at 320, 390,
+768, 1024, 1440 and 1920 and at 200% text zoom.
 
 The label's contracts were replaced by these spread contracts, and each
 replacement is named in the commit that replaced it.
