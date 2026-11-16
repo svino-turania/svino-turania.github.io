@@ -212,15 +212,15 @@
     /*
      * Motion scale. Named for the camera and the print: the view recedes out
      * of the arch, the signature is pressed, ink is laid down, the date is
-     * set, a rule is ruled. Every animation in this file takes its duration
-     * and its delay from one of these tokens, and every one lives behind the
-     * no-preference query.
+     * set, a rule is ruled. Every animation in this file takes its duration,
+     * its delay and its easing from one of these tokens, and every one lives
+     * behind the no-preference query.
      */
     --motion-recede: 640ms;
     --motion-press: 560ms;
     --motion-ink: 260ms;
     --motion-settle: 340ms;
-    --motion-date: 420ms;
+    --motion-date: 800ms;
     --motion-quick: 240ms;
     --motion-rule: 320ms;
     /*
@@ -235,7 +235,14 @@
     --motion-after-lockup: 560ms;
     /* Placeholder duration for the view() reveals; the timeline times them. */
     --motion-scroll: 1ms;
+    /*
+     * The press arrives fast and settles; the date is set at a steady pace,
+     * so its wipe is seen rather than flashed past. A symmetrical ease-in-out
+     * reveals the band evenly instead of front-loading it the way the press
+     * curve does.
+     */
     --ease-press: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --ease-set: cubic-bezier(0.45, 0, 0.55, 1);
   }
 }
 
@@ -926,10 +933,11 @@
        * The resting clip is declared so the wipe has an explicit end state.
        * The date is set with the signature: both begin on the paper's delay, so
        * the band enters with the press instead of arriving after the subtitle.
+       * It takes its own steady easing, so the band is seen setting.
        */
       clip-path: inset(0 0 0 0);
       animation:
-        date-set var(--motion-date) var(--ease-press)
+        date-set var(--motion-date) var(--ease-set)
         var(--motion-after-paper) both;
     }
 
@@ -1026,7 +1034,9 @@
   }
 
   /* The date is set from its left edge, hairlines and all, like type being
-   * laid down; a 4 px settle was too small to see. */
+   * laid down; a 4 px settle was too small to see, and a 420 ms press-curve
+   * wipe was a flash. It takes the steady set curve over 800 ms so the band is
+   * seen being set. */
   @keyframes date-set {
     from {
       clip-path: inset(0 100% 0 0);
