@@ -1268,7 +1268,7 @@ test('la pagina si legge dalla firma e chiude sulla banda', () => {
     'DOVE',
     'A CURA DI',
     'mappa',
-    'Scarica la Locandina',
+    'Scarica la locandina',
     'sVino — II EDIZIONE',
     'Le visite sono contate senza cookie',
   ];
