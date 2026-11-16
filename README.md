@@ -333,11 +333,15 @@ processor's privacy page. The pixel is the page's only external image request.
 The suite also asserts the page's contracts. The date is one `<time>` lockup
 with `datetime="2026-12-06"`, its printed parts in DOM order (day, weekday,
 month), and a `dl.date-time` directly after it holding `DALLE ORE` and an
-`HH:MM` value: the time has one home. The grapes photograph is the cover: it
-shares the page's first row with the masthead, which sits at its foot on a
-bordeaux scrim in cream; the scrim's weakest stop is measured against the
-crop's brightest pixel — pure white — and asserted at 4.5:1. The Cantina
-photograph keeps the 303:191 band and has exactly one torn edge measured in
+`HH:MM` value: the time has one home. The label and the clock are asserted
+to share one row by construction — a flex line, not the grid's implicit
+column placement — so a browser that ignores the latter cannot drop `12:00`
+under `DALLE ORE` while the rest of the page still renders. The grapes
+photograph is the cover: it shares the page's first row with the masthead,
+which sits at its foot on a bordeaux scrim in cream; the scrim's weakest
+stop is measured against the crop's brightest pixel — pure white — and
+asserted at 4.5:1. The Cantina photograph keeps the 303:191 band and has
+exactly one torn edge measured in
 `cqw` against the photograph band (`container-type: inline-size` on
 `.photo-band`), with no raster tear shipped. The gallery follows the prose with
 four described photographs, each a JPEG/WebP pair at its native width, lazy and

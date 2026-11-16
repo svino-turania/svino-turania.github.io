@@ -677,10 +677,16 @@
    * The time is the date's one home: the printed label DALLE ORE and value,
    * on one line beneath the lockup on a phone and at the band's end from
    * 64 rem.
+   *
+   * A flex line, not `grid-auto-flow: column`. Column flow places the pair
+   * through the grid's implicit placement; an engine that ignores that
+   * declaration falls back to row flow and drops the value under its label
+   * (reported on iPhone 12 mini). Flex puts the two items on one line by
+   * construction, and at 200% text zoom they still shrink and wrap their
+   * words inside the band.
    */
   .date-time {
-    display: grid;
-    grid-auto-flow: column;
+    display: flex;
     align-items: baseline;
     justify-content: start;
     column-gap: var(--space-2);
