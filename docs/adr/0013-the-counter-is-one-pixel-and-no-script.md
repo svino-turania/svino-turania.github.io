@@ -1,7 +1,6 @@
 # The counter is one pixel and no script
 
-- **Status:** proposed — the account is created (`svino`); awaiting the
-  Comitato's approval of the notice line before merge
+- **Status:** accepted
 - **Date:** 2026-11-16
 - **Related:** ADR-0003, ADR-0010, README (*Tests*, *Content policy*),
   `tests/site.test.mjs`
@@ -58,9 +57,8 @@ page's only external request.
   the flow and makes it invisible. It sits in the colophon, the page's small
   print.
 - The colophon gains one Comitato-approved sentence naming the counter and
-  linking its privacy policy. The proposed wording is: *Le visite sono contate
+  linking its privacy policy. The approved wording is: *Le visite sono contate
   senza cookie da GoatCounter ([informativa privacy](https://www.goatcounter.com/help/privacy)).*
-  It is not published until the Comitato approves it.
 - Retention on the service is set to fourteen months: the event plus the
   agreed twelve-month window. After the event the maintainer exports the data
   as JSON, keeps the summary, and deletes the account and its data by January
@@ -103,9 +101,8 @@ and its link.
 - **The disclosure is one line, not a privacy notice.** It tells a visitor that
   a cookie-free counter is used and where the processor's policy is; it does not
   identify the controller, the legal basis or the retention period, as Article
-  13 asks. The Comitato must decide whether that is sufficient for this event,
-  or whether a fuller notice is needed. The service's policy is not the site's
-  notice.
+  13 asks. The Comitato approved this one-line disclosure; a fuller notice
+  remains a separate decision. The service's policy is not the site's notice.
 - **The colophon changes.** It gains one line and one external link, so the
   band's documented contents and its tests change with it. The link opens the
   privacy policy in a new tab with `noopener noreferrer`, like the map link.
