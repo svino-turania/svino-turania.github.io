@@ -2282,17 +2282,33 @@ test('la mappa e la Locandina sono azioni tipografiche con riga e freccia, non b
 });
 
 /*
- * First of the three narrow guards. It states the no-JavaScript contract on
- * its own so that the blanket third-party assertion can be removed without
- * silently dropping it: no script element, no inline handler, no shipped .js.
+ * First of the three narrow guards. It states the script allowance on its own
+ * so that the blanket third-party assertion can be removed without silently
+ * dropping the guarantee: exactly one script, the counter's, with no inline
+ * handler and no shipped .js.
  */
-test('la pagina fa a meno di JavaScript: nessuno script, nessun gestore inline, nessun file .js', () => {
+test('la pagina carica un solo script, il contatore, e nessun gestore inline o file .js', () => {
   const document = loadSite();
+  const scripts = [...document.querySelectorAll('script')];
   assert.equal(
-    document.querySelectorAll('script').length,
-    0,
-    'la pagina contiene un elemento script',
+    scripts.length,
+    1,
+    'la pagina contiene più di uno script, o nessuno',
   );
+
+  const script = scripts[0];
+  assert.equal(
+    script.getAttribute('src'),
+    'https://gc.zgo.at/count.js',
+    'lo script non è quello del contatore',
+  );
+  assert.equal(
+    script.getAttribute('data-goatcounter'),
+    'https://svino.goatcounter.com/count',
+    'lo script non punta al contatore',
+  );
+  assert.ok(script.hasAttribute('async'), 'lo script del contatore non è async');
+  assert.equal(script.textContent.trim(), '', 'lo script contiene codice inline');
 
   for (const element of document.querySelectorAll('*')) {
     for (const attribute of element.getAttributeNames()) {
@@ -2303,11 +2319,11 @@ test('la pagina fa a meno di JavaScript: nessuno script, nessun gestore inline, 
     }
   }
 
-  const scripts = shippedFiles().filter((file) => /\.js$/i.test(file));
+  const shipped = shippedFiles().filter((file) => /\.js$/i.test(file));
   assert.deepEqual(
-    scripts,
+    shipped,
     [],
-    `il sito spedisce file JavaScript: ${scripts.join(', ')}`,
+    `il sito spedisce file JavaScript: ${shipped.join(', ')}`,
   );
 });
 
@@ -2397,41 +2413,94 @@ test('nessun host di tracciamento, pubblicità o registrazione sessione compare 
 });
 
 /*
- * The counter is the page's one external request and its one empty-alt image.
- * It is a pixel, not a script: no JavaScript may count the visit. The test
- * pins the service, the path and the privacy attributes so the line cannot
+ * The counter is one script and one fallback pixel. The script reads the
+ * source, the region and the two clicks; the pixel in <noscript> counts a
+ * reader without JavaScript and is never rendered when scripting is on. The
+ * test pins both services and the privacy attributes so the line cannot
  * quietly become another vendor.
  */
-test('c’è un solo contatore di visite: un pixel, esterno, senza script e senza Referer', () => {
+test('c’è un solo contatore: uno script esterno e un pixel di riserva senza JavaScript', () => {
   const document = loadSite();
+
+  const scripts = [...document.querySelectorAll('script')];
+  assert.equal(scripts.length, 1, 'la pagina non ha un solo script');
+  const script = scripts[0];
+  const rawSrc = script.getAttribute('src') ?? '';
+  assert.ok(rawSrc, 'lo script del contatore non ha src');
+  const src = new URL(rawSrc);
+  assert.equal(src.protocol, 'https:', 'lo script del contatore non usa HTTPS');
+  assert.equal(
+    src.hostname,
+    'gc.zgo.at',
+    `lo script non è su gc.zgo.at: ${src.hostname}`,
+  );
+  assert.equal(src.pathname, '/count.js', 'lo script non è count.js');
+
+  const rawEndpoint = script.getAttribute('data-goatcounter') ?? '';
+  assert.ok(rawEndpoint, 'lo script non ha l’endpoint del contatore');
+  const endpoint = new URL(rawEndpoint);
+  assert.equal(endpoint.protocol, 'https:', 'il contatore non usa HTTPS');
+  assert.match(
+    endpoint.hostname,
+    /^[a-z0-9-]+\.goatcounter\.com$/,
+    `il contatore non è su GoatCounter: ${endpoint.hostname}`,
+  );
+  assert.equal(endpoint.pathname, '/count', 'il contatore non usa /count');
+  assert.ok(script.hasAttribute('async'), 'lo script del contatore non è async');
+  assert.equal(script.textContent.trim(), '', 'lo script contiene codice inline');
+  assert.equal(
+    document.body.lastElementChild,
+    script,
+    'lo script non è l’ultimo elemento del corpo',
+  );
+
   const counters = [
     ...document.querySelectorAll('img[src*="goatcounter.com/count"]'),
   ];
-  assert.equal(counters.length, 1, 'la pagina non ha un solo contatore');
+  assert.equal(counters.length, 1, 'la pagina non ha un pixel di riserva');
 
   const counter = counters[0];
+  const fallback = counter.closest('noscript');
+  assert.ok(fallback, 'il pixel di riserva non sta in noscript');
+  assert.ok(
+    document.querySelector('.colophon')?.contains(fallback),
+    'il pixel di riserva non sta nel colophon',
+  );
+
   const raw = counter.getAttribute('src') ?? '';
-  assert.ok(raw, 'il contatore non ha src');
+  assert.ok(raw, 'il pixel di riserva non ha src');
   const url = new URL(raw);
-  assert.equal(url.protocol, 'https:', 'il contatore non usa HTTPS');
+  assert.equal(url.protocol, 'https:', 'il pixel di riserva non usa HTTPS');
   assert.match(
     url.hostname,
     /^[a-z0-9-]+\.goatcounter\.com$/,
-    `il contatore non è su GoatCounter: ${url.hostname}`,
+    `il pixel di riserva non è su GoatCounter: ${url.hostname}`,
   );
-  assert.equal(url.pathname, '/count', 'il contatore non usa /count');
-  assert.equal(url.searchParams.get('p'), '/', 'il contatore non conta la pagina');
-  assert.equal(counter.getAttribute('alt'), '', 'il contatore non è decorativo');
-  assert.equal(counter.getAttribute('width'), '1', 'il contatore non è largo un pixel');
-  assert.equal(counter.getAttribute('height'), '1', 'il contatore non è alto un pixel');
+  assert.equal(url.pathname, '/count', 'il pixel di riserva non usa /count');
+  assert.equal(
+    url.searchParams.get('p'),
+    '/',
+    'il pixel di riserva non conta la pagina',
+  );
+  assert.equal(
+    counter.getAttribute('alt'),
+    '',
+    'il pixel di riserva non è decorativo',
+  );
+  assert.equal(
+    counter.getAttribute('width'),
+    '1',
+    'il pixel di riserva non è largo un pixel',
+  );
+  assert.equal(
+    counter.getAttribute('height'),
+    '1',
+    'il pixel di riserva non è alto un pixel',
+  );
   assert.equal(
     counter.getAttribute('referrerpolicy'),
     'no-referrer',
-    'il contatore può inviare il Referer',
-  );
-  assert.ok(
-    document.querySelector('.colophon')?.contains(counter),
-    'il contatore non sta nel colophon',
+    'il pixel di riserva può inviare il Referer',
   );
 
   const externalImages = [...document.querySelectorAll('img')].filter((image) =>
@@ -2445,7 +2514,29 @@ test('c’è un solo contatore di visite: un pixel, esterno, senza script e senz
   assert.equal(
     externalImages[0],
     counter,
-    'la richiesta immagine esterna non è il contatore',
+    'la richiesta immagine esterna non è il pixel di riserva',
+  );
+});
+
+test('i due link misurano il clic: la mappa e la locandina', () => {
+  const document = loadSite();
+  const clickable = [...document.querySelectorAll('[data-goatcounter-click]')];
+  assert.equal(clickable.length, 2, 'la pagina non misura esattamente due clic');
+
+  const map = document.querySelector('a[href^="https://www.google.com/maps/"]');
+  assert.ok(map, 'manca il link alla mappa');
+  assert.equal(map.getAttribute('data-goatcounter-click'), 'apri-mappa');
+  assert.equal(map.getAttribute('data-goatcounter-title'), 'Apri la mappa');
+
+  const download = document.querySelector('a[download]');
+  assert.ok(download, 'manca il link alla locandina');
+  assert.equal(
+    download.getAttribute('data-goatcounter-click'),
+    'scarica-locandina',
+  );
+  assert.equal(
+    download.getAttribute('data-goatcounter-title'),
+    'Scarica la locandina',
   );
 });
 
@@ -3424,6 +3515,10 @@ test('ogni immagine ha una descrizione testuale, salvo il contatore decorativo',
         image.getAttribute('src') ?? '',
         /^https:\/\/[a-z0-9-]+\.goatcounter\.com\/count\?/,
         'solo il contatore può avere un alt vuoto',
+      );
+      assert.ok(
+        image.closest('noscript'),
+        'solo il pixel di riserva può avere un alt vuoto',
       );
       assert.equal(image.getAttribute('width'), '1');
       assert.equal(image.getAttribute('height'), '1');
