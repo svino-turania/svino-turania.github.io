@@ -179,8 +179,8 @@ over the printed one from its left edge, and the arrow leads by 2 px, as if the
 label were picked up. The link settles 1 px while pressed. Nothing else
 responds to the pointer, because nothing else on the page is interactive.
 
-Motion is CSS only. The no-JavaScript test fails on any script, so no effect
-may depend on one. The rules are:
+Motion is CSS only. The no-JavaScript guard allows exactly one script, the
+counter, so no effect may depend on one. The rules are:
 
 - **The base style is the finished page.** Animations are added under
   `prefers-reduced-motion: no-preference`; under `reduce` the page is
@@ -321,12 +321,14 @@ runs `node --test tests/*.test.mjs`; there is no build to run first. The tests
 read `index.html`, its assets and its metadata as a visitor or link checker
 would: the printed facts and the Cantina prose verbatim, the date literals
 against `datetime`, the map destination, the declared language, headings and
-link names, the three narrow guards — no `<script>`, inline handler or shipped
-`.js`; no host on the documented tracker denylist; no font fetched from outside
-the origin — and the content policy. The visit counter is one GoatCounter pixel
-in the colophon: no script, no Referer, an empty `alt`, and a cookie-free notice
-linking the processor's privacy page; it is the page's only external image
-request.
+link names, the three narrow guards — one `<script>`, the counter's, pinned to
+GoatCounter's CDN, with no inline handler or shipped `.js`; no host on the
+documented tracker denylist; no font fetched from outside the origin — and the
+content policy. The visit counter is GoatCounter's script at the end of
+`<body>`, which reads the source domain, the region and the two clicks; the
+pixel stays in the colophon inside `<noscript>` for readers without JavaScript,
+with no Referer, an empty `alt`, and a cookie-free notice linking the
+processor's privacy page. The pixel is the page's only external image request.
 
 The suite also asserts the page's contracts. The date is one `<time>` lockup
 with `datetime="2026-12-06"`, its printed parts in DOM order (day, weekday,

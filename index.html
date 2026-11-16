@@ -272,6 +272,8 @@
               href="https://www.google.com/maps/search/?api=1&amp;query=Turania%20(RI)"
               target="_blank"
               rel="noopener noreferrer"
+              data-goatcounter-click="apri-mappa"
+              data-goatcounter-title="Apri la mappa"
             >Apri la mappa<span class="action__arrow" aria-hidden="true">→</span></a>
           </p>
 
@@ -281,6 +283,8 @@
               href="/assets/download/locandina-svino-ii-edizione.jpg"
               download
               type="image/jpeg"
+              data-goatcounter-click="scarica-locandina"
+              data-goatcounter-title="Scarica la locandina"
             >Scarica la locandina<span class="action__arrow" aria-hidden="true">→</span></a>
           </p>
         </div>
@@ -288,22 +292,30 @@
         <!-- COLOPHON: l'edizione apre il colophon; sotto, il contatore senza cookie. -->
         <div class="colophon">
           <p>sVino — II EDIZIONE</p>
-          <!-- CONTATORE: una richiesta esterna, nessun cookie e nessuno script; vedi ADR-0013. -->
+          <!-- CONTATORE: lo script conta la visita; sotto, il pixel di riserva per chi non ha JavaScript. Nessun cookie; vedi ADR-0014. -->
           <p class="colophon__counter">Le visite sono contate senza cookie da GoatCounter (<a
             href="https://www.goatcounter.com/help/privacy"
             target="_blank"
             rel="noopener noreferrer"
           >informativa privacy</a>).</p>
-          <img
-            class="counter"
-            src="https://svino.goatcounter.com/count?p=/&amp;t=sVino%20II%20EDIZIONE"
-            alt=""
-            width="1"
-            height="1"
-            referrerpolicy="no-referrer"
-          >
+          <noscript>
+            <img
+              class="counter"
+              src="https://svino.goatcounter.com/count?p=/&amp;t=sVino%20II%20EDIZIONE"
+              alt=""
+              width="1"
+              height="1"
+              referrerpolicy="no-referrer"
+            >
+          </noscript>
         </div>
       </div>
     </footer>
+    <!-- CONTATORE: GoatCounter legge la sorgente, la regione e i due clic; il pixel nel colophon copre chi non ha JavaScript. Vedi ADR-0014. -->
+    <script
+      async
+      src="https://gc.zgo.at/count.js"
+      data-goatcounter="https://svino.goatcounter.com/count"
+    ></script>
   </body>
 </html>
