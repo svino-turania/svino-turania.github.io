@@ -323,7 +323,10 @@ would: the printed facts and the Cantina prose verbatim, the date literals
 against `datetime`, the map destination, the declared language, headings and
 link names, the three narrow guards — no `<script>`, inline handler or shipped
 `.js`; no host on the documented tracker denylist; no font fetched from outside
-the origin — and the content policy.
+the origin — and the content policy. The visit counter is one GoatCounter pixel
+in the colophon: no script, no Referer, an empty `alt`, and a cookie-free notice
+linking the processor's privacy page; it is the page's only external image
+request.
 
 The suite also asserts the page's contracts. The date is one `<time>` lockup
 with `datetime="2026-12-06"`, its printed parts in DOM order (day, weekday,
@@ -338,7 +341,8 @@ photograph keeps the 303:191 band and has exactly one torn edge measured in
 four described photographs, each a JPEG/WebP pair at its native width, lazy and
 asynchronous, with no caption, no tear and no preload. The strong surface
 appears on the closing band and nowhere else; the band carries `DOVE`,
-`A CURA DI`, the map link, the single Locandina download and the colophon, and
+`A CURA DI`, the map link, the single Locandina download, the counter notice and
+the colophon, and
 the date carries the lockup and `DALLE ORE` with the time. The stylesheet declares no dark-mode block. The
 suite measures cream and gold-light on bordeaux and records the ratios beside
 the palette, and pins the favicon's path data to the inline signature path.
