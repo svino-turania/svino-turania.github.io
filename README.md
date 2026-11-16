@@ -158,8 +158,9 @@ The page opens by stepping out from under the arch, then prints itself, and it
 prints in order. The grapes photograph is the paper: it is present on the first
 frame, close to the reader, and the view recedes from it — never a fade; the
 signature is pressed in from the left like a press impression and the date is
-set with it, from its left edge, hairlines and all; then the `II EDIZIONE`
-lockup is inked and the subtitle settles. Each step follows the one before it —
+set with it, from its left edge, hairlines and all, over a long even wipe so
+the band is seen being set; then the `II EDIZIONE` lockup is inked and the
+subtitle settles. Each step follows the one before it —
 overlapping, so nothing waits on anything — and the eye has an order to follow.
 
 Below the fold, the view steps back out of the Cantina arch as it is reached —
@@ -190,15 +191,18 @@ may depend on one. The rules are:
 - **The focus indicator appears at once.** The outline is the indicator and it
   is not animated; the link's colour and rule follow the same transition as
   hover. That is not motion that delays use.
-- **Every duration and delay comes from the motion tokens** in `:root`
+- **Every duration, delay and easing comes from the motion tokens** in `:root`
   (`--motion-recede`, `--motion-press`, `--motion-ink`, `--motion-settle`,
-  `--motion-date`, `--motion-quick`, `--motion-rule`, `--motion-scroll`, and
-  the `--motion-after-*` entrance delays), not from magic numbers.
+  `--motion-date`, `--motion-quick`, `--motion-rule`, `--motion-scroll`, the
+  `--motion-after-*` entrance delays, and `--ease-press` / `--ease-set`), not
+  from magic numbers. The press curve arrives fast and settles; the set curve
+  reveals the date evenly.
 
 The entrance finishes in about 0.9 s; the signature is legible at about
-640 ms. Scroll-driven reveals (`animation-timeline: view()`) are progressive
-enhancement behind `@supports`; browsers without it, including iOS before 26,
-serve the static page with the same content.
+640 ms and the date is fully set at about 880 ms. Scroll-driven reveals
+(`animation-timeline: view()`) are progressive enhancement behind `@supports`;
+browsers without it, including iOS before 26, serve the static page with the
+same content.
 
 The signature has no stroke, so the press edge is a `clip-path` on the filled
 path, not a stroke animation. The actions' rules are pseudo-lines rather than
