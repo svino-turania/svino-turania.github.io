@@ -825,6 +825,25 @@ test('la data è una banda a tutta larghezza fra due filetti d’oro', () => {
     );
   }
 
+  // The label and the clock are one row by construction, not by the grid's
+  // implicit placement. `grid-auto-flow: column` is the one part of the
+  // construction an engine can ignore while the rest of the page still
+  // renders; when it does, row flow drops 12:00 under DALLE ORE (the iPhone
+  // 12 mini report). The browser-level check is the review harness; this
+  // assertion keeps the fragile construct from coming back.
+  const timeComponent =
+    components.match(/\.date-time\s*\{([^{}]*)\}/s)?.[1] ?? '';
+  assert.match(
+    timeComponent,
+    /display:\s*flex\s*;/,
+    'l’orario non è una riga esplicita: «DALLE ORE» e l’ora possono separarsi',
+  );
+  assert.doesNotMatch(
+    components,
+    /\.date-time\s*\{[^}]*grid-auto-flow/s,
+    'l’orario torna a dipendere dal flusso implicito della griglia',
+  );
+
   // At 200% text zoom the band's words wrap inside it and never push the page
   // sideways.
   assert.match(
