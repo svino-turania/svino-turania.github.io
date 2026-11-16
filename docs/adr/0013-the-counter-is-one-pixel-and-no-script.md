@@ -1,7 +1,7 @@
 # The counter is one pixel and no script
 
-- **Status:** proposed — awaiting the Comitato's approval of the notice line and
-  the creation of the counter's account
+- **Status:** proposed — the account is created (`svino`); awaiting the
+  Comitato's approval of the notice line before merge
 - **Date:** 2026-11-16
 - **Related:** ADR-0003, ADR-0010, README (*Tests*, *Content policy*),
   `tests/site.test.mjs`
@@ -45,12 +45,14 @@ The site counts visits with **one GoatCounter pixel and no script**. It is the
 page's only external request.
 
 - The pixel is the hosted service's counting endpoint,
-  `https://<code>.goatcounter.com/count?p=/`, loaded as a one-pixel image. `p`
-  is required by the service; the path is `/` because the site is one page.
-- It records the time, the path, the country, the browser, the operating system,
-  the language and the service's bot flag. It records no referrer, no screen
-  size, no event and no click. The Locandina download and the map link are not
-  measured.
+  `https://svino.goatcounter.com/count?p=/&t=sVino%20II%20EDIZIONE`, loaded as
+  a one-pixel image. `p` is required by the service; the path is `/` because the
+  site is one page, and `t` is the dashboard's label for it. The site code
+  `svino` is the account's, and the account belongs to the maintainer.
+- It records the time, the path, the dashboard label from `t`, the country, the
+  browser, the operating system, the language and the service's bot flag. It
+  records no referrer, no screen size, no event and no click. The Locandina
+  download and the map link are not measured.
 - The image carries `alt=""`, `width="1"`, `height="1"`,
   `referrerpolicy="no-referrer"` and a `.counter` class that takes it out of
   the flow and makes it invisible. It sits in the colophon, the page's small
@@ -120,9 +122,11 @@ and its link.
 
 - **A script tag from a free cookie-less service** (GoatCounter's own script,
   Umami, Plausible, Google Analytics). Rejected: it breaks the no-JavaScript
-  guard, which is a stated contract with its own test. It is the only complete
-  answer if referrers are wanted, so it is recorded here as the alternative to
-  choose deliberately, not to drift into.
+  guard, which is a stated contract with its own test. The GoatCounter dashboard
+  offered exactly this snippet when the account was created — a `<script>` from
+  `gc.zgo.at` — and it was declined in favour of the pixel. It is the only
+  complete answer if referrers are wanted, so it is recorded here as the
+  alternative to choose deliberately, not to drift into.
 - **Simple Analytics' no-JS pixel with UTM-tagged links.** It is the only pixel
   that reads campaign tags, because it sends the page URL as the referrer. Its
   free plan keeps only thirty days of history, likely requires a badge, and its

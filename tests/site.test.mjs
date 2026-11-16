@@ -1270,6 +1270,7 @@ test('la pagina si legge dalla firma e chiude sulla banda', () => {
     'mappa',
     'Scarica la Locandina',
     'sVino — II EDIZIONE',
+    'Le visite sono contate senza cookie',
   ];
 
   let previous = -1;
@@ -2395,6 +2396,94 @@ test('nessun host di tracciamento, pubblicità o registrazione sessione compare 
   }
 });
 
+/*
+ * The counter is the page's one external request and its one empty-alt image.
+ * It is a pixel, not a script: no JavaScript may count the visit. The test
+ * pins the service, the path and the privacy attributes so the line cannot
+ * quietly become another vendor.
+ */
+test('c’è un solo contatore di visite: un pixel, esterno, senza script e senza Referer', () => {
+  const document = loadSite();
+  const counters = [
+    ...document.querySelectorAll('img[src*="goatcounter.com/count"]'),
+  ];
+  assert.equal(counters.length, 1, 'la pagina non ha un solo contatore');
+
+  const counter = counters[0];
+  const raw = counter.getAttribute('src') ?? '';
+  assert.ok(raw, 'il contatore non ha src');
+  const url = new URL(raw);
+  assert.equal(url.protocol, 'https:', 'il contatore non usa HTTPS');
+  assert.match(
+    url.hostname,
+    /^[a-z0-9-]+\.goatcounter\.com$/,
+    `il contatore non è su GoatCounter: ${url.hostname}`,
+  );
+  assert.equal(url.pathname, '/count', 'il contatore non usa /count');
+  assert.equal(url.searchParams.get('p'), '/', 'il contatore non conta la pagina');
+  assert.equal(counter.getAttribute('alt'), '', 'il contatore non è decorativo');
+  assert.equal(counter.getAttribute('width'), '1', 'il contatore non è largo un pixel');
+  assert.equal(counter.getAttribute('height'), '1', 'il contatore non è alto un pixel');
+  assert.equal(
+    counter.getAttribute('referrerpolicy'),
+    'no-referrer',
+    'il contatore può inviare il Referer',
+  );
+  assert.ok(
+    document.querySelector('.colophon')?.contains(counter),
+    'il contatore non sta nel colophon',
+  );
+
+  const externalImages = [...document.querySelectorAll('img')].filter((image) =>
+    /^https?:\/\//i.test(image.getAttribute('src') ?? ''),
+  );
+  assert.equal(
+    externalImages.length,
+    1,
+    'la pagina fa altre richieste immagine esterne',
+  );
+  assert.equal(
+    externalImages[0],
+    counter,
+    'la richiesta immagine esterna non è il contatore',
+  );
+});
+
+test('il colophon dichiara il contatore e dove leggere l’informativa', () => {
+  const document = loadSite();
+  const line = document.querySelector('.colophon .colophon__counter');
+  assert.ok(line, 'il colophon non dichiara il contatore');
+  assert.match(
+    normalize(line.textContent),
+    /Le visite sono contate senza cookie da GoatCounter/i,
+    'la dichiarazione non dice che il contatore è senza cookie',
+  );
+  const link = line.querySelector(
+    'a[href="https://www.goatcounter.com/help/privacy"]',
+  );
+  assert.ok(link, 'la dichiarazione non linka l’informativa del contatore');
+  assert.match(
+    normalize(link.textContent),
+    /informativa/i,
+    'il link non dice che porta all’informativa',
+  );
+  const rel = (link.getAttribute('rel') ?? '').split(/\s+/);
+  assert.ok(rel.includes('noopener'), 'il link non ha rel="noopener"');
+  assert.ok(rel.includes('noreferrer'), 'il link non ha rel="noreferrer"');
+  assert.equal(
+    link.getAttribute('target'),
+    '_blank',
+    'il link non apre un nuovo contesto',
+  );
+});
+
+test('il contatore è fuori dal flusso e invisibile', () => {
+  const css = stripCssComments(servedStylesheet());
+  const rule = css.match(/\.counter\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(rule, /position:\s*absolute/, 'il contatore resta nel flusso');
+  assert.match(rule, /clip-path:\s*inset\(50%\)/, 'il contatore è visibile');
+});
+
 test('la pagina non promette nulla che il comitato non abbia deciso', () => {
   const document = loadSite();
   const text = wholeDocumentText(document);
@@ -3318,15 +3407,30 @@ test('la gerarchia dei titoli segue l’ordine visivo senza saltare livelli', ()
   );
 });
 
-test('ogni immagine ha una descrizione testuale non vuota', () => {
+test('ogni immagine ha una descrizione testuale, salvo il contatore decorativo', () => {
   const document = loadSite();
   const images = [...document.querySelectorAll('img')];
 
   assert.ok(images.length > 0, 'la pagina non contiene immagini');
   for (const image of images) {
-    const alt = normalize(image.getAttribute('alt') ?? '');
+    const alt = image.getAttribute('alt');
+    assert.notEqual(
+      alt,
+      null,
+      `immagine senza attributo alt: ${image.getAttribute('src') ?? '(senza src)'}`,
+    );
+    if (alt === '') {
+      assert.match(
+        image.getAttribute('src') ?? '',
+        /^https:\/\/[a-z0-9-]+\.goatcounter\.com\/count\?/,
+        'solo il contatore può avere un alt vuoto',
+      );
+      assert.equal(image.getAttribute('width'), '1');
+      assert.equal(image.getAttribute('height'), '1');
+      continue;
+    }
     assert.ok(
-      alt.length > 0,
+      normalize(alt).length > 0,
       `immagine senza descrizione: ${image.getAttribute('src') ?? '(senza src)'}`,
     );
   }

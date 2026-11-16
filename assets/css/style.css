@@ -872,6 +872,19 @@
   }
 
   /*
+   * The counting pixel is requested but never seen: one pixel, out of the flow
+   * and clipped to nothing. It is not a content image. Clipping, rather than
+   * opacity, keeps the page's finished-with-motion rule satisfied.
+   */
+  .counter {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    clip-path: inset(50%);
+    pointer-events: none;
+  }
+
+  /*
    * One desktop composition, from 64 rem. It sits here, after the base
    * component rules, because the cascade resolves a layer before rule order:
    * a desktop override declared in the layout layer would lose to the phone
