@@ -1,7 +1,7 @@
 # The counter is one pixel and no script
 
 - **Status:** proposed — awaiting the Comitato's approval of the notice line and
-  the account
+  the creation of the counter's account
 - **Date:** 2026-11-16
 - **Related:** ADR-0003, ADR-0010, README (*Tests*, *Content policy*),
   `tests/site.test.mjs`
@@ -57,7 +57,7 @@ page's only external request.
   print.
 - The colophon gains one Comitato-approved sentence naming the counter and
   linking its privacy policy. The proposed wording is: *Le visite sono contate
-  senza cookie da GoatCounter ([informativa privacy](https://www.goatcounter.com/privacy)).*
+  senza cookie da GoatCounter ([informativa privacy](https://www.goatcounter.com/help/privacy)).*
   It is not published until the Comitato approves it.
 - Retention on the service is set to fourteen months: the event plus the
   agreed twelve-month window. After the event the maintainer exports the data
