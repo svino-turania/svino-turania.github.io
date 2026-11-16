@@ -93,24 +93,27 @@
       <!--
         IMMAGINE DI APERTURA: occupa tutta la larghezza della pagina; la
         testata le sta sopra, in basso a sinistra, su una velatura bordeaux.
-        Il suo alt descrive ciò che si vede; è la prima immagine della pagina
-        e viene servita a due larghezze, 720 px e 1033 px, scelte dal browser.
+        Il suo alt descrive ciò che si vede. È il grappolo d'uva della
+        copertina, servito in tre misure — 768, 1152 e 1536 px di larghezza —
+        ricavate dall'ingrandimento 1536 × 2048 del grappolo; il browser sceglie
+        la misura per la larghezza del viewport, e sopra i 1536 px la ingrandisce,
+        come ADR-0012 registra.
       -->
       <figure class="hero-photo">
         <!-- DESCRIZIONE DELL'IMMAGINE DI APERTURA: l'attributo alt qui sotto. -->
         <picture>
           <source
-            srcset="/assets/img/svino-borgo-hero-720.webp 720w, /assets/img/svino-borgo-hero-1033.webp 1033w"
+            srcset="/assets/img/svino-uva-768.webp 768w, /assets/img/svino-uva-1152.webp 1152w, /assets/img/svino-uva-1536.webp 1536w"
             sizes="100vw"
             type="image/webp"
           >
           <img
-            src="/assets/img/svino-borgo-hero-720.jpg"
-            srcset="/assets/img/svino-borgo-hero-720.jpg 720w, /assets/img/svino-borgo-hero-1033.jpg 1033w"
+            src="/assets/img/svino-uva-768.jpg"
+            srcset="/assets/img/svino-uva-768.jpg 768w, /assets/img/svino-uva-1152.jpg 1152w, /assets/img/svino-uva-1536.jpg 1536w"
             sizes="100vw"
-            width="720"
-            height="900"
-            alt="Vicolo di un borgo in luce dorata: in primo piano una botte di legno con un grappolo d'uva nera, una bottiglia di vino rosso e un bicchiere colmo; dietro, case in pietra con balconi, una torre con l'orologio e il selciato del vicolo, fuori fuoco."
+            width="768"
+            height="1024"
+            alt="Primo piano di un grappolo d'uva nera: acini fitti e tondi, di un viola quasi nero, con riflessi chiari e un rametto verde tra gli acini."
             decoding="async"
             fetchpriority="high"
           >
@@ -161,6 +164,90 @@
         <p>Questa pagina sarà aggiornata con tutte le novità dell'evento. Il programma e gli aggiornamenti arriveranno qui presto. Vi aspettiamo.</p>
         <!-- CANTINA — FINE REGIONE MODIFICABILE -->
       </div>
+
+      <!--
+        GALLERIA DELLE CANTINE: le fotografie che il comitato ha aggiunto alla
+        pagina, dopo la prosa. La prima è l'unica orizzontale e occupa tutta la
+        larghezza; le tre verticali stanno in fila. Ogni alt descrive ciò che si
+        vede. Nessuna didascalia, nessuno strappo: lo strappo resta alla banda
+        della Locandina. Le immagini sono sotto la piega: si caricano quando
+        servono.
+      -->
+      <section class="gallery" aria-label="Fotografie delle cantine">
+        <figure class="gallery__frame gallery__frame--wide">
+          <!-- DESCRIZIONE: gli archi della cantina pietro. -->
+          <picture>
+            <source
+              srcset="/assets/img/svino-cantina-pietro-1195.webp"
+              type="image/webp"
+            >
+            <img
+              src="/assets/img/svino-cantina-pietro-1195.jpg"
+              width="1195"
+              height="896"
+              alt="Due archi di mattoni in una cantina sotterranea: sotto il primo, una botte di legno coricata; oltre il secondo, la parete di tufo e un'apertura illuminata da una luce calda."
+              loading="lazy"
+              decoding="async"
+            >
+          </picture>
+        </figure>
+
+        <div class="gallery__row">
+          <figure class="gallery__frame">
+            <!-- DESCRIZIONE: il corridoio della cantina vale. -->
+            <picture>
+              <source
+                srcset="/assets/img/svino-cantina-vale-896.webp"
+                type="image/webp"
+              >
+              <img
+                src="/assets/img/svino-cantina-vale-896.jpg"
+                width="896"
+                height="1195"
+                alt="Una cantina scavata nella roccia: in primo piano un torchio a vite con il cestello di doghe, a destra una passerella di tavole con damigiane e cesti, in fondo un arco buio."
+                loading="lazy"
+                decoding="async"
+              >
+            </picture>
+          </figure>
+
+          <figure class="gallery__frame">
+            <!-- DESCRIZIONE: la botte coricata sotto la volta. -->
+            <picture>
+              <source
+                srcset="/assets/img/svino-botte-896.webp"
+                type="image/webp"
+              >
+              <img
+                src="/assets/img/svino-botte-896.jpg"
+                width="896"
+                height="1195"
+                alt="Una grande botte di legno coricata sotto una volta scavata nella roccia: doghe scure cerchiate di ferro, una lampada accesa sulla parete di tufo."
+                loading="lazy"
+                decoding="async"
+              >
+            </picture>
+          </figure>
+
+          <figure class="gallery__frame">
+            <!-- DESCRIZIONE: il torchio a vite. -->
+            <picture>
+              <source
+                srcset="/assets/img/svino-torchio-896.webp"
+                type="image/webp"
+              >
+              <img
+                src="/assets/img/svino-torchio-896.jpg"
+                width="896"
+                height="1195"
+                alt="Un torchio a vite in legno e ferro: il cestello di doghe cerchiato di ferro, la vite e il volano; dietro, tini di plastica, una bilancia appesa e attrezzi della cantina."
+                loading="lazy"
+                decoding="async"
+              >
+            </picture>
+          </figure>
+        </div>
+      </section>
     </main>
 
     <footer class="band">

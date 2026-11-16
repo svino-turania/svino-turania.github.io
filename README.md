@@ -4,13 +4,14 @@ The one-page Italian site for sVino, II Edizione — 6 dicembre 2026, Turania
 (RI) — published at <https://svino-turania.github.io> from the public
 repository `svino-turania/svino-turania.github.io`.
 
-Status: the page is a cover, recorded in ADR-0009, with the opening photograph
-full-bleed and the masthead set on it in cream over a bordeaux scrim. It
+Status: the page is a cover, recorded in ADR-0009, with the grapes photograph
+full-bleed and the masthead set on it in cream over a bordeaux scrim; after the
+prose, a gallery of four cellar photographs closes the page (ADR-0012). It
 carries the Locandina's facts, the Cantina prose, the map link and one
 Locandina download. The identity (palette and type), the outlined signature
-with the `II EDIZIONE` lockup, the full-bleed opening photograph, the Cantina
-photograph with its single torn lower edge, the Open Graph and Twitter
-metadata, the square social preview, the print-derived motion and the
+with the `II EDIZIONE` lockup, the full-bleed grapes cover, the Cantina
+photograph with its single torn lower edge, the gallery, the Open Graph and
+Twitter metadata, the square social preview, the print-derived motion and the
 accessibility work are all in place. The rules below describe the system that
 work preserves.
 
@@ -63,11 +64,20 @@ and the prose falls back to one column.
 ## Composition
 
 The page is a cover: the cream ground is the page itself, with no sheet, panel,
-border or shadow. The opening photograph runs edge to edge at every width, and
-the masthead — the signature, the `II EDIZIONE` lockup and the subtitle — is set
-at its foot, inside the content shell, in cream on a bordeaux scrim. The order
-is the cover, the date, the Cantina photograph, the Cantina prose and one
-closing bordeaux band.
+border or shadow. The opening photograph — a close-up of black grapes — runs
+edge to edge at every width, and the masthead — the signature, the `II EDIZIONE`
+lockup and the subtitle — is set at its foot, inside the content shell, in cream
+on a bordeaux scrim. The order is the cover, the date, the Cantina photograph,
+the Cantina prose, the gallery of four cellar photographs and one closing
+bordeaux band.
+
+The gallery sits after the prose, on the paper, with the page's gutter: the one
+landscape photograph at the shell's width and the three portraits below it —
+three-up on the desktop shell, two-up on a tablet, and on a phone a pair with
+the last portrait closing the gallery at the row's full width. Each photograph
+keeps its native aspect ratio, with no crop, frame, shadow, radius or second
+torn edge; the tear belongs to the Cantina band alone. The frames are
+lazy-loaded, below the fold.
 
 The cream ground is paper (ADR-0011). The body keeps `--surface` as its
 background colour and lays two image layers over it: a neutral grain tiled from
@@ -139,12 +149,13 @@ organiser is under `A CURA DI`. The map link opens Google Maps for the same
 place without repeating it, and the colophon states the edition only.
 
 ADR-0009 governs the composition and supersedes ADR-0007 and ADR-0008 in part.
-ADR-0004 is superseded for both.
+ADR-0012 governs the cover photograph and the gallery. ADR-0004 is superseded
+for both.
 
 ## Motion
 
 The page opens by stepping out from under the arch, then prints itself, and it
-prints in order. The opening photograph is the paper: it is present on the first
+prints in order. The grapes photograph is the paper: it is present on the first
 frame, close to the reader, and the view recedes from it — never a fade; the
 signature is pressed in from the left like a press impression and the date is
 set with it, from its left edge, hairlines and all, over a long even wipe so
@@ -154,13 +165,14 @@ overlapping, so nothing waits on anything — and the eye has an order to follow
 
 Below the fold, the view steps back out of the Cantina arch as it is reached —
 a zoom, never a fade, inside the tear the frame cuts, so the edge never moves —
-and the prose and the facts rise as they enter the viewport. The band's two
-actions never fade; only their rules are ruled.
+and the prose and the facts rise as they enter the viewport. The four gallery
+photographs recede out of their frames the same way, so the photo essay keeps
+one vocabulary. The band's two actions never fade; only their rules are ruled.
 
-The hero — the signature, its lockup and subtitle on the opening photograph,
+The hero — the signature, its lockup and subtitle on the grapes photograph,
 and the date — is complete on the first screen and never waits for the scroll.
-Scroll-driven reveals are only for the Cantina photograph, the prose and the
-facts band.
+Scroll-driven reveals are only for the Cantina photograph, the prose, the
+gallery and the facts band.
 
 The page has two links and both respond: the ink shifts, a second rule re-inks
 over the printed one from its left edge, and the arrow leads by 2 px, as if the
@@ -316,16 +328,18 @@ the origin — and the content policy.
 The suite also asserts the page's contracts. The date is one `<time>` lockup
 with `datetime="2026-12-06"`, its printed parts in DOM order (day, weekday,
 month), and a `dl.date-time` directly after it holding `DALLE ORE` and an
-`HH:MM` value: the time has one home. The opening photograph is the cover: it
+`HH:MM` value: the time has one home. The grapes photograph is the cover: it
 shares the page's first row with the masthead, which sits at its foot on a
 bordeaux scrim in cream; the scrim's weakest stop is measured against the
-crop's brightest pixel and asserted at 4.5:1. The Cantina photograph keeps the
-303:191 band and has exactly one torn edge measured in `cqw` against the
-photograph band (`container-type: inline-size` on `.photo-band`), with no
-raster tear shipped. The strong surface appears on the closing band and
-nowhere else; the band carries `DOVE`, `A CURA DI`, the map link, the single
-Locandina download and the colophon, and the date carries the lockup and
-`DALLE ORE` with the time. The stylesheet declares no dark-mode block. The
+crop's brightest pixel — pure white — and asserted at 4.5:1. The Cantina
+photograph keeps the 303:191 band and has exactly one torn edge measured in
+`cqw` against the photograph band (`container-type: inline-size` on
+`.photo-band`), with no raster tear shipped. The gallery follows the prose with
+four described photographs, each a JPEG/WebP pair at its native width, lazy and
+asynchronous, with no caption, no tear and no preload. The strong surface
+appears on the closing band and nowhere else; the band carries `DOVE`,
+`A CURA DI`, the map link, the single Locandina download and the colophon, and
+the date carries the lockup and `DALLE ORE` with the time. The stylesheet declares no dark-mode block. The
 suite measures cream and gold-light on bordeaux and records the ratios beside
 the palette, and pins the favicon's path data to the inline signature path.
 
@@ -357,8 +371,9 @@ declares for geometry: the shell and its computed inset, the cover's shared
 first row and its scrim, the date's band on cream between two hairlines, the
 Cantina photograph's full-bleed with its tear and height cap, the paired facts
 and the stacked actions, and the one desktop composition. One assertion states
-that there is exactly one 64 rem block and no 48 rem block; the base contracts
-are read from the layout and components layers. The layout itself is verified
+that there is exactly one 64 rem block, no 48 rem block and no narrow-viewport
+override — the page has one viewport threshold — and the gallery's phone rhythm
+is asserted on its container query. The layout itself is verified
 by rendering at 320, 390, 768, 1024, 1440 and 1920 and at 200% text zoom.
 
 The label's contracts were replaced by these page contracts, and each
@@ -405,19 +420,21 @@ The print workspace at `/Users/angelo/svino` remains the source of truth for
 the identity: `SVINO_v15/sorgenti/Svino_A3_master_v15.svg` and the accompanying
 v15 print and social files define the palette, type, signature, photograph,
 tear profile and wording. The site derives from them, never the reverse, with
-one named exception: the opening photograph is the previous edition's image and
-has no counterpart on the current Locandina (ADR-0008).
+one named exception: the page-only photographs — the grapes cover and the four
+gallery photographs — have no counterpart on the current Locandina (ADR-0012).
 
 Site assets under `assets/` are derivatives, regenerated from the master — or,
-for the opening photograph, from its recorded source — rather than edited
-independently. They are:
+for the page-only photographs, from their recorded sources in
+`/Users/angelo/svino/images/page/` — rather than edited independently. They are:
 
 - the signature outline, inlined in `index.html`;
 - the tab icon and the touch icon, under `assets/icons/`, derived from that
   inline outline;
-- the photograph derivative, under `assets/img/`;
-- the opening photograph derivative, under `assets/img/` — the one page-only
-  asset, recorded in ADR-0008;
+- the Cantina photograph derivative, under `assets/img/`;
+- the grapes cover derivatives, under `assets/img/` — page-only, recorded in
+  ADR-0012;
+- the four gallery photograph derivatives, under `assets/img/` — page-only,
+  recorded in ADR-0012;
 - the square social preview image, under `assets/img/`;
 - the Locandina download, under `assets/download/`, rendered from the print
   master.
@@ -431,8 +448,9 @@ scaled — the two differ only by resampling, so the framing cannot drift betwee
 them. `images/cantina-marcello.jpeg` (1122 × 1402) is the source photograph;
 `prepare_images.py` upscales it 2×, grades it and crops it to the A3 band.
 `images/svino.jpg` (2048 × 1359) is the previous edition's photograph before
-the print crop; it must never replace the Cantina photograph, or the edges will
-disagree with the poster. It is the source of the opening photograph only.
+the print crop; it is no longer shipped — the opening photograph is the grapes
+cover — and it must never replace the Cantina photograph, or the edges will
+disagree with the poster.
 
 The page offers the crop at 2048 px for high-density screens and the 1200 px
 copy for narrow screens and slower connections, through `srcset` and the same
@@ -465,45 +483,81 @@ intrinsic 1200 × 756. Keep both variants RGB — never CMYK — and keep the tw
 widths in step: they are the same crop. The 1200 px JPEG stays the `<img>`
 fallback for browsers that read no `srcset`.
 
-### The opening photograph
+### The grapes cover
 
-The opening photograph — the borgo street with the bottle, the glass and the
-grapes — is the previous edition's photograph. It is a page-only asset: it has
-no counterpart on the current Locandina, and ADR-0008 records that exception to
-the rule that every shipped image derives from the print master.
+The opening photograph is the close-up of black grapes, a page-only asset
+(ADR-0012). Its source is `/Users/angelo/svino/images/page/uva-upscaled.jpeg`,
+1536 × 2048 RGB — the Comitato's 4× upscale of the 384 × 512 original, which
+stays beside it as `uva.jpeg`. The page ships three copies from that one file,
+768 × 1024, 1152 × 1536 and 1536 × 2048, as JPEG/WebP pairs, and names all three
+in `srcset` with `sizes="100vw"`; the browser picks by viewport width. The cover
+runs edge to edge at every width, so above 1536 px the browser upscales it
+again — 1.07× at 1440 px and 1.25× at 1920 px — and a high-density desktop
+upscales its chosen copy as well. ADR-0012 records that cost. The scrim covers
+the foot of the frame, where the masthead sits; the type is measured against
+the crop's pure-white specular highlight — still white in every shipped copy —
+not assumed.
 
-It derives from `/Users/angelo/svino/images/svino.jpg` (2048 × 1359), the
-previous edition's photograph before the print crop. The 4:5 crop is taken
-centred, 1033 × 1291, which excludes the generator's mark in the source's
-lower-right corner; do not widen the crop, or the mark ships. It must never
-replace the Cantina crop: the two are different photographs, and the Cantina
-one must keep the print's edges.
-
-The page offers it at 1033 px, the crop's native width, and at 720 px, through
-`srcset` and the same `sizes` value on both sources: `100vw`. The cover runs
-edge to edge at every width, so above 1033 px the browser upscales the native
-crop — 1.39× at 1440 px, 1.86× at 1920 px. ADR-0009 records that cost; no
-larger copy exists because the brief fixes the assets. Regenerate all four
-files with:
+Regenerate the six files with:
 
 ```sh
-# native 4:5 crop, then the two JPEG copies and their WebP twins
-magick /Users/angelo/svino/images/svino.jpg -gravity center \
-  -crop 1033x1291+0+0 +repage -strip /tmp/svino-borgo-hero.png
-magick /tmp/svino-borgo-hero.png -strip \
-  -sampling-factor 2x2,1x1,1x1 -quality 92 \
-  assets/img/svino-borgo-hero-1033.jpg
-cwebp -q 78 /tmp/svino-borgo-hero.png \
-  -o assets/img/svino-borgo-hero-1033.webp
-magick /tmp/svino-borgo-hero.png -resize 720x900! -strip \
-  -sampling-factor 2x2,1x1,1x1 -quality 92 \
-  assets/img/svino-borgo-hero-720.jpg
-cwebp -q 78 -resize 720 900 /tmp/svino-borgo-hero.png \
-  -o assets/img/svino-borgo-hero-720.webp
+for w in 768 1152 1536; do
+  h=$((w * 4 / 3))
+  magick /Users/angelo/svino/images/page/uva-upscaled.jpeg \
+    -resize "${w}x${h}" -strip -sampling-factor 2x2,1x1,1x1 -quality 92 \
+    "assets/img/svino-uva-$w.jpg"
+  cwebp -q 78 -resize "$w" "$h" \
+    /Users/angelo/svino/images/page/uva-upscaled.jpeg \
+    -o "assets/img/svino-uva-$w.webp"
+done
 ```
 
-Keep both copies RGB and in 4:5, and keep the `<img>` intrinsic 720 × 900 in
-step with the crop.
+The 768 px pair is the `<img>` fallback and sets the intrinsic size,
+768 × 1024, for browsers that read no `srcset`. Keep every copy RGB and at 3:4;
+the CSS crops the cover to 4:5 on a phone and 3:2 above 64 rem. Never ship a
+width above 1536 px: the source has no more detail, so a larger derivative
+would spend bytes without adding any.
+
+### The gallery photographs
+
+The gallery ships four page-only photographs from
+`/Users/angelo/svino/images/page/`, each at its native width and in its native
+orientation: one landscape (`cantina pietro.jpeg`, 1195 × 896) and three
+portraits (`cantina vale.jpeg`, `botte.jpeg` and `torchio.jpeg`, each
+896 × 1195). The page does not crop them; the frames keep the source ratio, so
+on the desktop shell the three portraits share a row, and below 64 rem they
+wrap two-up. On a phone the gallery's own width can no longer hold two 18 rem
+columns, so the three portraits become a pair and the last one spans the row: a
+wide lead, two supporting frames, one full-height finish, instead of four
+full-width photographs of nearly the same shape stacked on top of each other.
+That condition is asked of `.gallery`'s content box (a container query), not of
+the viewport, so the page keeps its single 64 rem threshold; a browser without
+container queries keeps the full-width column. Each photograph is served as a
+JPEG/WebP pair, lazy and asynchronous, with explicit `width` and `height` so the
+row reserves its space.
+On a 2× screen the portraits are still downscaled and the landscape is upscaled
+about 2×, because the shell is wider than its 1195 px source; that is recorded
+here rather than hidden.
+
+Regenerate the pairs with:
+
+```sh
+for pair in "cantina pietro.jpeg:svino-cantina-pietro-1195" \
+            "cantina vale.jpeg:svino-cantina-vale-896" \
+            "botte.jpeg:svino-botte-896" \
+            "torchio.jpeg:svino-torchio-896"; do
+  source="${pair%%:*}"
+  name="${pair##*:}"
+  magick "/Users/angelo/svino/images/page/$source" -strip \
+    -sampling-factor 2x2,1x1,1x1 -quality 92 "assets/img/$name.jpg"
+  cwebp -q 78 "/Users/angelo/svino/images/page/$source" \
+    -o "assets/img/$name.webp"
+done
+```
+
+Keep each file at its native size and RGB. If a source is replaced with a
+differently sized photograph, rename the derivative and update both the `<img>`
+intrinsic size and the test inventory.
 
 ### The square social preview
 

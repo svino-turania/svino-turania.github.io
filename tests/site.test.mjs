@@ -23,7 +23,42 @@ const PHOTO_ALT =
   "Interno di una cantina scavata nella roccia: soffitto e pareti di pietra grezza, una lampadina nuda appesa a un filo, damigiane di vetro anche dentro cesti di vimini, una botte coricata e un grande tino chiaro con il coperchio; un palo di legno regge la volta.";
 
 const HERO_ALT =
-  "Vicolo di un borgo in luce dorata: in primo piano una botte di legno con un grappolo d'uva nera, una bottiglia di vino rosso e un bicchiere colmo; dietro, case in pietra con balconi, una torre con l'orologio e il selciato del vicolo, fuori fuoco.";
+  "Primo piano di un grappolo d'uva nera: acini fitti e tondi, di un viola quasi nero, con riflessi chiari e un rametto verde tra gli acini.";
+
+/*
+ * The four photographs in the gallery, in page order. The landscape is the
+ * one wide frame; the three portraits follow in one row.
+ */
+const GALLERY_PHOTOS = Object.freeze([
+  {
+    src: 'assets/img/svino-cantina-pietro-1195.jpg',
+    webp: 'assets/img/svino-cantina-pietro-1195.webp',
+    width: 1195,
+    height: 896,
+    alt: "Due archi di mattoni in una cantina sotterranea: sotto il primo, una botte di legno coricata; oltre il secondo, la parete di tufo e un'apertura illuminata da una luce calda.",
+  },
+  {
+    src: 'assets/img/svino-cantina-vale-896.jpg',
+    webp: 'assets/img/svino-cantina-vale-896.webp',
+    width: 896,
+    height: 1195,
+    alt: 'Una cantina scavata nella roccia: in primo piano un torchio a vite con il cestello di doghe, a destra una passerella di tavole con damigiane e cesti, in fondo un arco buio.',
+  },
+  {
+    src: 'assets/img/svino-botte-896.jpg',
+    webp: 'assets/img/svino-botte-896.webp',
+    width: 896,
+    height: 1195,
+    alt: 'Una grande botte di legno coricata sotto una volta scavata nella roccia: doghe scure cerchiate di ferro, una lampada accesa sulla parete di tufo.',
+  },
+  {
+    src: 'assets/img/svino-torchio-896.jpg',
+    webp: 'assets/img/svino-torchio-896.webp',
+    width: 896,
+    height: 1195,
+    alt: 'Un torchio a vite in legno e ferro: il cestello di doghe cerchiato di ferro, la vite e il volano; dietro, tini di plastica, una bilancia appesa e attrezzi della cantina.',
+  },
+]);
 
 const IMAGE_TYPE_BY_EXTENSION = new Map([
   ['.jpg', 'image/jpeg'],
@@ -39,15 +74,25 @@ const SHIPPED_IMAGE_FILES = Object.freeze([
   'assets/download/locandina-svino-ii-edizione.jpg',
   'assets/icons/apple-touch-icon.png',
   'assets/icons/favicon.svg',
-  'assets/img/svino-borgo-hero-1033.jpg',
-  'assets/img/svino-borgo-hero-1033.webp',
-  'assets/img/svino-borgo-hero-720.jpg',
-  'assets/img/svino-borgo-hero-720.webp',
+  'assets/img/svino-botte-896.jpg',
+  'assets/img/svino-botte-896.webp',
   'assets/img/svino-cantina-1200.jpg',
   'assets/img/svino-cantina-1200.webp',
   'assets/img/svino-cantina-2048.jpg',
   'assets/img/svino-cantina-2048.webp',
+  'assets/img/svino-cantina-pietro-1195.jpg',
+  'assets/img/svino-cantina-pietro-1195.webp',
+  'assets/img/svino-cantina-vale-896.jpg',
+  'assets/img/svino-cantina-vale-896.webp',
   'assets/img/svino-quadrato-og.jpg',
+  'assets/img/svino-torchio-896.jpg',
+  'assets/img/svino-torchio-896.webp',
+  'assets/img/svino-uva-1152.jpg',
+  'assets/img/svino-uva-1152.webp',
+  'assets/img/svino-uva-1536.jpg',
+  'assets/img/svino-uva-1536.webp',
+  'assets/img/svino-uva-768.jpg',
+  'assets/img/svino-uva-768.webp',
 ]);
 
 function normalize(value) {
@@ -172,8 +217,11 @@ function inlineSvg(value) {
 
 /*
  * The page has one base composition and one desktop composition at 64 rem.
- * No 48 rem override may return, and the 64 rem block is the only threshold:
- * the helper is the suite's single statement of that contract.
+ * No 48 rem override may return, the 64 rem block is the only min-width
+ * threshold, and no max-width override exists at all. The gallery's phone
+ * rhythm asks the gallery's own content box instead (see the gallery test),
+ * so it adds no viewport breakpoint; the helper is the suite's single
+ * statement of that contract.
  */
 function assertDesktopComposition(css) {
   assert.equal(
@@ -185,6 +233,11 @@ function assertDesktopComposition(css) {
     atRuleBlocks(css, '@media\\s*\\(min-width:\\s*64rem\\)').length,
     1,
     'la pagina non ha una sola composizione desktop a 64 rem',
+  );
+  assert.equal(
+    atRuleBlocks(css, '@media\\s*\\([^)]*max-width').length,
+    0,
+    'la pagina aggiunge una soglia da viewport stretto: una componente chiede la propria larghezza',
   );
 }
 
@@ -2730,13 +2783,14 @@ test('l’immagine di apertura è la copertina, con la testata su una velatura b
   );
 });
 
-test('l’immagine di apertura è servita a due larghezze, descritta e in 4:5', () => {
+test('l’immagine di apertura è il grappolo, servito in tre misure e descritto', () => {
   const document = loadSite();
   const hero = document.querySelector('.hero-photo picture img');
   assert.ok(hero, 'manca l’immagine di apertura');
 
-  assert.equal(hero.getAttribute('width'), '720');
-  assert.equal(hero.getAttribute('height'), '900');
+  assert.equal(hero.getAttribute('src'), '/assets/img/svino-uva-768.jpg');
+  assert.equal(hero.getAttribute('width'), '768');
+  assert.equal(hero.getAttribute('height'), '1024');
   assert.equal(normalize(hero.getAttribute('alt') ?? ''), HERO_ALT);
   assert.ok(
     !/Turania/i.test(hero.getAttribute('alt') ?? ''),
@@ -2753,8 +2807,13 @@ test('l’immagine di apertura è servita a due larghezze, descritta e in 4:5', 
   const candidates = parseSrcset(hero.getAttribute('srcset') ?? '');
   assert.deepEqual(
     candidates.map((candidate) => candidate.width),
-    [720, 1033],
-    'l’apertura non offre le due copie',
+    [768, 1152, 1536],
+    'l’apertura non è servita nelle tre misure dell’ingrandimento',
+  );
+  assert.deepEqual(
+    parseSrcset(webp.getAttribute('srcset')).map((candidate) => candidate.width),
+    [768, 1152, 1536],
+    'le copie WebP non seguono le misure del JPEG',
   );
 
   for (const candidate of candidates) {
@@ -2768,8 +2827,8 @@ test('l’immagine di apertura è servita a due larghezze, descritta e in 4:5', 
     );
     assert.equal(frame.components, 3, 'l’apertura non è RGB');
     assert.ok(
-      Math.abs(frame.width / frame.height - 4 / 5) < 0.002,
-      'l’apertura non tiene il 4:5',
+      Math.abs(frame.width / frame.height - 3 / 4) < 0.002,
+      'l’apertura non tiene il 3:4 del grappolo',
     );
   }
 
@@ -2778,6 +2837,112 @@ test('l’immagine di apertura è servita a due larghezze, descritta e in 4:5', 
     assert.equal(bytes.subarray(0, 4).toString('ascii'), 'RIFF');
     assert.equal(bytes.subarray(8, 12).toString('ascii'), 'WEBP');
   }
+});
+
+test('la galleria chiude la pagina con quattro fotografie descritte e leggere', () => {
+  const document = loadSite();
+  const gallery = document.querySelector('.gallery');
+  const prose = document.querySelector('.cantina');
+  const band = document.querySelector('footer.band');
+  assert.ok(gallery, 'manca la galleria delle cantine');
+  assert.ok(prose, 'manca la prosa delle Cantine');
+  assert.ok(band, 'manca la banda che chiude la pagina');
+
+  const elements = [...document.querySelectorAll('*')];
+  const proseAt = elements.indexOf(prose);
+  const galleryAt = elements.indexOf(gallery);
+  const bandAt = elements.indexOf(band);
+  assert.ok(proseAt < galleryAt, 'la galleria non segue la prosa');
+  assert.ok(galleryAt < bandAt, 'la galleria non precede la banda');
+
+  // No visible copy joins the photographs: no heading, no caption.
+  assert.equal(gallery.querySelector('h2, h3, figcaption'), null);
+
+  const frames = [...gallery.querySelectorAll('figure.gallery__frame')];
+  assert.equal(frames.length, GALLERY_PHOTOS.length, 'la galleria non ha quattro fotografie');
+  const wide = frames.filter((frame) => frame.classList.contains('gallery__frame--wide'));
+  assert.equal(wide.length, 1, 'la galleria non ha una sola fotografia orizzontale');
+  assert.equal(
+    gallery.querySelectorAll('.gallery__row figure.gallery__frame').length,
+    GALLERY_PHOTOS.length - 1,
+    'le fotografie verticali non stanno tutte nella fila',
+  );
+
+  const images = frames.map((frame) => frame.querySelector('picture img'));
+  for (const [index, image] of images.entries()) {
+    const photo = GALLERY_PHOTOS[index];
+    assert.ok(image, `manca la fotografia ${photo.src}`);
+    assert.equal(
+      normalize(image.getAttribute('alt') ?? ''),
+      photo.alt,
+      `la descrizione della fotografia ${photo.src} non è quella approvata`,
+    );
+    assert.ok(
+      !/Turania/i.test(image.getAttribute('alt') ?? ''),
+      'una fotografia della galleria è presentata come un luogo reale',
+    );
+    assert.equal(image.getAttribute('width'), String(photo.width));
+    assert.equal(image.getAttribute('height'), String(photo.height));
+    assert.equal(image.getAttribute('loading'), 'lazy', 'una fotografia non è caricata sotto la piega');
+    assert.equal(image.getAttribute('decoding'), 'async', 'una fotografia non decodifica in asincrono');
+    assert.equal(image.getAttribute('fetchpriority'), null, 'una fotografia contende la priorità alla copertina');
+
+    const picture = image.closest('picture');
+    const webp = picture.querySelector('source[type="image/webp"][srcset]');
+    assert.ok(webp, `manca la sorgente WebP di ${photo.src}`);
+    assert.ok(
+      siteFileFor(webp.getAttribute('srcset')).file === siteFileFor(photo.webp).file,
+      `la sorgente WebP di ${photo.src} non è quella dichiarata`,
+    );
+
+    const jpeg = siteFileFor(image.getAttribute('src'));
+    assert.match(jpeg.url.pathname, /\.jpe?g$/i, `il ripiego di ${photo.src} non è un JPEG`);
+    const frame = jpegFrame(readFileSync(jpeg.file));
+    assert.deepEqual(
+      { width: frame.width, height: frame.height, components: frame.components },
+      { width: photo.width, height: photo.height, components: 3 },
+      `il JPEG di ${photo.src} non è RGB ${photo.width}×${photo.height}`,
+    );
+
+    const webpBytes = readFileSync(siteFileFor(photo.webp).file);
+    assert.equal(webpBytes.subarray(0, 4).toString('ascii'), 'RIFF');
+    assert.equal(webpBytes.subarray(8, 12).toString('ascii'), 'WEBP');
+  }
+
+  // The gallery adds no torn edge and no panel: only the Cantina band tears.
+  const css = stripCssComments(servedStylesheet());
+  const galleryRules = layerBlock(css, 'layout').match(/\.gallery[\s\S]*?(?=\n\s*\})/)?.[0] ?? '';
+  assert.doesNotMatch(galleryRules, /clip-path/, 'la galleria si arroga uno strappo');
+
+  // On a phone the row is a pair and the last portrait closes it at full
+  // width. The condition is the gallery's own content box, not a viewport
+  // threshold: assertDesktopComposition guards the page's breakpoints.
+  const layout = layerBlock(css, 'layout');
+  assert.match(
+    layout,
+    /\.gallery\s*\{[^}]*container-type:\s*inline-size/,
+    'la galleria non è un contenitore: la sua composizione da telefono guarderebbe il viewport',
+  );
+  const phone = atRuleBlocks(layout, '@container\\s*\\(max-width:\\s*37rem\\)');
+  assert.equal(phone.length, 1, 'la galleria non ha una composizione da telefono');
+  const phoneRules = layout.slice(phone[0].start, phone[0].end + 1);
+  assert.match(
+    phoneRules,
+    /\.gallery__row\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+    'la fila delle verticali resta a una colonna sul telefono',
+  );
+  assert.match(
+    phoneRules,
+    /\.gallery__row\s*>\s*\.gallery__frame:last-child\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/,
+    'l’ultima fotografia non chiude la galleria a piena larghezza',
+  );
+
+  const preloads = [...document.querySelectorAll('link[rel~="preload"]')];
+  assert.equal(
+    preloads.filter((link) => /svino-(?:uva|botte|cantina-vale|cantina-pietro|torchio)/.test(link.getAttribute('href') ?? '')).length,
+    0,
+    'una fotografia della galleria è precaricata',
+  );
 });
 
 test('la pagina ha una shell e una sola composizione desktop', () => {
@@ -3320,10 +3485,10 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
   }
 
   /*
-   * The page reveals only the Cantina photograph, the prose and the band as
-   * they enter the viewport. The hero — the signature, its lockup and
-   * subtitle, and the date — is present on the first screen and never waits
-   * for the scroll.
+   * The page reveals only the Cantina photograph, the prose, the gallery and
+   * the band as they enter the viewport. The hero — the signature, its lockup
+   * and subtitle, and the date — is present on the first screen and never
+   * waits for the scroll.
    */
   const reveals = viewTimelines(css);
   assert.ok(reveals.length > 0, 'manca il reveal scroll della prosa e della banda');
@@ -3343,8 +3508,8 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     );
     assert.match(
       selector,
-      /\.cantina\b|\.facts\b|\.band__actions\b|\.photo-band\b/,
-      `il reveal scroll è fuori dalla fotografia, dalla prosa e dalla banda: ${selector}`,
+      /\.cantina\b|\.facts\b|\.band__actions\b|\.photo-band\b|\.gallery__frame\b/,
+      `il reveal scroll è fuori dalla fotografia, dalla prosa, dalla galleria e dalla banda: ${selector}`,
     );
     assert.doesNotMatch(
       selector,

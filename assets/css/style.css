@@ -159,13 +159,15 @@
 
     /*
      * The cover's ink. The masthead is set on a bordeaux scrim over the
-     * opening photograph. Measured on the shipped 1033 × 1291 crop, on the
-     * brightest pixel of the band the masthead occupies — (252, 234, 217),
-     * relative luminance 0.8555 — with the scrim at 0.86 over it:
-     *   --on-photo       cream        6.90:1
-     *   --on-photo-soft  cream-light  7.37:1
-     * Gold-light, the strong surface's usual muted ink, would need a 0.92
-     * scrim to clear AA here (4.64:1) and would make the cover near opaque.
+     * opening photograph. Measured on the shipped grapes crop — the 768, 1152
+     * and 1536 px copies alike — on the brightest pixel of the band the
+     * masthead occupies: pure white, a specular highlight on the acini,
+     * relative luminance 1. With the scrim at 0.86 over it:
+     *   --on-photo       cream        6.70:1
+     *   --on-photo-soft  cream-light  7.15:1
+     * At 0.84 they read 6.29:1 and 6.72:1. Gold-light, the strong surface's
+     * usual muted ink, would need a 0.92 scrim to clear AA here (4.65:1) and
+     * would make the cover near opaque.
      */
     --on-photo: var(--cream);
     --on-photo-soft: var(--cream-light);
@@ -440,14 +442,75 @@
     padding-block: var(--space-4) var(--space-7);
   }
 
+  /*
+   * The gallery is the page's photo essay, after the prose: the one landscape
+   * photograph at the shell's width, then the three portraits in a row. The
+   * frames keep their native aspect ratios — no crop, no square grid — and sit
+   * on the paper with the page's gutter, no frame, shadow, radius or torn edge.
+   * auto-fit lets the row be three-up on the desktop shell and two-up on a
+   * tablet without a viewport threshold in the stylesheet.
+   */
+  .gallery {
+    display: grid;
+    gap: var(--space-4);
+    padding-inline: var(--shell-pad);
+    padding-block: 0 var(--space-7);
+  }
+
+  .gallery__row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: var(--space-4);
+  }
+
+  .gallery__frame {
+    margin: 0;
+    /* Cropping, not scrolling: the scroll-driven recede scales the image
+     * inside its frame, and the frame clips it without becoming a scroller. */
+    overflow: clip;
+  }
+
+  .gallery__frame img {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+  }
+
+  /*
+   * The gallery answers to its own width, not to the viewport's. Below the
+   * room for two 18 rem photographs and their 1 rem gap, auto-fit would stack
+   * the three portraits at the shell's full width: four large photographs of
+   * nearly the same shape, one under the other, and the photo essay loses the
+   * scale variation the desktop row has. There the three portraits become a
+   * pair, and the last one closes the gallery at the row's full width — a wide
+   * lead, two supporting frames, one full-height finish. The query is asked of
+   * the gallery's content box, so the page keeps its one composition and its
+   * single 64 rem threshold; a browser without container queries keeps the
+   * full-width column.
+   */
+  .gallery {
+    container-type: inline-size;
+  }
+
+  @container (max-width: 37rem) {
+    .gallery__row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gallery__row > .gallery__frame:last-child {
+      grid-column: 1 / -1;
+    }
+  }
+
 }
 
 @layer components {
   /* -------------------------------------------------------------- testata */
   /*
    * The masthead is the cover's imprint: cream on the bordeaux scrim. Both
-   * on-photo roles were measured on the crop's brightest pixel behind the
-   * masthead (see the tokens layer): cream 6.90:1, cream-light 7.37:1.
+   * on-photo roles were measured on the grapes crop's brightest pixel behind
+   * the masthead — pure white — (see the tokens layer): cream 6.70:1,
+   * cream-light 7.15:1.
    */
   .masthead {
     display: grid;
@@ -489,7 +552,8 @@
   /*
    * The opening photograph is the cover. On a phone it keeps the source's 4:5
    * and a cap; from 64 rem the desktop block widens the crop. The cap is
-   * declared twice so a browser without svh still gets the vh value.
+   * declared twice so a browser without svh still gets the vh value. The
+   * grapes fill the frame evenly, so the crop is centred at both widths.
    */
   .hero-photo img {
     inline-size: 100%;
@@ -498,14 +562,15 @@
     max-block-size: 82vh;
     max-block-size: 82svh;
     object-fit: cover;
-    object-position: 50% 42%;
+    object-position: 50% 50%;
   }
 
   /*
    * The cover's scrim. Bordeaux rises from the foot of the photograph so the
-   * masthead can be cream on it. Measured on the crop's brightest pixel in
-   * the masthead band — (252, 234, 217), relative luminance 0.8555 — at 0.86
-   * cream reads 6.90:1 and cream-light 7.37:1; at 0.84, 6.53:1 and 6.97:1.
+   * masthead can be cream on it. Measured on the shipped grapes crop's
+   * brightest pixel in the masthead band — pure white, relative luminance 1,
+   * and still white in every shipped copy — at 0.86 cream reads 6.70:1 and
+   * cream-light 7.15:1; at 0.84, 6.29:1 and 6.72:1.
    *
    * It is anchored to the masthead, not to the hero: at 1024 px the hero is
    * shorter than twice the masthead, and a hero-relative fade would leave the
@@ -817,12 +882,12 @@
     /*
      * 3:2, not a cinematic band: at 1024 px a 2.1:1 cover is shorter than
      * twice the masthead and the photograph all but disappears behind the
-     * scrim. 3:2 keeps about 44% of the source height — the street, the
-     * bottle and the glass — and leaves a third of the frame clear.
+     * scrim. 3:2 keeps the middle band of the grapes and leaves a third of
+     * the frame clear above the signature.
      */
     .hero-photo img {
       aspect-ratio: 3 / 2;
-      object-position: 50% 36%;
+      object-position: 50% 50%;
     }
 
     /*
@@ -995,6 +1060,15 @@
        * photograph is looked at. It is a zoom and not a fade: the photograph
        * is the paper, and the reader is walking out from under the arch. */
       .photo-band img {
+        animation: photograph-recede linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: cover 20% cover 60%;
+      }
+
+      /* The gallery keeps the same vocabulary: each photograph recedes out of
+       * its frame as it is reached, inside the frame's clip, so the gallery is
+       * the walk through the cellars continuing, not a second effect. */
+      .gallery__frame img {
         animation: photograph-recede linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: cover 20% cover 60%;
