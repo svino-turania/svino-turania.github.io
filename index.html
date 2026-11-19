@@ -52,12 +52,15 @@
       - Fregio del Programma: il disegno decorativo dentro la sezione; non
         porta testo e nomina solo i quattro strumenti del paragrafo
         approvato. È un segno della pagina, non della Locandina.
+      - Calice della prosa: il disegno decorativo davanti al primo paragrafo
+        delle Cantine; non porta testo e nomina il vino che il paragrafo
+        assaggia. È un segno della pagina, non della Locandina.
       - Locandina: un solo link di download, nella banda che chiude la pagina.
 
       L'ordine di lettura è: firma e sottotitolo sull'immagine di apertura
-      (in basso a sinistra), data, fotografia della cantina, prosa,
-      Programma illustrato, galleria delle cantine, banda (fatti, mappa,
-      Locandina, colophon).
+      (in basso a sinistra), data, fotografia della cantina, prosa (il calice
+      davanti al primo paragrafo), Programma illustrato, galleria delle
+      cantine, banda (fatti, mappa, Locandina, colophon).
 
       Non serve alcuna build: la pagina è servita così com'è scritta.
     -->
@@ -165,10 +168,41 @@
       </figure>
 
       <div class="cantina">
-        <!-- CANTINA — INIZIO REGIONE MODIFICABILE: la prosa approvata va qui. -->
-        <p>Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva. Lungo il percorso alcune cucinano, e ci si ferma a mangiare. Si cammina piano. Si parla con chi si incontra, e non si guarda l'orologio.</p>
-        <p>Questa pagina sarà aggiornata con tutte le novità dell'evento. Vi aspettiamo.</p>
-        <!-- CANTINA — FINE REGIONE MODIFICABILE -->
+        <!--
+          APERTURA: la prosa approvata e il suo disegno formano il primo
+          capitolo illustrato della pagina, come il Programma — il paragrafo a
+          sinistra, il calice a destra. Il calice è decorativo, aria-hidden, e
+          nomina il vino che il paragrafo assaggia: un calice da degustazione
+          con la bocca ellittica, il vino a un quarto, lo stelo corto e il piede
+          su un'unica riga di terra. Un solo tratto in --ornament, nessun
+          riempimento, nessun testo, nessuna ombra; la sua altezza è quella del
+          fregio del Programma. Il gruppo porta data-figure="calice" e il test
+          lo confronta con la parola "vino" del paragrafo approvato.
+        -->
+        <div class="apertura">
+          <svg
+            class="cantina__plate"
+            viewBox="0 18 120 149"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <line class="cantina__rule" x1="22" y1="163" x2="98" y2="163" />
+            <g data-figure="calice">
+              <ellipse cx="60" cy="28" rx="38" ry="8" />
+              <path d="M22 28 C24 62 36 88 60 96" />
+              <path d="M98 28 C96 62 84 88 60 96" />
+              <path d="M24.98 50 Q60 55 95.02 50" />
+              <path d="M60 96 L60 150" />
+              <ellipse cx="60" cy="156" rx="30" ry="7" />
+            </g>
+          </svg>
+          <div class="apertura__prose">
+            <!-- CANTINA — INIZIO REGIONE MODIFICABILE: la prosa approvata va qui. -->
+            <p>Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva. Lungo il percorso ci si ferma a mangiare, si cammina piano. Si parla con chi si incontra, e non si guarda l'orologio.</p>
+            <p>Questa pagina sarà aggiornata con tutte le novità dell'evento. Vi aspettiamo.</p>
+            <!-- CANTINA — FINE REGIONE MODIFICABILE -->
+          </div>
+        </div>
         <!--
           PROGRAMMA: i Menestrelli del Cicolano, confermati dal Comitato, nella
           prosa della pagina. L'etichetta è quella stampata; il paragrafo è il

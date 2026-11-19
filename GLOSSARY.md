@@ -33,8 +33,9 @@ prose, not the lockup.
 
 A wine cellar of the Borgo. The event happens inside the Cantine: visitors
 taste wine and move from one Cantina to the next. Some of the Cantine also
-serve food: the Comitato confirmed that in November 2026, and the page says so
-in one sentence, naming no vendor and no number of Cantine. Capitalise when
+serve food, confirmed by the Comitato in November 2026; the page prose says
+only that the walk stops to eat, naming no vendor and no number of Cantine.
+Capitalise when
 naming the event's venues as a set (`le Cantine del Borgo`); the page prose
 uses the lower-case form (`nelle cantine del borgo`). Do not infer a number of
 Cantine, a menu, a vendor, a duration or a price from the term; none of those

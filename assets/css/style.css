@@ -791,13 +791,71 @@
   }
 
   /*
+   * The opening is the prose's illustrated chapter, built like the Programma:
+   * the paragraph on the left, the glass on the right, the paragraph's lines
+   * crossing the drawing. The glass shares the plate's idiom — one tinted ink
+   * (--ornament), one stroke of 1.6 px, no fill, no frame, the foot on one
+   * short ground rule — but it is a device of its own, tied to "si assaggia il
+   * vino", not a mark of the page or the Locandina. It is decorative and
+   * carries no text; the suite keeps the two drawings on the same idiom.
+   */
+  .apertura {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "stage";
+  }
+
+  .apertura__prose {
+    grid-area: stage;
+    /* The prose crosses the drawing, so it is lifted above it. */
+    position: relative;
+    z-index: 1;
+  }
+
+  .apertura__prose > p {
+    /* Two cream passes keep the glyph edge clean where a line crosses a
+     * stroke; on the paper they are the ground's own colour. */
+    text-shadow:
+      0 0 2px var(--surface),
+      0 0 2px var(--surface),
+      var(--text-shadow);
+  }
+
+  .cantina__plate {
+    grid-area: stage;
+    justify-self: end;
+    /*
+     * The drawing is as tall as the Programma plate: its width is the 14 rem
+     * plate's height expressed in this drawing's ratio, so the two drawings
+     * match in height and share the same side at every width.
+     */
+    inline-size: calc(14rem * 376 / 358 * 120 / 149);
+    /* Dropped one spacing step, as the Programma plate is, so the opening
+     * lines sit on clean paper. */
+    margin-block-start: var(--space-7);
+    block-size: auto;
+    aspect-ratio: 120 / 149;
+    color: var(--ornament);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .cantina__plate * {
+    vector-effect: non-scaling-stroke;
+  }
+
+  /*
    * The programme continues the prose: it is the running order the Comitato
    * has confirmed, not a second band. Its heading is the print's label, in the
    * same register as DOVE and DALLE ORE — sans, the small step, bold, wide
    * tracking, muted ink — so the section reads as a caption set into the page
    * instead of a serif headline. The paragraph keeps the prose's serif and
-   * measure. On the desktop, where the prose runs in two columns, the label
-   * never closes a column alone: it stays with the paragraph it introduces.
+   * measure. The label always stays with the paragraph it introduces.
    */
   .programma {
     display: grid;
@@ -805,7 +863,6 @@
     grid-template-areas:
       "label"
       "stage";
-    break-inside: avoid;
     margin-block-start: var(--space-6);
   }
 
@@ -1025,24 +1082,45 @@
     }
 
     /*
-     * The prose uses the width. column-width, not column-count, so it folds
-     * back to one column under zoom without a second breakpoint.
+     * The prose uses the width: the cantina widens to 64 rem and the two
+     * chapters open across it.
      */
     .cantina {
       max-inline-size: 64rem;
-      columns: 22rem 2;
-      column-gap: var(--space-7);
     }
 
     /*
-     * The Programma leaves the prose columns and opens as a full-width
-     * chapter: the paragraph on the left, the plate on the right, the
-     * paragraph's last lines crossing the plate's inner rim. The plate is
-     * wider than its 24 rem track, so it overflows left; that overflow is
-     * the overlap, and max-inline-size is released for it alone.
+     * The opening opens as the Programma does: 34 rem of paragraph on the left
+     * and the plate's stage on the right. The glass is narrower than the
+     * Programma's plate by its own ratio — it is the same height, not the same
+     * width — and it overflows its track to the left, so the prose's last lines
+     * cross its inner rim.
+     */
+    .apertura {
+      grid-template-columns: minmax(0, 34rem) minmax(0, 1fr);
+      grid-template-areas: "text stage";
+    }
+
+    .apertura__prose {
+      grid-area: text;
+    }
+
+    .cantina__plate {
+      grid-area: stage;
+      justify-self: end;
+      inline-size: calc(34rem * 376 / 358 * 120 / 149);
+      margin-block-start: 0;
+      max-inline-size: none;
+    }
+
+    /*
+     * The Programma opens as a full-width chapter: the paragraph on the left,
+     * the plate on the right, the paragraph's last lines crossing the plate's
+     * inner rim. The plate is wider than its 24 rem track, so it overflows
+     * left; that overflow is the overlap, and max-inline-size is released for
+     * it alone.
      */
     .programma {
-      column-span: all;
       grid-template-columns: minmax(0, 34rem) minmax(0, 1fr);
       grid-template-areas:
         "label label"
@@ -1213,21 +1291,27 @@
       }
 
       /*
-       * The prose prints in reading order: first paragraph, second paragraph,
-       * the Programma label inked, the plate inked, then the Programma
-       * paragraph. Each is its own view() subject, so the sequence is the page
-       * being set rather than one block arriving at once.
+       * The prose prints in reading order: the glass inks, then the first
+       * paragraph, then the second; the Programma follows with its label, its
+       * plate and its paragraph. Each is its own view() subject, so the
+       * sequence is the page being set rather than one block arriving at once.
        */
-      .cantina > p:nth-of-type(1) {
-        animation: section-rise linear var(--motion-scroll) both;
+      .apertura > .cantina__plate {
+        animation: ink-in linear var(--motion-scroll) both;
         animation-timeline: view();
-        animation-range: entry 0% entry 35%;
+        animation-range: entry 0% cover 25%;
       }
 
-      .cantina > p:nth-of-type(2) {
+      .apertura__prose > p:nth-of-type(1) {
         animation: section-rise linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: entry 10% entry 45%;
+      }
+
+      .apertura__prose > p:nth-of-type(2) {
+        animation: section-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 20% entry 50%;
       }
 
       .cantina > .programma > h2 {
@@ -1249,7 +1333,7 @@
       .cantina > .programma > p {
         animation: section-rise linear var(--motion-scroll) both;
         animation-timeline: view();
-        animation-range: entry 20% entry 55%;
+        animation-range: entry 30% entry 65%;
       }
 
       /*
