@@ -11,9 +11,9 @@ carries the Locandina's facts, the Cantina prose, the confirmed Programma, the
 map link and one Locandina download. The identity (palette and type), the
 outlined signature with the `II EDIZIONE` lockup, the full-bleed grapes cover,
 the Cantina photograph with its single torn lower edge, the gallery, the Open
-Graph and Twitter metadata, the square social preview, the print-derived
-motion and the accessibility work are all in place. The rules below describe
-the system that work preserves.
+Graph and Twitter metadata, the square social preview, the print-derived motion
+— rebuilt as one scroll story in ADR-0015 — and the accessibility work are all
+in place. The rules below describe the system that work preserves.
 
 ## The site is the files it is
 
@@ -156,25 +156,32 @@ for both.
 
 ## Motion
 
-The page opens by stepping out from under the arch, then prints itself, and it
-prints in order. The grapes photograph is the paper: it is present on the first
-frame, close to the reader, and the view recedes from it — never a fade; the
-signature is pressed in from the left like a press impression and the date is
-set with it, from its left edge, hairlines and all, over a long even wipe so
-the band is seen being set; then the `II EDIZIONE` lockup is inked and the
-subtitle settles. Each step follows the one before it —
-overlapping, so nothing waits on anything — and the eye has an order to follow.
+The page moves as it is read: the press sets the page, then the reader walks
+through the cellars. It is one scroll story, in reading order.
 
-Below the fold, the view steps back out of the Cantina arch as it is reached —
-a zoom, never a fade, inside the tear the frame cuts, so the edge never moves —
-and the prose and the facts rise as they enter the viewport. The four gallery
-photographs recede out of their frames the same way, so the photo essay keeps
-one vocabulary. The band's two actions never fade; only their rules are ruled.
+The cover prints itself first. The grapes photograph is the paper: it is present
+on the first frame, close to the reader, and the view recedes from it — never a
+fade. The signature is pressed in from the left, the date is set with it from
+its left edge, hairlines and all, and the day numeral settles into the band;
+then the `II EDIZIONE` lockup is inked and the subtitle settles. Each step
+follows the one before it, overlapping, so nothing waits on anything. As the
+cover leaves, the grapes drift up and slightly in behind the fixed masthead:
+the only scroll effect on the hero, transform-only, never a fade or a reveal.
 
-The hero — the signature, its lockup and subtitle on the grapes photograph,
-and the date — is complete on the first screen and never waits for the scroll.
-Scroll-driven reveals are only for the Cantina photograph, the prose, the
-gallery and the facts band.
+Below the fold the story continues in reading order. The view steps back out of
+the Cantina arch — a zoom, never a fade, inside the tear the frame cuts, so the
+edge never moves. The prose prints itself: first paragraph, second paragraph,
+then the Programma label inked and its paragraph. The gallery recedes photo by
+photo, the lead landscape first and the three portraits left to right. The facts
+rise in sequence, DOVE then A CURA DI, without dissolving; the band is content,
+not a curtain. The two action rules draw one after the other, and the actions
+themselves never fade.
+
+The hero — the signature, its lockup and subtitle on the grapes photograph, and
+the date — is complete on the first screen and never waits for the scroll.
+Scroll-driven reveals are only for the Cantina photograph, the prose and
+Programma, the gallery and the facts band; the hero's one scroll effect is the
+grapes' drift, which never hides or fades.
 
 The page has two links and both respond: the ink shifts, a second rule re-inks
 over the printed one from its left edge, and the arrow leads by 2 px, as if the
@@ -195,22 +202,25 @@ counter, so no effect may depend on one. The rules are:
   hover. That is not motion that delays use.
 - **Every duration, delay and easing comes from the motion tokens** in `:root`
   (`--motion-recede`, `--motion-press`, `--motion-ink`, `--motion-settle`,
-  `--motion-date`, `--motion-quick`, `--motion-rule`, `--motion-scroll`, the
-  `--motion-after-*` entrance delays, and `--ease-press` / `--ease-set`), not
-  from magic numbers. The press curve arrives fast and settles; the set curve
-  reveals the date evenly.
+  `--motion-date`, `--motion-numeral`, `--motion-quick`, `--motion-rule`,
+  `--motion-scroll`, the `--motion-after-*` entrance delays, and `--ease-press`
+  / `--ease-set`), not from magic numbers. The press curve arrives fast and
+  settles; the set curve reveals the date evenly.
 
-The entrance finishes in about 0.9 s; the signature is legible at about
-640 ms and the date is fully set at about 880 ms. Scroll-driven reveals
-(`animation-timeline: view()`) are progressive enhancement behind `@supports`;
-browsers without it, including iOS before 26, serve the static page with the
-same content.
+The entrance finishes in about 0.9 s; the signature is legible at about 640 ms,
+the numeral settles by about 560 ms and the date is fully set at about 880 ms.
+Scroll-driven motion (`animation-timeline: view()`) is progressive enhancement
+behind `@supports`; browsers without it, including iOS before 26, serve the
+static page with the same content. The cover drift is timed by the view
+timeline's `exit` range, so the first screen is the neutral state; the prose,
+gallery, facts and rules carry their own staggered ranges.
 
 The signature has no stroke, so the press edge is a `clip-path` on the filled
 path, not a stroke animation. The actions' rules are pseudo-lines rather than
 borders precisely so they can be ruled; the extra 1px of padding keeps their
 rendered boxes identical. ADR-0009 records the composition the motion sits on;
-the motion itself is cheap to reverse and has no ADR.
+ADR-0015 records the scroll story, the cover drift and the stagger ranges. The
+motion itself is cheap to reverse.
 
 ## Editor workflow (Comitato)
 
@@ -388,9 +398,10 @@ both ends. The motion rules are asserted as well: no
 looping animation, every animation inside `prefers-reduced-motion:
 no-preference`, every animation and transition duration and delay taken from a
 `--motion-*` token, the entrance sequenced by the `--motion-after-*` delays,
-every `view()` timeline behind `@supports`, the hero free of scroll reveals, the
-Cantina photograph, the prose and the facts revealed, and the band's actions
-never faded.
+every `view()` timeline behind `@supports`, the hero free of scroll reveals
+except the grapes' transform-only drift, the Cantina photograph, the prose and
+Programma, the gallery and the facts revealed in reading order, and the band's
+actions never faded.
 
 The suite asserts what a visitor observes and the CSS contracts the stylesheet
 declares for geometry: the shell and its computed inset, the cover's shared

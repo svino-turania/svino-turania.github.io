@@ -1874,6 +1874,7 @@ test('il foglio di stile isola i token e dichiara l’ordine dei layer', () => {
     'ink',
     'settle',
     'date',
+    'numeral',
     'quick',
     'rule',
     'scroll',
@@ -3795,11 +3796,13 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
   }
 
   /*
-   * The page reveals only the Cantina photograph, the prose, the gallery and
-   * the band as they enter the viewport. The hero — the signature, its lockup
-   * and subtitle, and the date — is present on the first screen and never
-   * waits for the scroll.
+   * The page reveals only the Cantina photograph, the prose and Programma, the
+   * gallery and the band as they enter the viewport. The hero — the signature,
+   * its lockup and subtitle, and the date — is present on the first screen and
+   * never waits for the scroll. Its one scroll effect is the grapes' drift,
+   * which is transform-only and never hides the cover.
    */
+  const rules = stripCssComments(css);
   const reveals = viewTimelines(css);
   assert.ok(reveals.length > 0, 'manca il reveal scroll della prosa e della banda');
   assert.ok(
@@ -3810,7 +3813,12 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     reveals.some((selector) => /\.facts\b/.test(selector)),
     'i fatti non si rivelano entrando nel viewport',
   );
+
+  const HERO_DRIFT = /\.hero-photo\s+picture\b/;
   for (const selector of reveals) {
+    if (HERO_DRIFT.test(selector)) {
+      continue;
+    }
     assert.doesNotMatch(
       selector,
       /(?:\.masthead|\.signature|\.lockup|\.subtitle|\.date|\.hero-photo)\b/,
@@ -3829,6 +3837,177 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
   }
 
   /*
+   * The cover's drift is the one hero scroll effect. It rides the picture
+   * wrapper, never fades, and keeps a scale margin so the frame's edges stay
+   * covered. It is not a reveal: no opacity, no clip.
+   */
+  assert.equal(
+    reveals.filter((selector) => HERO_DRIFT.test(selector)).length,
+    1,
+    'manca la deriva dell’uva dietro la testata',
+  );
+  const driftRule =
+    rules.match(/\.hero-photo\s+picture\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(driftRule, /animation:\s*cover-drift\b/, 'la deriva non è la copertina');
+  assert.match(
+    driftRule,
+    /animation-timeline:\s*view\(\)/,
+    'la deriva non segue lo scorrimento',
+  );
+  assert.match(
+    driftRule,
+    /animation-range:\s*exit\s+0%\s+exit\s+100%/,
+    'la deriva non parte dal primo pixel di scorrimento',
+  );
+  assert.doesNotMatch(driftRule, /\bopacity\s*:/, 'l’uva sfuma invece di scorrere');
+
+  const driftKeyframes = atRuleBlocks(css, '@keyframes\\s+cover-drift\\s*\\{');
+  assert.equal(driftKeyframes.length, 1, 'manca la sequenza della deriva');
+  const driftBody = css.slice(driftKeyframes[0].start, driftKeyframes[0].end);
+  assert.doesNotMatch(driftBody, /\bopacity\s*:/, 'la deriva dell’uva è una dissolvenza');
+  assert.match(
+    driftBody,
+    /scale\(\s*1\.0[4-9]/,
+    'la deriva non tiene il margine della cornice',
+  );
+  assert.match(driftBody, /translateY\(\s*-?2%\)/, 'la deriva non scorre');
+
+  /*
+   * The date's numeral is set into the band with the rest of the press.
+   */
+  const numeralRule =
+    [...rules.matchAll(/\.date-day\s*\{([^}]*)\}/gs)]
+      .map((match) => match[1])
+      .find((body) => /numeral-set/.test(body)) ?? '';
+  assert.match(
+    numeralRule,
+    /animation:\s*numeral-set\s+var\(--motion-numeral\)/,
+    'il numero della data non si posa con un token',
+  );
+  assert.match(
+    numeralRule,
+    /var\(--motion-after-paper\)/,
+    'il numero non entra con la data',
+  );
+  const numeralKeyframes = atRuleBlocks(css, '@keyframes\\s+numeral-set\\s*\\{');
+  assert.equal(numeralKeyframes.length, 1, 'manca la posa del numero');
+  const numeralBody = css.slice(numeralKeyframes[0].start, numeralKeyframes[0].end);
+  assert.match(numeralBody, /translateY\(\s*0\.06em\s*\)/, 'il numero non si posa');
+  assert.doesNotMatch(numeralBody, /\bopacity\s*:/, 'il numero sfuma invece di posarsi');
+
+  const ruleBodyFor = (selector) => {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return rules.match(new RegExp(`${escaped}\\s*\\{([^{}]*)\\}`, 's'))?.[1] ?? '';
+  };
+
+  /*
+   * The prose prints in reading order. The range starts are asserted to be
+   * increasing, so a later paragraph cannot arrive before an earlier one.
+   */
+  const proseOrder = [
+    '.cantina > p:nth-of-type(1)',
+    '.cantina > p:nth-of-type(2)',
+    '.cantina > .programma > p',
+  ];
+  const proseStarts = proseOrder.map((selector) => {
+    const body = ruleBodyFor(selector);
+    assert.match(
+      body,
+      /animation:\s*section-rise\b/,
+      `la prosa non sale: ${selector}`,
+    );
+    const start = body.match(/animation-range:\s*entry\s+(\d+)%/)?.[1];
+    assert.ok(start !== undefined, `manca l’intervallo della prosa: ${selector}`);
+    return Number(start);
+  });
+  assert.deepEqual(
+    proseStarts,
+    [...proseStarts].sort((a, b) => a - b),
+    'la prosa non si stampa in ordine',
+  );
+  assert.equal(
+    new Set(proseStarts).size,
+    proseStarts.length,
+    'la prosa si rivela tutta insieme',
+  );
+
+  const labelBody = ruleBodyFor('.cantina > .programma > h2');
+  assert.match(
+    labelBody,
+    /animation:\s*ink-in\b/,
+    'l’etichetta del Programma non si inchiostra',
+  );
+  assert.match(
+    labelBody,
+    /animation-timeline:\s*view\(\)/,
+    'l’etichetta non segue lo scorrimento',
+  );
+
+  /*
+   * The gallery recedes lead first, then the portraits left to right.
+   */
+  const galleryOrder = [
+    '.gallery__frame--wide img',
+    '.gallery__row > .gallery__frame:nth-child(1) img',
+    '.gallery__row > .gallery__frame:nth-child(2) img',
+    '.gallery__row > .gallery__frame:nth-child(3) img',
+  ];
+  const galleryStarts = galleryOrder.map((selector) => {
+    const body = ruleBodyFor(selector);
+    assert.match(
+      body,
+      /animation:\s*photograph-recede\b/,
+      `la galleria non arretra: ${selector}`,
+    );
+    const start = body.match(/animation-range:\s*cover\s+(\d+)%/)?.[1];
+    assert.ok(start !== undefined, `manca l’intervallo della galleria: ${selector}`);
+    return Number(start);
+  });
+  assert.deepEqual(
+    galleryStarts,
+    [...galleryStarts].sort((a, b) => a - b),
+    'la galleria non va dalla guida ai ritratti',
+  );
+
+  /*
+   * The facts rise in order and are never hidden; the action rules draw in
+   * order. The band itself carries no animation.
+   */
+  const factsOrder = ['.facts > :nth-child(1)', '.facts > :nth-child(2)'];
+  const factStarts = factsOrder.map((selector) => {
+    const body = ruleBodyFor(selector);
+    assert.match(body, /animation:\s*fact-rise\b/, `i fatti non salgono: ${selector}`);
+    assert.doesNotMatch(body, /\bopacity\s*:/, 'i fatti vengono nascosti');
+    const start = body.match(/animation-range:\s*entry\s+(\d+)%/)?.[1];
+    assert.ok(start !== undefined, `manca l’intervallo dei fatti: ${selector}`);
+    return Number(start);
+  });
+  assert.deepEqual(factStarts, [...factStarts].sort((a, b) => a - b));
+
+  const actionOrder = [
+    '.band__actions > p:nth-of-type(1) > a::before',
+    '.band__actions > p:nth-of-type(2) > a::before',
+  ];
+  const actionStarts = actionOrder.map((selector) => {
+    const body = ruleBodyFor(selector);
+    assert.match(body, /animation:\s*rule-rule\b/, `il filetto non si tira: ${selector}`);
+    const start = body.match(/animation-range:\s*entry\s+(\d+)%/)?.[1];
+    assert.ok(start !== undefined, `manca l’intervallo del filetto: ${selector}`);
+    return Number(start);
+  });
+  assert.deepEqual(actionStarts, [...actionStarts].sort((a, b) => a - b));
+  assert.doesNotMatch(
+    rules,
+    /\.facts\s*\{[^}]*\bopacity\s*:/s,
+    'i fatti sono nascosti dal loro contenitore',
+  );
+  assert.doesNotMatch(
+    rules,
+    /\.band(?:__inner|__actions)?\s*\{[^}]*\bopacity\s*:/s,
+    'la banda o le azioni vengono nascoste',
+  );
+
+  /*
    * Two ways the photograph's reveal was silently still, both invisible to a
    * static check and both found by driving a browser. The frame crops with
    * `clip`: a `hidden` frame is the nearest scroll container, so the image's
@@ -3838,7 +4017,6 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
    * settles, so the recede is over before it is seen. These two assertions
    * guard the lines that fix it; the rendering itself needs a browser.
    */
-  const rules = stripCssComments(css);
   const frame = rules.match(/\.photo-frame\s*\{([^}]*)\}/s)?.[1] ?? '';
   assert.match(
     frame,

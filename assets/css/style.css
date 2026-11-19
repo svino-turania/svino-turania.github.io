@@ -214,15 +214,17 @@
     /*
      * Motion scale. Named for the camera and the print: the view recedes out
      * of the arch, the signature is pressed, ink is laid down, the date is
-     * set, a rule is ruled. Every animation in this file takes its duration,
-     * its delay and its easing from one of these tokens, and every one lives
-     * behind the no-preference query.
+     * set and its numeral settles, the cover drifts, a rule is ruled. Every
+     * animation in this file takes its duration, its delay and its easing
+     * from one of these tokens, and every one lives behind the
+     * no-preference query.
      */
     --motion-recede: 640ms;
     --motion-press: 560ms;
     --motion-ink: 260ms;
     --motion-settle: 340ms;
     --motion-date: 800ms;
+    --motion-numeral: 480ms;
     --motion-quick: 240ms;
     --motion-rule: 320ms;
     /*
@@ -991,13 +993,14 @@
   /*
    * The page opens by stepping out from under the arch, then prints itself.
    * The photograph is the paper and the view recedes out of it first; the
-   * signature is pressed into it and the date is set with it; the lockup is
-   * inked behind them and the subtitle settles, each step following the one
-   * before. Below the fold the view steps back out of the Cantina arch as it
-   * is reached, the prose and the facts rise, and the actions' rules draw
-   * themselves as they enter the viewport. Every duration and delay is a token,
-   * and every animation is an addition: with reduced motion the page is the
-   * finished spread, immediately.
+   * signature is pressed into it and the date is set with it, numeral and all;
+   * the lockup is inked behind them and the subtitle settles, each step
+   * following the one before. As the cover leaves, the grapes drift behind the
+   * fixed masthead. Below the fold the view steps back out of the Cantina
+   * arch, the prose prints in reading order, the gallery recedes photo by
+   * photo, the facts rise and the actions' rules draw themselves. Every
+   * duration and delay is a token, and every animation is an addition: with
+   * reduced motion the page is the finished spread, immediately.
    */
   @media (prefers-reduced-motion: no-preference) {
     /* The link's colour and rule; focus never waits for them. */
@@ -1016,6 +1019,17 @@
      */
     .hero-photo img {
       animation: photograph-recede var(--motion-recede) var(--ease-press) both;
+    }
+
+    /*
+     * The day numeral is set into the band: it settles down from a hair as the
+     * band is wiped in, on the paper's delay, so it belongs to the press rather
+     * than trailing it.
+     */
+    .date-day {
+      animation:
+        numeral-set var(--motion-numeral) var(--ease-press)
+        var(--motion-after-paper) both;
     }
 
     .signature path {
@@ -1083,51 +1097,135 @@
     }
 
     /*
-     * Scroll-driven reveals belong to the Cantina photograph, the prose and the
-     * facts band. The hero — the signature, its lockup and subtitle, and the
-     * date — is fully present on the first screen and never waits for the
-     * scroll. The band's two actions are never faded: only their rules are
-     * ruled. view() is recent, so a browser without it serves the static page.
+     * Scroll-driven motion is one story. The hero is complete on the first
+     * screen and never waits for the scroll; its one scroll effect is the
+     * grapes' transform-only drift, which never hides or fades the cover. Below
+     * it, the Cantina photograph, the prose and Programma, the gallery and the
+     * band arrive in reading order. The band's two actions are never faded:
+     * only their rules are ruled. view() is recent, so a browser without it
+     * serves the static page.
      */
     @supports (animation-timeline: view()) {
-      .cantina {
+      /*
+       * The cover is the paper: it is never faded or hidden. Once the page has
+       * settled, the grapes drift up and slightly in behind the fixed masthead
+       * as the cover leaves. The drift rides the picture wrapper, so the image
+       * keeps its entrance; the growing scale keeps the frame's edges covered
+       * while the view moves. `exit` starts at the first scroll pixel, so the
+       * first screen is the neutral state.
+       */
+      .hero-photo picture {
+        animation: cover-drift linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: exit 0% exit 100%;
+      }
+
+      /*
+       * The prose prints in reading order: first paragraph, second paragraph,
+       * the Programma label inked, then the Programma paragraph. Each is its
+       * own view() subject, so the sequence is the page being set rather than
+       * one block arriving at once.
+       */
+      .cantina > p:nth-of-type(1) {
+        animation: section-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 35%;
+      }
+
+      .cantina > p:nth-of-type(2) {
         animation: section-rise linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: entry 10% entry 45%;
       }
 
-      /* The tear is cut in the frame: the view recedes, the edge stays. On a
+      .cantina > .programma > h2 {
+        animation: ink-in linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 30%;
+      }
+
+      .cantina > .programma > p {
+        animation: section-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 20% entry 55%;
+      }
+
+      /*
+       * The tear is cut in the frame: the view recedes, the edge stays. On a
        * phone the band is partly on screen at load, so `entry` is already most
        * of the way through when the page settles and the move would be over
        * before it was seen. `cover` is measured from first sight to last, so
        * the recede starts just after the page settles and runs while the
        * photograph is looked at. It is a zoom and not a fade: the photograph
-       * is the paper, and the reader is walking out from under the arch. */
+       * is the paper, and the reader is walking out from under the arch.
+       */
       .photo-band img {
         animation: photograph-recede linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: cover 20% cover 60%;
       }
 
-      /* The gallery keeps the same vocabulary: each photograph recedes out of
-       * its frame as it is reached, inside the frame's clip, so the gallery is
-       * the walk through the cellars continuing, not a second effect. */
-      .gallery__frame img {
+      /*
+       * The gallery keeps the same vocabulary: the lead landscape recedes
+       * first, then the three portraits left to right, each with its own
+       * window. The photo essay is the walk through the cellars continuing,
+       * not a second effect.
+       */
+      .gallery__frame--wide img {
         animation: photograph-recede linear var(--motion-scroll) both;
         animation-timeline: view();
-        animation-range: cover 20% cover 60%;
+        animation-range: cover 10% cover 50%;
       }
 
-      .facts {
-        animation: section-rise linear var(--motion-scroll) both;
+      .gallery__row > .gallery__frame:nth-child(1) img {
+        animation: photograph-recede linear var(--motion-scroll) both;
         animation-timeline: view();
-        animation-range: entry 10% entry 45%;
+        animation-range: cover 16% cover 56%;
       }
 
-      .band__actions a::before {
+      .gallery__row > .gallery__frame:nth-child(2) img {
+        animation: photograph-recede linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: cover 22% cover 62%;
+      }
+
+      .gallery__row > .gallery__frame:nth-child(3) img {
+        animation: photograph-recede linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: cover 28% cover 68%;
+      }
+
+      /*
+       * The facts rise in sequence: DOVE, then A CURA DI. They are transform
+       * only, so the band is legible the moment it is on screen; the facts are
+       * content, not a curtain.
+       */
+      .facts > :nth-child(1) {
+        animation: fact-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 100%;
+      }
+
+      .facts > :nth-child(2) {
+        animation: fact-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 50% entry 100%;
+      }
+
+      /*
+       * The two action rules are drawn one after the other. The actions
+       * themselves never fade; only their rules are ruled.
+       */
+      .band__actions > p:nth-of-type(1) > a::before {
         animation: rule-rule linear var(--motion-rule) both;
         animation-timeline: view();
-        animation-range: entry 10% entry 45%;
+        animation-range: entry 0% entry 100%;
+      }
+
+      .band__actions > p:nth-of-type(2) > a::before {
+        animation: rule-rule linear var(--motion-rule) both;
+        animation-timeline: view();
+        animation-range: entry 50% entry 100%;
       }
     }
   }
@@ -1194,6 +1292,40 @@
     }
     to {
       transform: scaleX(1);
+    }
+  }
+
+  /* The numeral is set into the band, settling down from a hair. */
+  @keyframes numeral-set {
+    from {
+      transform: translateY(0.06em);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  /*
+   * The grapes drift behind the masthead as the cover leaves. The scale grows
+   * with the rise, so the frame's edges stay covered for the whole move and the
+   * first frame keeps the cover's own crop.
+   */
+  @keyframes cover-drift {
+    from {
+      transform: translateY(0) scale(1);
+    }
+    to {
+      transform: translateY(-2%) scale(1.08);
+    }
+  }
+
+  /* The facts rise without dissolving: the band is content, not a curtain. */
+  @keyframes fact-rise {
+    from {
+      transform: translateY(8px);
+    }
+    to {
+      transform: none;
     }
   }
 }
