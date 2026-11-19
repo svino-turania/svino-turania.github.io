@@ -49,12 +49,15 @@
       - Paragrafo delle Cantine: la regione tra i commenti CANTINA.
       - Programma: la sezione sotto la prosa, dopo il commento di fine
         regione; porta solo gli atti che il Comitato ha confermato.
+      - Fregio del Programma: il disegno decorativo dentro la sezione; non
+        porta testo e nomina solo i quattro strumenti del paragrafo
+        approvato. È un segno della pagina, non della Locandina.
       - Locandina: un solo link di download, nella banda che chiude la pagina.
 
       L'ordine di lettura è: firma e sottotitolo sull'immagine di apertura
       (in basso a sinistra), data, fotografia della cantina, prosa,
-      Programma, galleria delle cantine, banda (fatti, mappa, Locandina,
-      colophon).
+      Programma illustrato, galleria delle cantine, banda (fatti, mappa,
+      Locandina, colophon).
 
       Non serve alcuna build: la pagina è servita così com'è scritta.
     -->
@@ -174,7 +177,130 @@
         -->
         <section class="programma" aria-labelledby="programma">
           <h2 id="programma">PROGRAMMA</h2>
-          <p>I Menestrelli del Cicolano girano per il borgo con organetto, fisarmonica, chitarra e tamburo. Suonano stornelli e canti popolari in dialetto, e i saltarelli delle feste di paese. Si fermano, suonano, ripartono, e chi li incontra si ferma ad ascoltare. Poi si riprende il cammino, con il bicchiere in mano.</p>
+
+          <!--
+            FREGIO: decorativo, aria-hidden; il paragrafo nomina già i quattro
+            strumenti. Il grappolo è piramidale — tamburo alla base sul rigo,
+            chitarra appoggiata, fisarmonica dietro e sopra, organetto al
+            vertice — e la losanga resta implicita: nessuna cornice. Un solo
+            tratto in --ornament, nessun riempimento, nessun testo, nessuna
+            nota o pentagramma. I data-instrument sono i quattro strumenti del
+            paragrafo approvato; il test confronta i due insiemi.
+          -->
+          <svg
+            class="programma__plate"
+            viewBox="66 44 358 376"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <line class="programma__rule" x1="30" y1="404" x2="490" y2="404" />
+
+            <g data-instrument="tamburo">
+              <ellipse cx="310" cy="300" rx="60" ry="16" />
+              <path d="M250 300 L250 392" />
+              <path d="M370 300 L370 392" />
+              <path d="M250 392 Q310 412 370 392" />
+              <ellipse cx="310" cy="316" rx="60" ry="15" />
+              <path d="M250 352 Q310 368 370 352" />
+              <path d="M250 376 Q310 392 370 376" />
+              <path d="M258 318 L282 334 L258 350 L282 366 L258 382" />
+              <path d="M362 318 L338 334 L362 350 L338 366 L362 382" />
+            </g>
+
+            <g data-instrument="chitarra" transform="translate(175 255) rotate(-30)">
+              <path d="M0 20 C -24 20 -42 34 -42 58 C -42 72 -30 76 -30 88 C -30 100 -46 108 -46 128 C -46 158 -24 172 0 172 C 24 172 46 158 46 128 C 46 108 30 100 30 88 C 30 76 42 72 42 58 C 42 34 24 20 0 20 Z" />
+              <circle cx="0" cy="72" r="18" />
+              <circle cx="0" cy="72" r="12" />
+              <path d="M-6 -150 L-6 20" />
+              <path d="M6 -150 L6 20" />
+              <path d="M-9 -182 L-9 -150 L9 -150 L9 -182 Z" />
+              <circle cx="-13" cy="-174" r="2.5" />
+              <circle cx="-13" cy="-165" r="2.5" />
+              <circle cx="-13" cy="-156" r="2.5" />
+              <circle cx="13" cy="-174" r="2.5" />
+              <circle cx="13" cy="-165" r="2.5" />
+              <circle cx="13" cy="-156" r="2.5" />
+              <path d="M-6 -130 L6 -130" />
+              <path d="M-6 -110 L6 -110" />
+              <path d="M-6 -90 L6 -90" />
+              <path d="M-6 -70 L6 -70" />
+              <path d="M-6 -50 L6 -50" />
+              <path d="M-6 -30 L6 -30" />
+              <path d="M-10 140 L10 140 L10 146 L-10 146 Z" />
+              <path d="M-4.5 -150 L-4.5 145" />
+              <path d="M-1.5 -150 L-1.5 145" />
+              <path d="M1.5 -150 L1.5 145" />
+              <path d="M4.5 -150 L4.5 145" />
+            </g>
+
+            <g data-instrument="fisarmonica" transform="translate(315 225) rotate(-6)">
+              <rect x="-92" y="-48" width="34" height="96" rx="4" />
+              <rect x="58" y="-48" width="34" height="96" rx="4" />
+              <path d="M-58 -48 L58 -48" />
+              <path d="M-58 48 L58 48" />
+              <path d="M-58 -48 L-46 48" />
+              <path d="M-46 -48 L-34 48" />
+              <path d="M-34 -48 L-22 48" />
+              <path d="M-22 -48 L-10 48" />
+              <path d="M-10 -48 L2 48" />
+              <path d="M2 -48 L14 48" />
+              <path d="M14 -48 L26 48" />
+              <path d="M26 -48 L38 48" />
+              <path d="M38 -48 L50 48" />
+              <path d="M50 -48 L58 48" />
+              <path d="M66 -40 L86 -40" />
+              <path d="M66 -32 L86 -32" />
+              <path d="M66 -24 L86 -24" />
+              <path d="M66 -16 L86 -16" />
+              <path d="M66 -8 L86 -8" />
+              <path d="M66 0 L86 0" />
+              <path d="M66 8 L86 8" />
+              <path d="M66 16 L86 16" />
+              <path d="M66 24 L86 24" />
+              <path d="M66 32 L86 32" />
+              <path d="M66 40 L86 40" />
+              <path d="M70 -36 L76 -36" />
+              <path d="M70 -20 L76 -20" />
+              <path d="M70 -4 L76 -4" />
+              <path d="M70 12 L76 12" />
+              <path d="M70 28 L76 28" />
+              <circle cx="-84" cy="-24" r="2.5" />
+              <circle cx="-72" cy="-24" r="2.5" />
+              <circle cx="-84" cy="-12" r="2.5" />
+              <circle cx="-72" cy="-12" r="2.5" />
+              <circle cx="-84" cy="0" r="2.5" />
+              <circle cx="-72" cy="0" r="2.5" />
+              <circle cx="-84" cy="12" r="2.5" />
+              <circle cx="-72" cy="12" r="2.5" />
+            </g>
+
+            <g data-instrument="organetto" transform="translate(278 115) rotate(6)">
+              <rect x="-62" y="-38" width="26" height="76" rx="3" />
+              <rect x="36" y="-38" width="26" height="76" rx="3" />
+              <path d="M-36 -38 L36 -38" />
+              <path d="M-36 38 L36 38" />
+              <path d="M-36 -38 L-22 38" />
+              <path d="M-22 -38 L-8 38" />
+              <path d="M-8 -38 L6 38" />
+              <path d="M6 -38 L20 38" />
+              <path d="M20 -38 L36 38" />
+              <circle cx="-49" cy="-20" r="2.5" />
+              <circle cx="-49" cy="-8" r="2.5" />
+              <circle cx="-49" cy="4" r="2.5" />
+              <circle cx="-49" cy="16" r="2.5" />
+              <circle cx="-38" cy="-20" r="2.5" />
+              <circle cx="-38" cy="-8" r="2.5" />
+              <circle cx="-38" cy="4" r="2.5" />
+              <circle cx="-38" cy="16" r="2.5" />
+              <circle cx="49" cy="-20" r="2.5" />
+              <circle cx="49" cy="-8" r="2.5" />
+              <circle cx="49" cy="4" r="2.5" />
+              <circle cx="49" cy="16" r="2.5" />
+              <path d="M-54 -38 C -66 -58 -46 -72 -30 -62" />
+            </g>
+          </svg>
+
+          <p>I Menestrelli del Cicolano girano per il borgo con organetto, fisarmonica, chitarra e tamburo. Suonano stornelli e canti popolari in dialetto, e i saltarelli delle feste di paese. Si fermano, suonano, ripartono; chi li ascolta resta lì, e poi la passeggiata prosegue con il bicchiere in mano.</p>
         </section>
       </div>
 

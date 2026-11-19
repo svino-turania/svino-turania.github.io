@@ -94,6 +94,24 @@
     --rule: var(--gold);
     --link: var(--bordeaux);
     --link-hover: var(--bronze);
+    /*
+     * The Programma's plate. The page's first drawing is pressed into the
+     * paper, not printed on it: 40% --gold through --cream, about three-fifths
+     * of the old line's opacity, mixed into the token instead of layered over
+     * the ground so the measurement holds on the paper. Measured on the cream
+     * surface, bordeaux on the tint is 7.00:1, so the paragraph keeps AA where
+     * it crosses a stroke; the tint on cream is 1.42:1, which is the point —
+     * the plate is furniture, not content.
+     */
+    --ornament: color-mix(in srgb, var(--gold) 40%, var(--cream));
+    /*
+     * The page's type lift. One pixel of warm shadow under every glyph, mixed
+     * from the bronze so it is visible on the cream and still warm on the
+     * bordeaux band. It is a letterpress, not a drop shadow: one pixel down,
+     * one pixel of blur. The Programma's phone paragraph keeps its two cream
+     * passes where the prose crosses the plate and adds this lift on top.
+     */
+    --text-shadow: 0 1px 1px color-mix(in srgb, var(--bronze) 30%, transparent);
 
     /*
      * The ground's grain. A neutral fractal-noise tile drawn inline as SVG,
@@ -279,6 +297,7 @@
     font-synthesis: none;
     line-height: 1.5;
     overflow-wrap: break-word;
+    text-shadow: var(--text-shadow);
   }
 
   h1,
@@ -781,11 +800,17 @@
    * never closes a column alone: it stays with the paragraph it introduces.
    */
   .programma {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "label"
+      "stage";
     break-inside: avoid;
     margin-block-start: var(--space-6);
   }
 
   .programma h2 {
+    grid-area: label;
     color: var(--ink-muted);
     font-family: var(--sans);
     font-size: var(--step--1);
@@ -793,6 +818,46 @@
     letter-spacing: 0.16em;
     line-height: 1.2;
     margin-block-end: var(--space-3);
+  }
+
+  /*
+   * The plate is decorative and carries no text; the paragraph names the four
+   * instruments. Its ink is --ornament, a gold pressed into the paper, so the
+   * bordeaux prose keeps AA where it crosses a stroke. The stroke is 1.6 px at
+   * every size, and the drawing inherits the one ink and no fill.
+   */
+  .programma__plate {
+    grid-area: stage;
+    justify-self: end;
+    inline-size: 14rem;
+    margin-block-start: var(--space-7);
+    block-size: auto;
+    aspect-ratio: 358 / 376;
+    color: var(--ornament);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .programma__plate * {
+    vector-effect: non-scaling-stroke;
+  }
+
+  .programma > p {
+    grid-area: stage;
+    position: relative;
+    z-index: 1;
+    /* On a phone the prose crosses the plate; two cream passes keep the glyph
+     * edge clean where a line passes under a letter. The desktop keeps the
+     * page's one-pixel lift, because the plate is beside the paragraph's ends. */
+    text-shadow:
+      0 0 2px var(--surface),
+      0 0 2px var(--surface),
+      var(--text-shadow);
   }
 
   /* --------------------------------------------------------- banda finale */
@@ -969,6 +1034,33 @@
       column-gap: var(--space-7);
     }
 
+    /*
+     * The Programma leaves the prose columns and opens as a full-width
+     * chapter: the paragraph on the left, the plate on the right, the
+     * paragraph's last lines crossing the plate's inner rim. The plate is
+     * wider than its 24 rem track, so it overflows left; that overflow is
+     * the overlap, and max-inline-size is released for it alone.
+     */
+    .programma {
+      column-span: all;
+      grid-template-columns: minmax(0, 34rem) minmax(0, 1fr);
+      grid-template-areas:
+        "label label"
+        "text stage";
+    }
+
+    .programma > p {
+      grid-area: text;
+    }
+
+    .programma__plate {
+      grid-area: stage;
+      justify-self: end;
+      inline-size: 34rem;
+      margin-block-start: 0;
+      max-inline-size: none;
+    }
+
     .band__inner {
       grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
       align-items: end;
@@ -1122,9 +1214,9 @@
 
       /*
        * The prose prints in reading order: first paragraph, second paragraph,
-       * the Programma label inked, then the Programma paragraph. Each is its
-       * own view() subject, so the sequence is the page being set rather than
-       * one block arriving at once.
+       * the Programma label inked, the plate inked, then the Programma
+       * paragraph. Each is its own view() subject, so the sequence is the page
+       * being set rather than one block arriving at once.
        */
       .cantina > p:nth-of-type(1) {
         animation: section-rise linear var(--motion-scroll) both;
@@ -1142,6 +1234,16 @@
         animation: ink-in linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: entry 0% cover 30%;
+      }
+
+      /*
+       * The plate inks between the label and the paragraph: label, drawing,
+       * prose. It reuses ink-in, so the motion vocabulary gains no word.
+       */
+      .cantina > .programma > .programma__plate {
+        animation: ink-in linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 10% cover 40%;
       }
 
       .cantina > .programma > p {

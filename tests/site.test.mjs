@@ -27,7 +27,7 @@ const CANTINA_PARAGRAPH =
  * if a clock time appears.
  */
 const PROGRAMMA_PARAGRAPH =
-  "I Menestrelli del Cicolano girano per il borgo con organetto, fisarmonica, chitarra e tamburo. Suonano stornelli e canti popolari in dialetto, e i saltarelli delle feste di paese. Si fermano, suonano, ripartono, e chi li incontra si ferma ad ascoltare. Poi si riprende il cammino, con il bicchiere in mano.";
+  "I Menestrelli del Cicolano girano per il borgo con organetto, fisarmonica, chitarra e tamburo. Suonano stornelli e canti popolari in dialetto, e i saltarelli delle feste di paese. Si fermano, suonano, ripartono; chi li ascolta resta lì, e poi la passeggiata prosegue con il bicchiere in mano.";
 
 const PHOTO_ALT =
   "Interno di una cantina scavata nella roccia: soffitto e pareti di pietra grezza, una lampadina nuda appesa a un filo, damigiane di vetro anche dentro cesti di vimini, una botte coricata e un grande tino chiaro con il coperchio; un palo di legno regge la volta.";
@@ -303,11 +303,11 @@ function resolveTokenColour(name, css = servedStylesheet()) {
 }
 
 /*
- * A ground tone as the browser resolves it: the two-stop sRGB colour-mix the
- * token declares, mixed from the served palette. The suite reads the mix, not
- * a copy of its result, so a palette change moves both together.
+ * A two-role tone as the browser resolves it: the sRGB colour-mix the token
+ * declares, mixed from the served palette. The suite reads the mix, not a
+ * copy of its result, so a palette change moves both together.
  */
-function mixedGroundTone(name, css = servedStylesheet()) {
+function mixedTone(name, css = servedStylesheet()) {
   const value = tokenValue(name, css);
   const mix = value.match(
     /^color-mix\(\s*in srgb\s*,\s*var\(--([a-z-]+)\)\s+(\d+(?:\.\d+)?)%\s*,\s*var\(--([a-z-]+)\)\s*\)$/,
@@ -730,6 +730,141 @@ test('il Programma confermato segue la prosa e non porta un orario', () => {
   assert.ok(galleryAt !== -1, 'manca la galleria');
   assert.ok(endMarker < sectionAt, 'il Programma sta dentro la regione modificabile');
   assert.ok(sectionAt < galleryAt, 'il Programma non precede la galleria');
+});
+
+test('il fregio dei Menestrelli è decorativo e nomina i quattro strumenti', () => {
+  const document = loadSite();
+  const programme = document.querySelector('.cantina > .programma');
+  assert.ok(programme, 'manca il Programma dentro la prosa delle Cantine');
+
+  const plate = programme.querySelector('svg.programma__plate');
+  assert.ok(plate, 'manca il fregio del Programma');
+  assert.equal(
+    plate.getAttribute('aria-hidden'),
+    'true',
+    'il fregio non è nascosto alle tecnologie assistive',
+  );
+  assert.equal(
+    plate.getAttribute('focusable'),
+    'false',
+    'il fregio può ricevere il fuoco',
+  );
+  assert.equal(
+    plate.querySelector('title, text, image, use'),
+    null,
+    'il fregio porta un titolo, del testo, un’immagine o un riferimento',
+  );
+  assert.equal(
+    [...plate.querySelectorAll('*')].filter(
+      (node) => node.hasAttribute('href') || node.hasAttribute('xlink:href'),
+    ).length,
+    0,
+    'il fregio porta un riferimento esterno',
+  );
+
+  const instruments = [...plate.querySelectorAll('[data-instrument]')]
+    .map((node) => node.getAttribute('data-instrument'))
+    .sort();
+  assert.deepEqual(
+    instruments,
+    ['chitarra', 'fisarmonica', 'organetto', 'tamburo'],
+    'il fregio non nomina esattamente i quattro strumenti del paragrafo',
+  );
+  for (const instrument of instruments) {
+    assert.ok(
+      PROGRAMMA_PARAGRAPH.includes(instrument),
+      `il fregio nomina uno strumento che il paragrafo non nomina: ${instrument}`,
+    );
+  }
+
+  const paragraph = programme.querySelector('p');
+  assert.ok(paragraph, 'manca il paragrafo del Programma');
+  assert.equal(
+    programme.querySelectorAll('p').length,
+    1,
+    'il fregio ha aggiunto un paragrafo al Programma',
+  );
+  assert.equal(
+    plate.nextElementSibling,
+    paragraph,
+    'il fregio non sta fra l’etichetta e il paragrafo',
+  );
+});
+
+test('il fregio esce dalle colonne e si sovrappone al paragrafo', () => {
+  const css = stripCssComments(servedStylesheet());
+  const base = css.match(/(?:^|})\s*\.programma\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(base, 'manca la regola del Programma');
+  assert.match(base, /display:\s*grid/, 'il Programma non è una griglia');
+  assert.match(
+    base,
+    /grid-template-areas:\s*"label"\s*"stage"/,
+    'il Programma non impagina etichetta e fregio',
+  );
+  assert.match(
+    base,
+    /break-inside:\s*avoid/,
+    'l’etichetta può restare sola in fondo a una colonna, staccata dal paragrafo',
+  );
+
+  const plate = css.match(/(?:^|})\s*\.programma__plate\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(plate, 'manca la regola del fregio');
+  assert.match(plate, /inline-size:\s*14rem/, 'il fregio non ha la misura del telefono');
+  assert.match(plate, /color:\s*var\(--ornament\)/, 'il fregio non usa l’oro tinto');
+  assert.match(plate, /stroke-width:\s*1\.6/, 'il fregio non ha il tratto unico');
+  assert.match(plate, /pointer-events:\s*none/, 'il fregio intercetta il puntatore');
+  assert.match(
+    plate,
+    /margin-block-start:\s*var\(--space-7\)/,
+    'il fregio del telefono non è abbassato',
+  );
+
+  const proseBase = css.match(/(?:^|})\s*\.programma > p\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(proseBase, 'manca la regola del paragrafo del Programma');
+  assert.match(
+    proseBase,
+    /text-shadow:\s*0 0 2px var\(--surface\)/,
+    'il paragrafo non ha l’alone crema sul telefono',
+  );
+
+  const desktop = desktopComposition(css);
+  assert.match(
+    desktop,
+    /\.programma\s*\{[^}]*column-span:\s*all/s,
+    'il Programma resta dentro le due colonne di prosa',
+  );
+  assert.match(
+    desktop,
+    /\.programma\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*34rem\)\s*minmax\(0,\s*1fr\)/s,
+    'la colonna del paragrafo non è di 34 rem',
+  );
+  assert.match(
+    desktop,
+    /\.programma__plate\s*\{[^}]*inline-size:\s*34rem/s,
+    'il fregio desktop non è di 34 rem',
+  );
+  assert.match(
+    desktop,
+    /\.programma__plate\s*\{[^}]*justify-self:\s*end/s,
+    'il fregio non è allineato a destra',
+  );
+  assert.match(
+    desktop,
+    /\.programma__plate\s*\{[^}]*max-inline-size:\s*none/s,
+    'il fregio non può eccedere la propria traccia per sovrapporsi',
+  );
+  assert.match(
+    desktop,
+    /\.programma__plate\s*\{[^}]*margin-block-start:\s*0/s,
+    'il fregio desktop resta abbassato',
+  );
+  const desktopProse = desktop.match(/\.programma > p\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(desktopProse, 'manca la regola desktop del paragrafo del Programma');
+  assert.doesNotMatch(
+    desktopProse,
+    /text-shadow/,
+    'il paragrafo desktop azzera l’ombra che eredita dalla pagina',
+  );
 });
 
 test('l’etichetta del Programma ha il registro stampato delle etichette', () => {
@@ -1718,10 +1853,50 @@ test('i due toni del campo sono mescolanze della palette, non colori nuovi', () 
   );
 });
 
+test('l’oro tinto del fregio lascia il bordeaux sopra AA', () => {
+  const css = stripCssComments(servedStylesheet());
+  const value = tokenValue('ornament', css);
+  assert.match(
+    value,
+    /^color-mix\(\s*in srgb\s*,\s*var\(--gold\)\s+40%\s*,\s*var\(--cream\)\s*\)$/,
+    `l’oro tinto non è una mescolanza di oro e crema: ${value}`,
+  );
+
+  const ornament = mixedTone('ornament', css);
+  const bordeaux = rgb(resolveTokenColour('bordeaux', css));
+  const cream = rgb(resolveTokenColour('cream', css));
+  const onOrnament = contrastRatio(bordeaux, ornament);
+  const onCream = contrastRatio(ornament, cream);
+  assert.ok(
+    onOrnament >= 4.5,
+    `il bordeaux sul fregio misura ${onOrnament.toFixed(2)}:1, sotto AA`,
+  );
+  assert.ok(
+    onCream >= 1.4,
+    `il fregio si perde nel crema: ${onCream.toFixed(2)}:1`,
+  );
+});
+
+test('tutto il testo porta la stessa ombra leggera', () => {
+  const css = stripCssComments(servedStylesheet());
+  const body = bodyRule(css);
+  assert.match(
+    body,
+    /text-shadow:\s*var\(--text-shadow\)/,
+    'il corpo non porta l’ombra della pagina',
+  );
+  const value = tokenValue('text-shadow', css);
+  assert.match(
+    value,
+    /^0 1px 1px color-mix\(\s*in srgb\s*,\s*var\(--bronze\)\s+30%\s*,\s*transparent\s*\)$/,
+    `l’ombra non è un’incisione calda: ${value}`,
+  );
+});
+
 test('il campo resta entro il sedici per cento e il bordeaux regge su entrambi i capi', () => {
   const css = stripCssComments(servedStylesheet());
-  const lightTone = mixedGroundTone('ground-light', css);
-  const deepTone = mixedGroundTone('ground-deep', css);
+  const lightTone = mixedTone('ground-light', css);
+  const deepTone = mixedTone('ground-deep', css);
   // The grain is a texture: its mean darkens both ends by the same proportion,
   // so the field's span is measured on the tones themselves. The ends the note
   // records are read through the grain, for the contrast checks below.
@@ -3941,6 +4116,28 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     labelBody,
     /animation-timeline:\s*view\(\)/,
     'l’etichetta non segue lo scorrimento',
+  );
+
+  /*
+   * The plate is the drawing between the label and the paragraph: it inks
+   * after the label and before the prose, so the section prints in order.
+   */
+  const plateBody = ruleBodyFor('.cantina > .programma > .programma__plate');
+  assert.match(plateBody, /animation:\s*ink-in\b/, 'il fregio non si inchiostra');
+  assert.match(
+    plateBody,
+    /animation-timeline:\s*view\(\)/,
+    'il fregio non segue lo scorrimento',
+  );
+  const plateStart = Number(
+    plateBody.match(/animation-range:\s*entry\s+(\d+)%/)?.[1],
+  );
+  const labelStart = Number(
+    labelBody.match(/animation-range:\s*entry\s+(\d+)%/)?.[1],
+  );
+  assert.ok(
+    labelStart < plateStart && plateStart < proseStarts[2],
+    'il fregio non si inchiostra fra l’etichetta e il paragrafo',
   );
 
   /*
