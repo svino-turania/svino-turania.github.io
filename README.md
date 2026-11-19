@@ -7,13 +7,13 @@ repository `svino-turania/svino-turania.github.io`.
 Status: the page is a cover, recorded in ADR-0009, with the grapes photograph
 full-bleed and the masthead set on it in cream over a bordeaux scrim; after the
 prose, a gallery of four cellar photographs closes the page (ADR-0012). It
-carries the Locandina's facts, the Cantina prose, the map link and one
-Locandina download. The identity (palette and type), the outlined signature
-with the `II EDIZIONE` lockup, the full-bleed grapes cover, the Cantina
-photograph with its single torn lower edge, the gallery, the Open Graph and
-Twitter metadata, the square social preview, the print-derived motion and the
-accessibility work are all in place. The rules below describe the system that
-work preserves.
+carries the Locandina's facts, the Cantina prose, the confirmed Programma, the
+map link and one Locandina download. The identity (palette and type), the
+outlined signature with the `II EDIZIONE` lockup, the full-bleed grapes cover,
+the Cantina photograph with its single torn lower edge, the gallery, the Open
+Graph and Twitter metadata, the square social preview, the print-derived
+motion and the accessibility work are all in place. The rules below describe
+the system that work preserves.
 
 ## The site is the files it is
 
@@ -68,8 +68,8 @@ border or shadow. The opening photograph — a close-up of black grapes — runs
 edge to edge at every width, and the masthead — the signature, the `II EDIZIONE`
 lockup and the subtitle — is set at its foot, inside the content shell, in cream
 on a bordeaux scrim. The order is the cover, the date, the Cantina photograph,
-the Cantina prose, the gallery of four cellar photographs and one closing
-bordeaux band.
+the Cantina prose with the Programma set beneath it, the gallery of four cellar
+photographs and one closing bordeaux band.
 
 The gallery sits after the prose, on the paper, with the page's gutter: the one
 landscape photograph at the shell's width and the three portraits below it —
@@ -128,8 +128,10 @@ tear is a vector polygon expressed against the photograph band's own width
 cannot compress its teeth. No raster tear is shipped.
 
 The Cantina prose is set under the torn edge in SV Serif at the reading step,
-on a 48 rem measure centred in the shell. The facts pair and the
-two actions stack at every width.
+on a 48 rem measure centred in the shell. The Programma continues that prose in
+the same serif; its heading takes the printed-label register the facts and
+`DALLE ORE` use — sans, the small step, bold, wide tracking, muted ink. The
+facts pair and the two actions stack at every width.
 
 From 64 rem there is one desktop composition, and it gives the width only to
 what the phone already has: the cover widens to a 3:2 crop and the signature
@@ -259,9 +261,9 @@ The Cantina prose sits between the `CANTINA — INIZIO REGIONE MODIFICABILE`
 and `CANTINA — FINE REGIONE MODIFICABILE` comments. Keep it inside those
 markers. It is the page's own prose, not printed on the Locandina: the
 Comitato approves it, the maintainer edits it, and a test pins it verbatim.
-The second paragraph promises that this page will carry the programme and the
-event's news, so add no categories to that promise — no entry, price or
-duration — until the Comitato decides them.
+The second paragraph promises that this page will carry the event's news, so
+add no categories to that promise — no entry, price or duration — until the
+Comitato decides them.
 
 To propose a change:
 
@@ -275,30 +277,40 @@ To propose a change:
 If a change needs a new layout or a new asset, open an issue for the
 maintainer instead of editing it alone.
 
-## Adding the programme
+## The Programma
 
-When the Comitato supplies the programme, add it as a new section of
-`index.html` — not as a new page or route — so the address printed on the
-Locandina stays the address of the programme. Put it inside the prose container
-(`<div class="cantina">`), after the `CANTINA — FINE REGIONE MODIFICABILE`
-marker and before the closing `</div>`; it then follows the Cantina photograph
-and the prose, sits on the prose measure (48 rem on a phone; two 22 rem
-columns inside a 64 rem block from 64 rem) and precedes the closing band:
+The Programma is a section of `index.html` — not a new page or route — so the
+address printed on the Locandina stays the address of the Programma. It sits
+inside the prose container (`<div class="cantina">`), after the
+`CANTINA — FINE REGIONE MODIFICABILE` marker and before the closing `</div>`;
+it follows the Cantina photograph and the prose, sits on the prose measure
+(48 rem on a phone; two 22 rem columns inside a 64 rem block from 64 rem) and
+precedes the gallery and the closing band:
 
 ```html
-<section aria-labelledby="programma">
-  <h2 id="programma">Programma</h2>
+<section class="programma" aria-labelledby="programma">
+  <h2 id="programma">PROGRAMMA</h2>
   <p>…</p>
 </section>
 ```
 
-Leave the two approved Cantina paragraphs untouched between the two markers:
-the tests expect exactly those two paragraphs inside the region. Do not add the
-programme to the bordeaux band; the band carries only `DOVE`, `A CURA DI`, the
-map link, the Locandina download and the colophon. Keep the heading order
-valid: the signature is the page's only `h1`, so the programme heading is an
-`h2`. The programme is absent until that content exists; nothing is added to
-fill the space.
+The heading takes the printed-label register, and `break-inside: avoid` keeps
+it in the same column as its paragraph when the prose runs in two. The section
+carries no time of its own: the date band already gives the start, and the
+group's end time is deliberately not published.
+
+The paragraphs are approved prose. The two Cantina paragraphs between the
+markers and the Programma paragraph are the text the Comitato approved, pinned
+verbatim by `tests/site.test.mjs` as `CANTINA_PARAGRAPH` and
+`PROGRAMMA_PARAGRAPH`; change them only with Comitato approval, and update the
+two constants in the same change.
+
+An act joins the Programma only once the Comitato has confirmed it; a proposal
+or a possibility does not, and nothing is added to fill the space. Do not move
+the Programma to the bordeaux band; the band carries only `DOVE`, `A CURA DI`,
+the map link, the Locandina download and the colophon. Keep the heading order
+valid: the signature is the page's only `h1`, so the Programma heading is an
+`h2`.
 
 ## Deployment
 
@@ -319,7 +331,8 @@ requests, so preview a pull request locally before merging.
 The test seam is the repository root, as a static server serves it. `npm test`
 runs `node --test tests/*.test.mjs`; there is no build to run first. The tests
 read `index.html`, its assets and its metadata as a visitor or link checker
-would: the printed facts and the Cantina prose verbatim, the date literals
+would: the printed facts, the Cantina prose and the Programma paragraph
+verbatim, the date literals
 against `datetime`, the map destination, the declared language, headings and
 link names, the three narrow guards — one `<script>`, the counter's, pinned to
 GoatCounter's CDN, with no inline handler or shipped `.js`; no host on the
@@ -345,7 +358,10 @@ exactly one torn edge measured in
 `cqw` against the photograph band (`container-type: inline-size` on
 `.photo-band`), with no raster tear shipped. The gallery follows the prose with
 four described photographs, each a JPEG/WebP pair at its native width, lazy and
-asynchronous, with no caption, no tear and no preload. The strong surface
+asynchronous, with no caption, no tear and no preload. The Programma is
+asserted as a section inside the prose container, after the approved region and
+before the gallery: one `h2` set in the printed-label register, and the
+approved paragraph verbatim with no time of its own. The strong surface
 appears on the closing band and nowhere else; the band carries `DOVE`,
 `A CURA DI`, the map link, the single Locandina download, the counter notice and
 the colophon, and
@@ -657,7 +673,7 @@ following are absent by choice:
 
 - any entry statement or price;
 - any contact details (email, phone, social account);
-- any programme;
+- any Programma item, time or detail the Comitato has not confirmed;
 - any placeholder copy — "in via di definizione", "da definire",
   "prossimamente" and the like.
 

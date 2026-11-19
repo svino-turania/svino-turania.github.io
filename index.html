@@ -47,11 +47,14 @@
       - Descrizione della fotografia della cantina: l'attributo alt
         dell'immagine nel blocco .photo-band, sopra la prosa.
       - Paragrafo delle Cantine: la regione tra i commenti CANTINA.
+      - Programma: la sezione sotto la prosa, dopo il commento di fine
+        regione; porta solo gli atti che il Comitato ha confermato.
       - Locandina: un solo link di download, nella banda che chiude la pagina.
 
       L'ordine di lettura è: firma e sottotitolo sull'immagine di apertura
-      (in basso a sinistra), data, fotografia della cantina, prosa, banda
-      (fatti, mappa, Locandina, colophon).
+      (in basso a sinistra), data, fotografia della cantina, prosa,
+      Programma, galleria delle cantine, banda (fatti, mappa, Locandina,
+      colophon).
 
       Non serve alcuna build: la pagina è servita così com'è scritta.
     -->
@@ -160,9 +163,19 @@
 
       <div class="cantina">
         <!-- CANTINA — INIZIO REGIONE MODIFICABILE: la prosa approvata va qui. -->
-        <p>Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva, con il bicchiere in mano. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio.</p>
-        <p>Questa pagina sarà aggiornata con tutte le novità dell'evento. Il programma e gli aggiornamenti arriveranno qui presto. Vi aspettiamo.</p>
+        <p>Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio.</p>
+        <p>Questa pagina sarà aggiornata con tutte le novità dell'evento. Vi aspettiamo.</p>
         <!-- CANTINA — FINE REGIONE MODIFICABILE -->
+        <!--
+          PROGRAMMA: i Menestrelli del Cicolano, confermati dal Comitato, nella
+          prosa della pagina. L'etichetta è quella stampata; il paragrafo è il
+          testo approvato e non porta orari: l'orario del gruppo non si
+          pubblica, la data basta.
+        -->
+        <section class="programma" aria-labelledby="programma">
+          <h2 id="programma">PROGRAMMA</h2>
+          <p>I Menestrelli del Cicolano girano per il borgo con organetto, fisarmonica, chitarra e tamburo. Suonano stornelli e canti popolari in dialetto, e i saltarelli delle feste di paese. Si fermano, suonano, ripartono, e chi li incontra si ferma ad ascoltare. Poi si riprende il cammino, con il bicchiere in mano.</p>
+        </section>
       </div>
 
       <!--

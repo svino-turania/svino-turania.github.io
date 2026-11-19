@@ -17,7 +17,17 @@ const PHOTO_SIZES = '100vw';
 const HERO_SIZES = '100vw';
 
 const CANTINA_PARAGRAPH =
-  "Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva, con il bicchiere in mano. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio. Questa pagina sarà aggiornata con tutte le novità dell'evento. Il programma e gli aggiornamenti arriveranno qui presto. Vi aspettiamo.";
+  "Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio. Questa pagina sarà aggiornata con tutte le novità dell'evento. Vi aspettiamo.";
+
+/*
+ * The Programma the Comitato confirmed for the second edition: the one act it
+ * has announced, and the one paragraph approved for it. The Comitato has set an
+ * end time that the page deliberately does not publish, and the date band
+ * already carries the start, so the paragraph holds no time and the suite fails
+ * if a clock time appears.
+ */
+const PROGRAMMA_PARAGRAPH =
+  "I Menestrelli del Cicolano girano per il borgo con organetto, fisarmonica, chitarra e tamburo. Suonano stornelli e canti popolari in dialetto, e i saltarelli delle feste di paese. Si fermano, suonano, ripartono, e chi li incontra si ferma ad ascoltare. Poi si riprende il cammino, con il bicchiere in mano.";
 
 const PHOTO_ALT =
   "Interno di una cantina scavata nella roccia: soffitto e pareti di pietra grezza, una lampadina nuda appesa a un filo, damigiane di vetro anche dentro cesti di vimini, una botte coricata e un grande tino chiaro con il coperchio; un palo di legno regge la volta.";
@@ -666,6 +676,88 @@ test('la prosa delle Cantine sta alla lettera dentro la regione modificabile', (
     normalize(paragraphs.join(' ')),
     CANTINA_PARAGRAPH,
     'i paragrafi dentro la regione non sono quelli approvati, alla lettera',
+  );
+});
+
+test('il Programma confermato segue la prosa e non porta un orario', () => {
+  const html = readFileSync(join(SITE, 'index.html'), 'utf8');
+  const document = loadSite();
+
+  const prose = document.querySelector('.cantina');
+  const programme = prose?.querySelector('section[aria-labelledby="programma"]');
+  assert.ok(programme, 'manca il Programma dentro la prosa delle Cantine');
+
+  const heading = programme.querySelector('h2#programma');
+  assert.ok(heading, 'manca il titolo PROGRAMMA con l’ancora che la sezione nomina');
+  assert.equal(
+    normalize(heading.textContent),
+    'PROGRAMMA',
+    'il titolo del Programma non è l’etichetta stampata',
+  );
+  assert.equal(
+    document.querySelectorAll('h2').length,
+    1,
+    'il Programma non è l’unico titolo di secondo livello della pagina',
+  );
+
+  const paragraphs = [...programme.querySelectorAll('p')].map((node) =>
+    normalize(node.textContent),
+  );
+  assert.equal(paragraphs.length, 1, 'il Programma ha un solo paragrafo approvato');
+  assert.equal(
+    paragraphs[0],
+    PROGRAMMA_PARAGRAPH,
+    'il paragrafo del Programma non è quello approvato, alla lettera',
+  );
+  assert.doesNotMatch(
+    paragraphs[0],
+    /\d{1,2}:\d{2}/,
+    'il Programma stampa un orario: la finestra del gruppo non si pubblica',
+  );
+  assert.equal(
+    programme.querySelector('time, dt, dd'),
+    null,
+    'il Programma contiene un orario o una lista di fatti',
+  );
+
+  // Source order: after the approved prose's closing marker, before the
+  // gallery. The Programma is prose of the page, not a second band.
+  const endMarker = html.indexOf('CANTINA — FINE REGIONE MODIFICABILE');
+  const sectionAt = html.indexOf('aria-labelledby="programma"');
+  const galleryAt = html.indexOf('<section class="gallery"');
+  assert.ok(endMarker !== -1, 'manca il segnaposto di fine della regione');
+  assert.ok(sectionAt !== -1, 'manca la sezione del Programma');
+  assert.ok(galleryAt !== -1, 'manca la galleria');
+  assert.ok(endMarker < sectionAt, 'il Programma sta dentro la regione modificabile');
+  assert.ok(sectionAt < galleryAt, 'il Programma non precede la galleria');
+});
+
+test('l’etichetta del Programma ha il registro stampato delle etichette', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  // The heading is a printed label like DOVE and DALLE ORE, not a serif
+  // headline: sans, the small step, bold, wide tracking, muted ink. Inside
+  // .cantina it would otherwise inherit the prose's serif and its reading step.
+  const label = css.match(/\.programma\s+h2\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(label, 'manca la regola dell’etichetta PROGRAMMA');
+  for (const [declaration, why] of [
+    [/font-family\s*:\s*var\(--sans\)/, 'l’etichetta non è in sans'],
+    [/font-size\s*:\s*var\(--step--1\)/, 'l’etichetta non usa il passo piccolo'],
+    [/font-weight\s*:\s*700/, 'l’etichetta non è in grassetto'],
+    [/letter-spacing\s*:\s*0\.16em/, 'l’etichetta non ha la spaziatura delle altre etichette'],
+    [/color\s*:\s*var\(--ink-muted\)/, 'l’etichetta non è in inchiostro attenuato'],
+  ]) {
+    assert.match(label, declaration, why);
+  }
+
+  // On the desktop the prose runs in two columns; the label stays in the same
+  // column as the paragraph it introduces instead of closing a column alone.
+  const section = css.match(/\.programma\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(section, 'manca la regola del Programma');
+  assert.match(
+    section,
+    /break-inside\s*:\s*avoid/,
+    'l’etichetta può restare sola in fondo a una colonna, staccata dal paragrafo',
   );
 });
 

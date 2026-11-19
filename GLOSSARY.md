@@ -1,6 +1,6 @@
 # Glossary
 
-The seven terms sVino uses, with the meaning the organisation gives them. Use
+The eight terms sVino uses, with the meaning the organisation gives them. Use
 this vocabulary and these spellings in code, tests, issues and documents; do
 not drift to synonyms.
 
@@ -9,8 +9,8 @@ Spelling and capitalisation fixed by the project:
 - `sVino` — lower-case `s`, capital `V`. Never "Svino" or "SVino".
 - `II Edizione` in running prose; the printed lockup is `II EDIZIONE`.
 - `Turania (RI)` — with a space before the province abbreviation, exactly.
-- `Locandina`, `Cantina`, `Borgo` and `Comitato Feste Turania` are capitalised
-  when they name the event's own artefact, venues and body.
+- `Locandina`, `Cantina`, `Borgo`, `Programma` and `Comitato Feste Turania` are
+  capitalised when they name the event's own artefact, venues and body.
 
 ## sVino
 
@@ -47,8 +47,14 @@ Turania (RI), not a separate place. Lower-case in the page prose
 
 The committee that organises sVino and the body that owns its content. It is
 the `A CURA DI` value and appears exactly as `Comitato Feste Turania`, without
-a leading article. It decides the programme, any entry policy and any contact
+a leading article. It decides the Programma, any entry policy and any contact
 details; until it does, none of those appears on the page.
+
+## Programma
+
+The running order of sVino: the acts, performances and events the Comitato
+has confirmed, with the times it has set. An item belongs to the Programma
+only once the Comitato has confirmed it; a proposal or a possibility does not.
 
 ## Locandina
 
