@@ -17,7 +17,17 @@ const PHOTO_SIZES = '100vw';
 const HERO_SIZES = '100vw';
 
 const CANTINA_PARAGRAPH =
-  "Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva, con il bicchiere in mano. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio. Questa pagina sarà aggiornata con tutte le novità dell'evento. Il programma e gli aggiornamenti arriveranno qui presto. Vi aspettiamo.";
+  "Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva. Lungo il percorso ci si ferma a mangiare, si cammina piano. Si parla con chi si incontra, e non si guarda l'orologio. Questa pagina sarà aggiornata con tutte le novità dell'evento. Vi aspettiamo.";
+
+/*
+ * The Programma the Comitato confirmed for the second edition: the one act it
+ * has announced, and the one paragraph approved for it. The Comitato has set an
+ * end time that the page deliberately does not publish, and the date band
+ * already carries the start, so the paragraph holds no time and the suite fails
+ * if a clock time appears.
+ */
+const PROGRAMMA_PARAGRAPH =
+  "I Menestrelli del Cicolano girano per il borgo con organetto, fisarmonica, chitarra e tamburo. Suonano stornelli e canti popolari in dialetto, e i saltarelli delle feste di paese. Si fermano, suonano, ripartono; chi li ascolta resta lì, e poi la passeggiata prosegue con il bicchiere in mano.";
 
 const PHOTO_ALT =
   "Interno di una cantina scavata nella roccia: soffitto e pareti di pietra grezza, una lampadina nuda appesa a un filo, damigiane di vetro anche dentro cesti di vimini, una botte coricata e un grande tino chiaro con il coperchio; un palo di legno regge la volta.";
@@ -293,11 +303,11 @@ function resolveTokenColour(name, css = servedStylesheet()) {
 }
 
 /*
- * A ground tone as the browser resolves it: the two-stop sRGB colour-mix the
- * token declares, mixed from the served palette. The suite reads the mix, not
- * a copy of its result, so a palette change moves both together.
+ * A two-role tone as the browser resolves it: the sRGB colour-mix the token
+ * declares, mixed from the served palette. The suite reads the mix, not a
+ * copy of its result, so a palette change moves both together.
  */
-function mixedGroundTone(name, css = servedStylesheet()) {
+function mixedTone(name, css = servedStylesheet()) {
   const value = tokenValue(name, css);
   const mix = value.match(
     /^color-mix\(\s*in srgb\s*,\s*var\(--([a-z-]+)\)\s+(\d+(?:\.\d+)?)%\s*,\s*var\(--([a-z-]+)\)\s*\)$/,
@@ -667,6 +677,393 @@ test('la prosa delle Cantine sta alla lettera dentro la regione modificabile', (
     CANTINA_PARAGRAPH,
     'i paragrafi dentro la regione non sono quelli approvati, alla lettera',
   );
+});
+
+test('il Programma confermato segue la prosa e non porta un orario', () => {
+  const html = readFileSync(join(SITE, 'index.html'), 'utf8');
+  const document = loadSite();
+
+  const prose = document.querySelector('.cantina');
+  const programme = prose?.querySelector('section[aria-labelledby="programma"]');
+  assert.ok(programme, 'manca il Programma dentro la prosa delle Cantine');
+
+  const heading = programme.querySelector('h2#programma');
+  assert.ok(heading, 'manca il titolo PROGRAMMA con l’ancora che la sezione nomina');
+  assert.equal(
+    normalize(heading.textContent),
+    'PROGRAMMA',
+    'il titolo del Programma non è l’etichetta stampata',
+  );
+  assert.equal(
+    document.querySelectorAll('h2').length,
+    1,
+    'il Programma non è l’unico titolo di secondo livello della pagina',
+  );
+
+  const paragraphs = [...programme.querySelectorAll('p')].map((node) =>
+    normalize(node.textContent),
+  );
+  assert.equal(paragraphs.length, 1, 'il Programma ha un solo paragrafo approvato');
+  assert.equal(
+    paragraphs[0],
+    PROGRAMMA_PARAGRAPH,
+    'il paragrafo del Programma non è quello approvato, alla lettera',
+  );
+  assert.doesNotMatch(
+    paragraphs[0],
+    /\d{1,2}:\d{2}/,
+    'il Programma stampa un orario: la finestra del gruppo non si pubblica',
+  );
+  assert.equal(
+    programme.querySelector('time, dt, dd'),
+    null,
+    'il Programma contiene un orario o una lista di fatti',
+  );
+
+  // Source order: after the approved prose's closing marker, before the
+  // gallery. The Programma is prose of the page, not a second band.
+  const endMarker = html.indexOf('CANTINA — FINE REGIONE MODIFICABILE');
+  const sectionAt = html.indexOf('aria-labelledby="programma"');
+  const galleryAt = html.indexOf('<section class="gallery"');
+  assert.ok(endMarker !== -1, 'manca il segnaposto di fine della regione');
+  assert.ok(sectionAt !== -1, 'manca la sezione del Programma');
+  assert.ok(galleryAt !== -1, 'manca la galleria');
+  assert.ok(endMarker < sectionAt, 'il Programma sta dentro la regione modificabile');
+  assert.ok(sectionAt < galleryAt, 'il Programma non precede la galleria');
+});
+
+test('il fregio dei Menestrelli è decorativo e nomina i quattro strumenti', () => {
+  const document = loadSite();
+  const programme = document.querySelector('.cantina > .programma');
+  assert.ok(programme, 'manca il Programma dentro la prosa delle Cantine');
+
+  const plate = programme.querySelector('svg.programma__plate');
+  assert.ok(plate, 'manca il fregio del Programma');
+  assert.equal(
+    plate.getAttribute('aria-hidden'),
+    'true',
+    'il fregio non è nascosto alle tecnologie assistive',
+  );
+  assert.equal(
+    plate.getAttribute('focusable'),
+    'false',
+    'il fregio può ricevere il fuoco',
+  );
+  assert.equal(
+    plate.querySelector('title, text, image, use'),
+    null,
+    'il fregio porta un titolo, del testo, un’immagine o un riferimento',
+  );
+  assert.equal(
+    [...plate.querySelectorAll('*')].filter(
+      (node) => node.hasAttribute('href') || node.hasAttribute('xlink:href'),
+    ).length,
+    0,
+    'il fregio porta un riferimento esterno',
+  );
+
+  const instruments = [...plate.querySelectorAll('[data-instrument]')]
+    .map((node) => node.getAttribute('data-instrument'))
+    .sort();
+  assert.deepEqual(
+    instruments,
+    ['chitarra', 'fisarmonica', 'organetto', 'tamburo'],
+    'il fregio non nomina esattamente i quattro strumenti del paragrafo',
+  );
+  for (const instrument of instruments) {
+    assert.ok(
+      PROGRAMMA_PARAGRAPH.includes(instrument),
+      `il fregio nomina uno strumento che il paragrafo non nomina: ${instrument}`,
+    );
+  }
+
+  const paragraph = programme.querySelector('p');
+  assert.ok(paragraph, 'manca il paragrafo del Programma');
+  assert.equal(
+    programme.querySelectorAll('p').length,
+    1,
+    'il fregio ha aggiunto un paragrafo al Programma',
+  );
+  assert.equal(
+    plate.nextElementSibling,
+    paragraph,
+    'il fregio non sta fra l’etichetta e il paragrafo',
+  );
+});
+
+test('il fregio del Programma sta accanto al paragrafo e si sovrappone', () => {
+  const css = stripCssComments(servedStylesheet());
+  const base = css.match(/(?:^|})\s*\.programma\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(base, 'manca la regola del Programma');
+  assert.match(base, /display:\s*grid/, 'il Programma non è una griglia');
+  assert.match(
+    base,
+    /grid-template-areas:\s*"label"\s*"stage"/,
+    'il Programma non impagina etichetta e fregio',
+  );
+
+  const plate = css.match(/(?:^|})\s*\.programma__plate\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(plate, 'manca la regola del fregio');
+  assert.match(plate, /inline-size:\s*14rem/, 'il fregio non ha la misura del telefono');
+  assert.match(plate, /color:\s*var\(--ornament\)/, 'il fregio non usa l’oro tinto');
+  assert.match(plate, /stroke-width:\s*1\.6/, 'il fregio non ha il tratto unico');
+  assert.match(plate, /pointer-events:\s*none/, 'il fregio intercetta il puntatore');
+  assert.match(
+    plate,
+    /margin-block-start:\s*var\(--space-7\)/,
+    'il fregio del telefono non è abbassato',
+  );
+
+  const proseBase = css.match(/(?:^|})\s*\.programma > p\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(proseBase, 'manca la regola del paragrafo del Programma');
+  assert.match(
+    proseBase,
+    /text-shadow:\s*0 0 2px var\(--surface\)/,
+    'il paragrafo non ha l’alone crema sul telefono',
+  );
+
+  const desktop = desktopComposition(css);
+  assert.match(
+    desktop,
+    /\.programma\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*34rem\)\s*minmax\(0,\s*1fr\)/s,
+    'la colonna del paragrafo non è di 34 rem',
+  );
+  assert.match(
+    desktop,
+    /\.programma__plate\s*\{[^}]*inline-size:\s*34rem/s,
+    'il fregio desktop non è di 34 rem',
+  );
+  assert.match(
+    desktop,
+    /\.programma__plate\s*\{[^}]*justify-self:\s*end/s,
+    'il fregio non è allineato a destra',
+  );
+  assert.match(
+    desktop,
+    /\.programma__plate\s*\{[^}]*max-inline-size:\s*none/s,
+    'il fregio non può eccedere la propria traccia per sovrapporsi',
+  );
+  assert.match(
+    desktop,
+    /\.programma__plate\s*\{[^}]*margin-block-start:\s*0/s,
+    'il fregio desktop resta abbassato',
+  );
+  const desktopProse = desktop.match(/\.programma > p\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(desktopProse, 'manca la regola desktop del paragrafo del Programma');
+  assert.doesNotMatch(
+    desktopProse,
+    /text-shadow/,
+    'il paragrafo desktop azzera l’ombra che eredita dalla pagina',
+  );
+});
+
+test('il calice della prosa è decorativo e apre il capitolo della prosa', () => {
+  const document = loadSite();
+  const prose = document.querySelector('.cantina');
+  assert.ok(prose, 'manca la prosa delle Cantine');
+
+  const opening = prose.querySelector('.apertura');
+  assert.ok(opening, 'manca il capitolo della prosa');
+  const paragraphs = opening.querySelectorAll('.apertura__prose > p');
+  assert.equal(
+    paragraphs.length,
+    2,
+    'il capitolo non tiene i due paragrafi approvati',
+  );
+
+  const plate = opening.querySelector('svg.cantina__plate');
+  assert.ok(plate, 'manca il calice della prosa');
+  assert.equal(
+    plate.parentElement,
+    opening,
+    'il calice non è il disegno del capitolo della prosa',
+  );
+  assert.equal(
+    plate.nextElementSibling,
+    opening.querySelector('.apertura__prose'),
+    'il calice non precede la prosa del capitolo',
+  );
+  assert.equal(
+    plate.getAttribute('aria-hidden'),
+    'true',
+    'il calice non è nascosto alle tecnologie assistive',
+  );
+  assert.equal(
+    plate.getAttribute('focusable'),
+    'false',
+    'il calice può ricevere il fuoco',
+  );
+  assert.equal(
+    plate.querySelector('title, text, image, use'),
+    null,
+    'il calice porta un titolo, del testo, un’immagine o un riferimento',
+  );
+  assert.equal(
+    [...plate.querySelectorAll('*')].filter(
+      (node) => node.hasAttribute('href') || node.hasAttribute('xlink:href'),
+    ).length,
+    0,
+    'il calice porta un riferimento esterno',
+  );
+
+  const figure = plate.querySelector('[data-figure]');
+  assert.ok(figure, 'manca il gruppo del calice');
+  assert.equal(
+    figure.getAttribute('data-figure'),
+    'calice',
+    'il disegno non nomina il calice',
+  );
+  assert.ok(
+    CANTINA_PARAGRAPH.includes('vino'),
+    'il paragrafo non nomina più il vino che il calice disegna',
+  );
+});
+
+test('il calice è il secondo disegno, alla stessa altezza del fregio', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  const opening = css.match(/(?:^|})\s*\.apertura\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(opening, 'manca la regola del capitolo della prosa');
+  assert.match(opening, /display:\s*grid/, 'il capitolo non è una griglia');
+  assert.match(
+    opening,
+    /grid-template-areas:\s*"stage"/,
+    'il capitolo non impagina il disegno',
+  );
+
+  const prose = css.match(/(?:^|})\s*\.apertura__prose\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(prose, 'manca la regola della prosa del capitolo');
+  assert.match(prose, /position:\s*relative/, 'la prosa non sta sopra il calice');
+  assert.match(prose, /z-index:\s*1/, 'la prosa non sta sopra il calice');
+
+  const halo =
+    css.match(/(?:^|})\s*\.apertura__prose\s*>\s*p\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(halo, 'manca la regola dei paragrafi della prosa');
+  assert.match(
+    halo,
+    /text-shadow:\s*0 0 2px var\(--surface\)/,
+    'la prosa non ha l’alone crema sul calice',
+  );
+
+  const plate = css.match(/(?:^|})\s*\.cantina__plate\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(plate, 'manca la regola del calice');
+  assert.match(plate, /grid-area:\s*stage/, 'il calice non impagina nella sua area');
+  assert.match(plate, /justify-self:\s*end/, 'il calice non sta a destra');
+  assert.match(
+    plate,
+    /inline-size:\s*calc\(14rem \* 376 \/ 358 \* 120 \/ 149\)/,
+    'il calice del telefono non ha l’altezza del fregio del Programma',
+  );
+  assert.match(
+    plate,
+    /aspect-ratio:\s*120 \/ 149/,
+    'il calice non ha la proporzione del disegno',
+  );
+  assert.match(plate, /color:\s*var\(--ornament\)/, 'il calice non usa l’oro tinto');
+  assert.match(plate, /fill:\s*none/, 'il calice è riempito');
+  assert.match(plate, /stroke-width:\s*1\.6/, 'il calice non ha il tratto unico');
+  assert.match(plate, /pointer-events:\s*none/, 'il calice intercetta il puntatore');
+  assert.match(
+    plate,
+    /margin-block-start:\s*var\(--space-7\)/,
+    'il calice del telefono non è abbassato',
+  );
+
+  const desktop = desktopComposition(css);
+  assert.match(
+    desktop,
+    /\.apertura\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*34rem\)\s*minmax\(0,\s*1fr\)/s,
+    'la colonna della prosa non è di 34 rem',
+  );
+  assert.match(
+    desktop,
+    /\.apertura__prose\s*\{[^}]*grid-area:\s*text/s,
+    'la prosa desktop non sta nella colonna del testo',
+  );
+  assert.match(
+    desktop,
+    /\.cantina__plate\s*\{[^}]*inline-size:\s*calc\(34rem \* 376 \/ 358 \* 120 \/ 149\)/s,
+    'il calice desktop non ha l’altezza del fregio del Programma',
+  );
+  assert.match(
+    desktop,
+    /\.cantina__plate\s*\{[^}]*justify-self:\s*end/s,
+    'il calice desktop non sta a destra',
+  );
+  assert.match(
+    desktop,
+    /\.cantina__plate\s*\{[^}]*max-inline-size:\s*none/s,
+    'il calice non può eccedere la propria traccia per sovrapporsi',
+  );
+  assert.match(
+    desktop,
+    /\.cantina__plate\s*\{[^}]*margin-block-start:\s*0/s,
+    'il calice desktop resta abbassato',
+  );
+});
+
+test('il calice si inchiostra per primo e condivide l’idioma dei due disegni', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  const motion =
+    css.match(/\.apertura\s*>\s*\.cantina__plate\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(motion, 'manca il movimento del calice');
+  assert.match(motion, /animation:\s*ink-in\b/, 'il calice non si inchiostra');
+  assert.match(
+    motion,
+    /animation-timeline:\s*view\(\)/,
+    'il calice non segue lo scorrimento',
+  );
+
+  const startOf = (body) =>
+    Number(body.match(/animation-range:\s*entry\s+(\d+)%/)?.[1]);
+  const first =
+    css.match(/\.apertura__prose\s*>\s*p:nth-of-type\(1\)\s*\{([^}]*)\}/s)?.[1] ??
+    '';
+  assert.ok(first, 'manca il movimento del primo paragrafo');
+  assert.ok(
+    startOf(motion) < startOf(first),
+    'la prosa sale prima del suo disegno',
+  );
+
+  for (const [name, selector] of [
+    ['il fregio del Programma', '\\.programma__plate'],
+    ['il calice della prosa', '\\.cantina__plate'],
+  ]) {
+    const body =
+      css.match(new RegExp(`(?:^|})\\s*${selector}\\s*\\{([^}]*)\\}`, 's'))?.[1] ??
+      '';
+    assert.ok(body, `manca la regola: ${name}`);
+    assert.match(body, /color:\s*var\(--ornament\)/, `${name} non usa l’oro tinto`);
+    assert.match(body, /fill:\s*none/, `${name} è riempito`);
+    assert.match(body, /stroke-width:\s*1\.6/, `${name} non ha il tratto unico`);
+    assert.match(
+      body,
+      /stroke-linecap:\s*round/,
+      `${name} non ha il tratto arrotondato`,
+    );
+    assert.match(body, /pointer-events:\s*none/, `${name} intercetta il puntatore`);
+  }
+});
+
+test('l’etichetta del Programma ha il registro stampato delle etichette', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  // The heading is a printed label like DOVE and DALLE ORE, not a serif
+  // headline: sans, the small step, bold, wide tracking, muted ink. Inside
+  // .cantina it would otherwise inherit the prose's serif and its reading step.
+  const label = css.match(/\.programma\s+h2\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(label, 'manca la regola dell’etichetta PROGRAMMA');
+  for (const [declaration, why] of [
+    [/font-family\s*:\s*var\(--sans\)/, 'l’etichetta non è in sans'],
+    [/font-size\s*:\s*var\(--step--1\)/, 'l’etichetta non usa il passo piccolo'],
+    [/font-weight\s*:\s*700/, 'l’etichetta non è in grassetto'],
+    [/letter-spacing\s*:\s*0\.16em/, 'l’etichetta non ha la spaziatura delle altre etichette'],
+    [/color\s*:\s*var\(--ink-muted\)/, 'l’etichetta non è in inchiostro attenuato'],
+  ]) {
+    assert.match(label, declaration, why);
+  }
+
 });
 
 test('le literal della data concordano con l’attributo datetime', () => {
@@ -1626,10 +2023,50 @@ test('i due toni del campo sono mescolanze della palette, non colori nuovi', () 
   );
 });
 
+test('l’oro tinto del fregio lascia il bordeaux sopra AA', () => {
+  const css = stripCssComments(servedStylesheet());
+  const value = tokenValue('ornament', css);
+  assert.match(
+    value,
+    /^color-mix\(\s*in srgb\s*,\s*var\(--gold\)\s+40%\s*,\s*var\(--cream\)\s*\)$/,
+    `l’oro tinto non è una mescolanza di oro e crema: ${value}`,
+  );
+
+  const ornament = mixedTone('ornament', css);
+  const bordeaux = rgb(resolveTokenColour('bordeaux', css));
+  const cream = rgb(resolveTokenColour('cream', css));
+  const onOrnament = contrastRatio(bordeaux, ornament);
+  const onCream = contrastRatio(ornament, cream);
+  assert.ok(
+    onOrnament >= 4.5,
+    `il bordeaux sul fregio misura ${onOrnament.toFixed(2)}:1, sotto AA`,
+  );
+  assert.ok(
+    onCream >= 1.4,
+    `il fregio si perde nel crema: ${onCream.toFixed(2)}:1`,
+  );
+});
+
+test('tutto il testo porta la stessa ombra leggera', () => {
+  const css = stripCssComments(servedStylesheet());
+  const body = bodyRule(css);
+  assert.match(
+    body,
+    /text-shadow:\s*var\(--text-shadow\)/,
+    'il corpo non porta l’ombra della pagina',
+  );
+  const value = tokenValue('text-shadow', css);
+  assert.match(
+    value,
+    /^0 1px 1px color-mix\(\s*in srgb\s*,\s*var\(--bronze\)\s+30%\s*,\s*transparent\s*\)$/,
+    `l’ombra non è un’incisione calda: ${value}`,
+  );
+});
+
 test('il campo resta entro il sedici per cento e il bordeaux regge su entrambi i capi', () => {
   const css = stripCssComments(servedStylesheet());
-  const lightTone = mixedGroundTone('ground-light', css);
-  const deepTone = mixedGroundTone('ground-deep', css);
+  const lightTone = mixedTone('ground-light', css);
+  const deepTone = mixedTone('ground-deep', css);
   // The grain is a texture: its mean darkens both ends by the same proportion,
   // so the field's span is measured on the tones themselves. The ends the note
   // records are read through the grain, for the contrast checks below.
@@ -1782,6 +2219,7 @@ test('il foglio di stile isola i token e dichiara l’ordine dei layer', () => {
     'ink',
     'settle',
     'date',
+    'numeral',
     'quick',
     'rule',
     'scroll',
@@ -3703,11 +4141,13 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
   }
 
   /*
-   * The page reveals only the Cantina photograph, the prose, the gallery and
-   * the band as they enter the viewport. The hero — the signature, its lockup
-   * and subtitle, and the date — is present on the first screen and never
-   * waits for the scroll.
+   * The page reveals only the Cantina photograph, the prose and Programma, the
+   * gallery and the band as they enter the viewport. The hero — the signature,
+   * its lockup and subtitle, and the date — is present on the first screen and
+   * never waits for the scroll. Its one scroll effect is the grapes' drift,
+   * which is transform-only and never hides the cover.
    */
+  const rules = stripCssComments(css);
   const reveals = viewTimelines(css);
   assert.ok(reveals.length > 0, 'manca il reveal scroll della prosa e della banda');
   assert.ok(
@@ -3718,7 +4158,12 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     reveals.some((selector) => /\.facts\b/.test(selector)),
     'i fatti non si rivelano entrando nel viewport',
   );
+
+  const HERO_DRIFT = /\.hero-photo\s+picture\b/;
   for (const selector of reveals) {
+    if (HERO_DRIFT.test(selector)) {
+      continue;
+    }
     assert.doesNotMatch(
       selector,
       /(?:\.masthead|\.signature|\.lockup|\.subtitle|\.date|\.hero-photo)\b/,
@@ -3726,7 +4171,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     );
     assert.match(
       selector,
-      /\.cantina\b|\.facts\b|\.band__actions\b|\.photo-band\b|\.gallery__frame\b/,
+      /\.(?:cantina|apertura)(?:__[a-z]+)?\b|\.facts\b|\.band__actions\b|\.photo-band\b|\.gallery__frame\b/,
       `il reveal scroll è fuori dalla fotografia, dalla prosa, dalla galleria e dalla banda: ${selector}`,
     );
     assert.doesNotMatch(
@@ -3735,6 +4180,199 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
       'la banda intera sfuma: le due azioni non devono stare in un contenitore che sfuma',
     );
   }
+
+  /*
+   * The cover's drift is the one hero scroll effect. It rides the picture
+   * wrapper, never fades, and keeps a scale margin so the frame's edges stay
+   * covered. It is not a reveal: no opacity, no clip.
+   */
+  assert.equal(
+    reveals.filter((selector) => HERO_DRIFT.test(selector)).length,
+    1,
+    'manca la deriva dell’uva dietro la testata',
+  );
+  const driftRule =
+    rules.match(/\.hero-photo\s+picture\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(driftRule, /animation:\s*cover-drift\b/, 'la deriva non è la copertina');
+  assert.match(
+    driftRule,
+    /animation-timeline:\s*view\(\)/,
+    'la deriva non segue lo scorrimento',
+  );
+  assert.match(
+    driftRule,
+    /animation-range:\s*exit\s+0%\s+exit\s+100%/,
+    'la deriva non parte dal primo pixel di scorrimento',
+  );
+  assert.doesNotMatch(driftRule, /\bopacity\s*:/, 'l’uva sfuma invece di scorrere');
+
+  const driftKeyframes = atRuleBlocks(css, '@keyframes\\s+cover-drift\\s*\\{');
+  assert.equal(driftKeyframes.length, 1, 'manca la sequenza della deriva');
+  const driftBody = css.slice(driftKeyframes[0].start, driftKeyframes[0].end);
+  assert.doesNotMatch(driftBody, /\bopacity\s*:/, 'la deriva dell’uva è una dissolvenza');
+  assert.match(
+    driftBody,
+    /scale\(\s*1\.0[4-9]/,
+    'la deriva non tiene il margine della cornice',
+  );
+  assert.match(driftBody, /translateY\(\s*-?2%\)/, 'la deriva non scorre');
+
+  /*
+   * The date's numeral is set into the band with the rest of the press.
+   */
+  const numeralRule =
+    [...rules.matchAll(/\.date-day\s*\{([^}]*)\}/gs)]
+      .map((match) => match[1])
+      .find((body) => /numeral-set/.test(body)) ?? '';
+  assert.match(
+    numeralRule,
+    /animation:\s*numeral-set\s+var\(--motion-numeral\)/,
+    'il numero della data non si posa con un token',
+  );
+  assert.match(
+    numeralRule,
+    /var\(--motion-after-paper\)/,
+    'il numero non entra con la data',
+  );
+  const numeralKeyframes = atRuleBlocks(css, '@keyframes\\s+numeral-set\\s*\\{');
+  assert.equal(numeralKeyframes.length, 1, 'manca la posa del numero');
+  const numeralBody = css.slice(numeralKeyframes[0].start, numeralKeyframes[0].end);
+  assert.match(numeralBody, /translateY\(\s*0\.06em\s*\)/, 'il numero non si posa');
+  assert.doesNotMatch(numeralBody, /\bopacity\s*:/, 'il numero sfuma invece di posarsi');
+
+  const ruleBodyFor = (selector) => {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return rules.match(new RegExp(`${escaped}\\s*\\{([^{}]*)\\}`, 's'))?.[1] ?? '';
+  };
+
+  /*
+   * The prose prints in reading order. The range starts are asserted to be
+   * increasing, so a later paragraph cannot arrive before an earlier one.
+   */
+  const proseOrder = [
+    '.apertura__prose > p:nth-of-type(1)',
+    '.apertura__prose > p:nth-of-type(2)',
+    '.cantina > .programma > p',
+  ];
+  const proseStarts = proseOrder.map((selector) => {
+    const body = ruleBodyFor(selector);
+    assert.match(
+      body,
+      /animation:\s*section-rise\b/,
+      `la prosa non sale: ${selector}`,
+    );
+    const start = body.match(/animation-range:\s*entry\s+(\d+)%/)?.[1];
+    assert.ok(start !== undefined, `manca l’intervallo della prosa: ${selector}`);
+    return Number(start);
+  });
+  assert.deepEqual(
+    proseStarts,
+    [...proseStarts].sort((a, b) => a - b),
+    'la prosa non si stampa in ordine',
+  );
+  assert.equal(
+    new Set(proseStarts).size,
+    proseStarts.length,
+    'la prosa si rivela tutta insieme',
+  );
+
+  const labelBody = ruleBodyFor('.cantina > .programma > h2');
+  assert.match(
+    labelBody,
+    /animation:\s*ink-in\b/,
+    'l’etichetta del Programma non si inchiostra',
+  );
+  assert.match(
+    labelBody,
+    /animation-timeline:\s*view\(\)/,
+    'l’etichetta non segue lo scorrimento',
+  );
+
+  /*
+   * The plate is the drawing between the label and the paragraph: it inks
+   * after the label and before the prose, so the section prints in order.
+   */
+  const plateBody = ruleBodyFor('.cantina > .programma > .programma__plate');
+  assert.match(plateBody, /animation:\s*ink-in\b/, 'il fregio non si inchiostra');
+  assert.match(
+    plateBody,
+    /animation-timeline:\s*view\(\)/,
+    'il fregio non segue lo scorrimento',
+  );
+  const plateStart = Number(
+    plateBody.match(/animation-range:\s*entry\s+(\d+)%/)?.[1],
+  );
+  const labelStart = Number(
+    labelBody.match(/animation-range:\s*entry\s+(\d+)%/)?.[1],
+  );
+  assert.ok(
+    labelStart < plateStart && plateStart < proseStarts[2],
+    'il fregio non si inchiostra fra l’etichetta e il paragrafo',
+  );
+
+  /*
+   * The gallery recedes lead first, then the portraits left to right.
+   */
+  const galleryOrder = [
+    '.gallery__frame--wide img',
+    '.gallery__row > .gallery__frame:nth-child(1) img',
+    '.gallery__row > .gallery__frame:nth-child(2) img',
+    '.gallery__row > .gallery__frame:nth-child(3) img',
+  ];
+  const galleryStarts = galleryOrder.map((selector) => {
+    const body = ruleBodyFor(selector);
+    assert.match(
+      body,
+      /animation:\s*photograph-recede\b/,
+      `la galleria non arretra: ${selector}`,
+    );
+    const start = body.match(/animation-range:\s*cover\s+(\d+)%/)?.[1];
+    assert.ok(start !== undefined, `manca l’intervallo della galleria: ${selector}`);
+    return Number(start);
+  });
+  assert.deepEqual(
+    galleryStarts,
+    [...galleryStarts].sort((a, b) => a - b),
+    'la galleria non va dalla guida ai ritratti',
+  );
+
+  /*
+   * The facts rise in order and are never hidden; the action rules draw in
+   * order. The band itself carries no animation.
+   */
+  const factsOrder = ['.facts > :nth-child(1)', '.facts > :nth-child(2)'];
+  const factStarts = factsOrder.map((selector) => {
+    const body = ruleBodyFor(selector);
+    assert.match(body, /animation:\s*fact-rise\b/, `i fatti non salgono: ${selector}`);
+    assert.doesNotMatch(body, /\bopacity\s*:/, 'i fatti vengono nascosti');
+    const start = body.match(/animation-range:\s*entry\s+(\d+)%/)?.[1];
+    assert.ok(start !== undefined, `manca l’intervallo dei fatti: ${selector}`);
+    return Number(start);
+  });
+  assert.deepEqual(factStarts, [...factStarts].sort((a, b) => a - b));
+
+  const actionOrder = [
+    '.band__actions > p:nth-of-type(1) > a::before',
+    '.band__actions > p:nth-of-type(2) > a::before',
+  ];
+  const actionStarts = actionOrder.map((selector) => {
+    const body = ruleBodyFor(selector);
+    assert.match(body, /animation:\s*rule-rule\b/, `il filetto non si tira: ${selector}`);
+    const start = body.match(/animation-range:\s*entry\s+(\d+)%/)?.[1];
+    assert.ok(start !== undefined, `manca l’intervallo del filetto: ${selector}`);
+    return Number(start);
+  });
+  assert.deepEqual(actionStarts, [...actionStarts].sort((a, b) => a - b));
+  assert.doesNotMatch(
+    rules,
+    /\.facts\s*\{[^}]*\bopacity\s*:/s,
+    'i fatti sono nascosti dal loro contenitore',
+  );
+  assert.doesNotMatch(
+    rules,
+    /\.band(?:__inner|__actions)?\s*\{[^}]*\bopacity\s*:/s,
+    'la banda o le azioni vengono nascoste',
+  );
 
   /*
    * Two ways the photograph's reveal was silently still, both invisible to a
@@ -3746,7 +4384,6 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
    * settles, so the recede is over before it is seen. These two assertions
    * guard the lines that fix it; the rendering itself needs a browser.
    */
-  const rules = stripCssComments(css);
   const frame = rules.match(/\.photo-frame\s*\{([^}]*)\}/s)?.[1] ?? '';
   assert.match(
     frame,

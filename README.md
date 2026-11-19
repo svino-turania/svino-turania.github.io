@@ -7,13 +7,13 @@ repository `svino-turania/svino-turania.github.io`.
 Status: the page is a cover, recorded in ADR-0009, with the grapes photograph
 full-bleed and the masthead set on it in cream over a bordeaux scrim; after the
 prose, a gallery of four cellar photographs closes the page (ADR-0012). It
-carries the Locandina's facts, the Cantina prose, the map link and one
-Locandina download. The identity (palette and type), the outlined signature
-with the `II EDIZIONE` lockup, the full-bleed grapes cover, the Cantina
-photograph with its single torn lower edge, the gallery, the Open Graph and
-Twitter metadata, the square social preview, the print-derived motion and the
-accessibility work are all in place. The rules below describe the system that
-work preserves.
+carries the Locandina's facts, the Cantina prose, the confirmed Programma, the
+map link and one Locandina download. The identity (palette and type), the
+outlined signature with the `II EDIZIONE` lockup, the full-bleed grapes cover,
+the Cantina photograph with its single torn lower edge, the gallery, the Open
+Graph and Twitter metadata, the square social preview, the print-derived motion
+— rebuilt as one scroll story in ADR-0015 — and the accessibility work are all
+in place. The rules below describe the system that work preserves.
 
 ## The site is the files it is
 
@@ -47,19 +47,24 @@ Check the page before merging, in the browser's responsive mode:
 
 - 320 and 390 px: the cover at its narrowest — the photograph edge to edge,
   the signature and subtitle in cream at its foot, the date a band on cream
-  between two gold hairlines, the Cantina photograph edge to edge, the facts
-  paired and the two actions stacked; no horizontal scrolling, and the
-  signature and the date fit the first screen.
-- 768 px: the same composition, with the shell's gutter at its widest.
+  between two gold hairlines, the Cantina photograph edge to edge, the prose
+  with the tasting glass on the right, behind the paragraph's last words and
+  dropped one step, the Programma with its 14 rem plate on the same side and at
+  the same height, the facts paired and the two actions stacked; no horizontal
+  scrolling, and the signature and the date fit the first screen.
+- 768 px: the same composition, with the shell's gutter at its widest; both
+  drawings keep their height and their side.
 - 1024, 1440×900 and 1920 px: the one desktop composition — the wide cover
   crop, the date on one line, the Cantina photograph full-bleed with its height
-  cap, the prose in two columns and the closing band split facts left, actions
-  right. The signature and the date still fit the first screen.
+  cap, the two chapters opening across the shell with 34 rem of prose on the
+  left and the drawing on the right (28.75 rem of glass, 34 rem of plate, the
+  same height), and the closing band split facts left, actions right. The
+  signature and the date still fit the first screen.
 
 Repeat at 200% text zoom: the date, the place and the organiser must stay
 readable, with no horizontal scrolling and no clipped text. At a tight measure
 the date's words wrap inside their areas rather than pushing the page sideways,
-and the prose falls back to one column.
+and the two chapters keep their prose readable beside the drawings.
 
 ## Composition
 
@@ -68,8 +73,9 @@ border or shadow. The opening photograph — a close-up of black grapes — runs
 edge to edge at every width, and the masthead — the signature, the `II EDIZIONE`
 lockup and the subtitle — is set at its foot, inside the content shell, in cream
 on a bordeaux scrim. The order is the cover, the date, the Cantina photograph,
-the Cantina prose, the gallery of four cellar photographs and one closing
-bordeaux band.
+the Cantina prose with its glass opening as an illustrated chapter, the
+Programma opening beneath it as the second chapter, the gallery of four cellar
+photographs and one closing bordeaux band.
 
 The gallery sits after the prose, on the paper, with the page's gutter: the one
 landscape photograph at the shell's width and the three portraits below it —
@@ -128,15 +134,33 @@ tear is a vector polygon expressed against the photograph band's own width
 cannot compress its teeth. No raster tear is shipped.
 
 The Cantina prose is set under the torn edge in SV Serif at the reading step,
-on a 48 rem measure centred in the shell. The facts pair and the
-two actions stack at every width.
+on a 48 rem measure centred in the shell, and it opens the first of the page's
+two illustrated chapters: the prose on the left, the tasting glass on the
+right, behind the paragraph's last words and dropped one spacing step, exactly
+as the Programma's plate sits beside its paragraph. The glass is one tinted
+gold (`--ornament`, 40% `--gold` through `--cream`), one stroke of 1.6 px, no
+fill, no frame, the foot on one short ground rule, and it is as tall as the
+Programma plate — not as wide: the two drawings keep their own ratios. It is
+decorative (`aria-hidden`); the paragraph carries the words. The Programma
+opens beneath it as the second chapter: the same serif, the printed-label
+register for its heading — sans, the small step, bold, wide tracking, muted
+ink — and, beside the paragraph, its plate. The plate is a line-art cluster of
+the four instruments the approved paragraph names — organetto, fisarmonica,
+chitarra, tamburo — in the same tinted gold, one stroke of 1.6 px, no fill, no
+frame, standing on a single ground rule. It is decorative (`aria-hidden`); the
+paragraph carries the words and stays the section's only `<p>`. Every glyph on
+the page carries a one-pixel warm letterpress shadow (`--text-shadow`, bronze
+at 30%): visible on the paper, and warm on the bordeaux band and the cover. The
+facts pair and the two actions stack at every width.
 
 From 64 rem there is one desktop composition, and it gives the width only to
 what the phone already has: the cover widens to a 3:2 crop and the signature
 caps at 36 rem so the photograph stays visible; the date sets on one line; the
-prose runs in two columns of `22rem` (a `column-width`, so it folds back to one
-under zoom); the closing band puts the facts left and the actions right, with
-the colophon on a full-width tail. The content order does not change.
+two chapters open across the shell, each `34rem` of prose on the left and its
+drawing on the right — the glass `28.75rem` wide to be as tall as the `34rem`
+plate, the plate overflowing its track so the paragraph's last lines cross its
+inner rim; the closing band puts the facts left and the actions right, with the
+colophon on a full-width tail. The content order does not change.
 
 One bordeaux band closes the page: `DOVE`, `A CURA DI`, the map link, the
 Locandina download and the colophon, cream on bordeaux with the role labels in
@@ -149,30 +173,39 @@ organiser is under `A CURA DI`. The map link opens Google Maps for the same
 place without repeating it, and the colophon states the edition only.
 
 ADR-0009 governs the composition and supersedes ADR-0007 and ADR-0008 in part.
-ADR-0012 governs the cover photograph and the gallery. ADR-0004 is superseded
-for both.
+ADR-0012 governs the cover photograph and the gallery. ADR-0016 governs the
+Programma's illustrated chapter. ADR-0004 is superseded for both.
 
 ## Motion
 
-The page opens by stepping out from under the arch, then prints itself, and it
-prints in order. The grapes photograph is the paper: it is present on the first
-frame, close to the reader, and the view recedes from it — never a fade; the
-signature is pressed in from the left like a press impression and the date is
-set with it, from its left edge, hairlines and all, over a long even wipe so
-the band is seen being set; then the `II EDIZIONE` lockup is inked and the
-subtitle settles. Each step follows the one before it —
-overlapping, so nothing waits on anything — and the eye has an order to follow.
+The page moves as it is read: the press sets the page, then the reader walks
+through the cellars. It is one scroll story, in reading order.
 
-Below the fold, the view steps back out of the Cantina arch as it is reached —
-a zoom, never a fade, inside the tear the frame cuts, so the edge never moves —
-and the prose and the facts rise as they enter the viewport. The four gallery
-photographs recede out of their frames the same way, so the photo essay keeps
-one vocabulary. The band's two actions never fade; only their rules are ruled.
+The cover prints itself first. The grapes photograph is the paper: it is present
+on the first frame, close to the reader, and the view recedes from it — never a
+fade. The signature is pressed in from the left, the date is set with it from
+its left edge, hairlines and all, and the day numeral settles into the band;
+then the `II EDIZIONE` lockup is inked and the subtitle settles. Each step
+follows the one before it, overlapping, so nothing waits on anything. As the
+cover leaves, the grapes drift up and slightly in behind the fixed masthead:
+the only scroll effect on the hero, transform-only, never a fade or a reveal.
 
-The hero — the signature, its lockup and subtitle on the grapes photograph,
-and the date — is complete on the first screen and never waits for the scroll.
-Scroll-driven reveals are only for the Cantina photograph, the prose, the
-gallery and the facts band.
+Below the fold the story continues in reading order. The view steps back out of
+the Cantina arch — a zoom, never a fade, inside the tear the frame cuts, so the
+edge never moves. The prose prints itself: the glass inks, then the first
+paragraph, the second paragraph, then the Programma label, the plate and its
+paragraph. The gallery recedes photo by
+photo, the lead landscape first and the three portraits left to right. The facts
+rise in sequence, DOVE then A CURA DI, without dissolving; the band is content,
+not a curtain. The two action rules draw one after the other, and the actions
+themselves never fade.
+
+The hero — the signature, its lockup and subtitle on the grapes photograph, and
+the date — is complete on the first screen and never waits for the scroll.
+Scroll-driven reveals are only for the Cantina photograph, the prose and its
+glass, the Programma (its label, plate and paragraph), the gallery and the
+facts band; the hero's one scroll effect is the grapes' drift, which never
+hides or fades.
 
 The page has two links and both respond: the ink shifts, a second rule re-inks
 over the printed one from its left edge, and the arrow leads by 2 px, as if the
@@ -193,22 +226,25 @@ counter, so no effect may depend on one. The rules are:
   hover. That is not motion that delays use.
 - **Every duration, delay and easing comes from the motion tokens** in `:root`
   (`--motion-recede`, `--motion-press`, `--motion-ink`, `--motion-settle`,
-  `--motion-date`, `--motion-quick`, `--motion-rule`, `--motion-scroll`, the
-  `--motion-after-*` entrance delays, and `--ease-press` / `--ease-set`), not
-  from magic numbers. The press curve arrives fast and settles; the set curve
-  reveals the date evenly.
+  `--motion-date`, `--motion-numeral`, `--motion-quick`, `--motion-rule`,
+  `--motion-scroll`, the `--motion-after-*` entrance delays, and `--ease-press`
+  / `--ease-set`), not from magic numbers. The press curve arrives fast and
+  settles; the set curve reveals the date evenly.
 
-The entrance finishes in about 0.9 s; the signature is legible at about
-640 ms and the date is fully set at about 880 ms. Scroll-driven reveals
-(`animation-timeline: view()`) are progressive enhancement behind `@supports`;
-browsers without it, including iOS before 26, serve the static page with the
-same content.
+The entrance finishes in about 0.9 s; the signature is legible at about 640 ms,
+the numeral settles by about 560 ms and the date is fully set at about 880 ms.
+Scroll-driven motion (`animation-timeline: view()`) is progressive enhancement
+behind `@supports`; browsers without it, including iOS before 26, serve the
+static page with the same content. The cover drift is timed by the view
+timeline's `exit` range, so the first screen is the neutral state; the prose,
+gallery, facts and rules carry their own staggered ranges.
 
 The signature has no stroke, so the press edge is a `clip-path` on the filled
 path, not a stroke animation. The actions' rules are pseudo-lines rather than
 borders precisely so they can be ruled; the extra 1px of padding keeps their
 rendered boxes identical. ADR-0009 records the composition the motion sits on;
-the motion itself is cheap to reverse and has no ADR.
+ADR-0015 records the scroll story, the cover drift and the stagger ranges. The
+motion itself is cheap to reverse.
 
 ## Editor workflow (Comitato)
 
@@ -259,9 +295,9 @@ The Cantina prose sits between the `CANTINA — INIZIO REGIONE MODIFICABILE`
 and `CANTINA — FINE REGIONE MODIFICABILE` comments. Keep it inside those
 markers. It is the page's own prose, not printed on the Locandina: the
 Comitato approves it, the maintainer edits it, and a test pins it verbatim.
-The second paragraph promises that this page will carry the programme and the
-event's news, so add no categories to that promise — no entry, price or
-duration — until the Comitato decides them.
+The second paragraph promises that this page will carry the event's news, so
+add no categories to that promise — no entry, price or duration — until the
+Comitato decides them.
 
 To propose a change:
 
@@ -275,30 +311,57 @@ To propose a change:
 If a change needs a new layout or a new asset, open an issue for the
 maintainer instead of editing it alone.
 
-## Adding the programme
+## The Programma
 
-When the Comitato supplies the programme, add it as a new section of
-`index.html` — not as a new page or route — so the address printed on the
-Locandina stays the address of the programme. Put it inside the prose container
-(`<div class="cantina">`), after the `CANTINA — FINE REGIONE MODIFICABILE`
-marker and before the closing `</div>`; it then follows the Cantina photograph
-and the prose, sits on the prose measure (48 rem on a phone; two 22 rem
-columns inside a 64 rem block from 64 rem) and precedes the closing band:
+The Programma is a section of `index.html` — not a new page or route — so the
+address printed on the Locandina stays the address of the Programma. It sits
+inside the prose container (`<div class="cantina">`), after the opening chapter
+and before the closing `</div>`; it follows the Cantina photograph and the prose
+and precedes the gallery and the closing band. On a phone it keeps the prose
+measure; from 64 rem it opens as a full-width chapter.
 
 ```html
-<section aria-labelledby="programma">
-  <h2 id="programma">Programma</h2>
+<section class="programma" aria-labelledby="programma">
+  <h2 id="programma">PROGRAMMA</h2>
+  <svg class="programma__plate" aria-hidden="true" focusable="false">…</svg>
   <p>…</p>
 </section>
 ```
 
-Leave the two approved Cantina paragraphs untouched between the two markers:
-the tests expect exactly those two paragraphs inside the region. Do not add the
-programme to the bordeaux band; the band carries only `DOVE`, `A CURA DI`, the
-map link, the Locandina download and the colophon. Keep the heading order
-valid: the signature is the page's only `h1`, so the programme heading is an
-`h2`. The programme is absent until that content exists; nothing is added to
-fill the space.
+The heading takes the printed-label register. The plate is the Programma's
+drawing — the page opens on the glass in the prose: the four instruments
+the approved paragraph names — organetto, fisarmonica, chitarra, tamburo —
+clustered in a pyramid (the tamburo on the ground rule, the chitarra leaning,
+the fisarmonica behind and above, the organetto at the apex), in one tinted ink
+(`--ornament`), one stroke of 1.6 px, no fill and no frame. It is decorative:
+`aria-hidden`, no `<title>`, no caption, no text. Each instrument group carries
+`data-instrument`, and the suite compares that set with the names in
+`PROGRAMMA_PARAGRAPH`, so the drawing and the prose cannot drift apart. The
+drawing promises the four instruments, not the order of the sentence. On a
+phone the plate is 14 rem, dropped one spacing step so the opening lines sit on
+clean paper, and the paragraph keeps the page's warm lift and adds two cream
+passes so a line crossing a glyph does not blur its edge; the desktop keeps the
+single lift and puts the plate beside the paragraph's ends. The label stays on clean cream above the paragraph
+and is never overlaid; the paragraph stays the section's only `<p>`.
+
+The plate is the page's device, not the Locandina's: it does not appear on the
+print without a decision of its own. If the Programma gains a second act, the
+plate belongs to the Menestrelli entry, never to the section as a generic music
+mark. The section carries no time of its own: the date band already gives the
+start, and the group's end time is deliberately not published.
+
+The paragraphs are approved prose. The two Cantina paragraphs between the
+markers and the Programma paragraph are the text the Comitato approved, pinned
+verbatim by `tests/site.test.mjs` as `CANTINA_PARAGRAPH` and
+`PROGRAMMA_PARAGRAPH`; change them only with Comitato approval, and update the
+two constants in the same change.
+
+An act joins the Programma only once the Comitato has confirmed it; a proposal
+or a possibility does not, and nothing is added to fill the space. Do not move
+the Programma to the bordeaux band; the band carries only `DOVE`, `A CURA DI`,
+the map link, the Locandina download and the colophon. Keep the heading order
+valid: the signature is the page's only `h1`, so the Programma heading is an
+`h2`.
 
 ## Deployment
 
@@ -319,7 +382,8 @@ requests, so preview a pull request locally before merging.
 The test seam is the repository root, as a static server serves it. `npm test`
 runs `node --test tests/*.test.mjs`; there is no build to run first. The tests
 read `index.html`, its assets and its metadata as a visitor or link checker
-would: the printed facts and the Cantina prose verbatim, the date literals
+would: the printed facts, the Cantina prose and the Programma paragraph
+verbatim, the date literals
 against `datetime`, the map destination, the declared language, headings and
 link names, the three narrow guards — one `<script>`, the counter's, pinned to
 GoatCounter's CDN, with no inline handler or shipped `.js`; no host on the
@@ -345,7 +409,10 @@ exactly one torn edge measured in
 `cqw` against the photograph band (`container-type: inline-size` on
 `.photo-band`), with no raster tear shipped. The gallery follows the prose with
 four described photographs, each a JPEG/WebP pair at its native width, lazy and
-asynchronous, with no caption, no tear and no preload. The strong surface
+asynchronous, with no caption, no tear and no preload. The Programma is
+asserted as a section inside the prose container, after the approved region and
+before the gallery: one `h2` set in the printed-label register, and the
+approved paragraph verbatim with no time of its own. The strong surface
 appears on the closing band and nowhere else; the band carries `DOVE`,
 `A CURA DI`, the map link, the single Locandina download, the counter notice and
 the colophon, and
@@ -372,9 +439,30 @@ both ends. The motion rules are asserted as well: no
 looping animation, every animation inside `prefers-reduced-motion:
 no-preference`, every animation and transition duration and delay taken from a
 `--motion-*` token, the entrance sequenced by the `--motion-after-*` delays,
-every `view()` timeline behind `@supports`, the hero free of scroll reveals, the
-Cantina photograph, the prose and the facts revealed, and the band's actions
-never faded.
+every `view()` timeline behind `@supports`, the hero free of scroll reveals
+except the grapes' transform-only drift, the Cantina photograph, the prose and
+Programma, the gallery and the facts revealed in reading order, and the band's
+actions never faded.
+
+The Programma's plate is asserted as decorative, free of text and external
+references, and naming exactly the four instruments of the approved paragraph;
+the section opens at 64 rem with `34rem` of paragraph and its plate, the plate
+is 14 rem on a phone and 34 rem on the desktop, the phone's plate drops one
+spacing step and the prose adds two cream passes to the page's warm lift, the
+desktop keeps the single shadow, and the tinted ink keeps the paragraph above
+AA where it crosses a stroke.
+
+The prose's glass is asserted as decorative, free of text and external
+references, the opening chapter's drawing and named `data-figure="calice"`
+while the paragraph still names the wine; it is placed on the right, at the
+height of the Programma plate (`calc(14rem * 376 / 358 * 120 / 149)` — the
+plate's height expressed in the glass's ratio — and the same expression at
+34 rem on the desktop), dropped one spacing step on a phone and released from
+its track on the desktop; the chapter is a `34rem` prose column beside the
+stage, the prose is lifted above the drawing and carries two cream passes, and
+the glass inks before the first paragraph rises. The two drawings'
+declarations are asserted to share one idiom, so the copy of the six shared
+declarations cannot drift apart.
 
 The suite asserts what a visitor observes and the CSS contracts the stylesheet
 declares for geometry: the shell and its computed inset, the cover's shared
@@ -657,7 +745,7 @@ following are absent by choice:
 
 - any entry statement or price;
 - any contact details (email, phone, social account);
-- any programme;
+- any Programma item, time or detail the Comitato has not confirmed;
 - any placeholder copy — "in via di definizione", "da definire",
   "prossimamente" and the like.
 

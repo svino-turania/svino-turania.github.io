@@ -94,6 +94,24 @@
     --rule: var(--gold);
     --link: var(--bordeaux);
     --link-hover: var(--bronze);
+    /*
+     * The Programma's plate. The page's first drawing is pressed into the
+     * paper, not printed on it: 40% --gold through --cream, about three-fifths
+     * of the old line's opacity, mixed into the token instead of layered over
+     * the ground so the measurement holds on the paper. Measured on the cream
+     * surface, bordeaux on the tint is 7.00:1, so the paragraph keeps AA where
+     * it crosses a stroke; the tint on cream is 1.42:1, which is the point —
+     * the plate is furniture, not content.
+     */
+    --ornament: color-mix(in srgb, var(--gold) 40%, var(--cream));
+    /*
+     * The page's type lift. One pixel of warm shadow under every glyph, mixed
+     * from the bronze so it is visible on the cream and still warm on the
+     * bordeaux band. It is a letterpress, not a drop shadow: one pixel down,
+     * one pixel of blur. The Programma's phone paragraph keeps its two cream
+     * passes where the prose crosses the plate and adds this lift on top.
+     */
+    --text-shadow: 0 1px 1px color-mix(in srgb, var(--bronze) 30%, transparent);
 
     /*
      * The ground's grain. A neutral fractal-noise tile drawn inline as SVG,
@@ -214,15 +232,17 @@
     /*
      * Motion scale. Named for the camera and the print: the view recedes out
      * of the arch, the signature is pressed, ink is laid down, the date is
-     * set, a rule is ruled. Every animation in this file takes its duration,
-     * its delay and its easing from one of these tokens, and every one lives
-     * behind the no-preference query.
+     * set and its numeral settles, the cover drifts, a rule is ruled. Every
+     * animation in this file takes its duration, its delay and its easing
+     * from one of these tokens, and every one lives behind the
+     * no-preference query.
      */
     --motion-recede: 640ms;
     --motion-press: 560ms;
     --motion-ink: 260ms;
     --motion-settle: 340ms;
     --motion-date: 800ms;
+    --motion-numeral: 480ms;
     --motion-quick: 240ms;
     --motion-rule: 320ms;
     /*
@@ -277,9 +297,11 @@
     font-synthesis: none;
     line-height: 1.5;
     overflow-wrap: break-word;
+    text-shadow: var(--text-shadow);
   }
 
   h1,
+  h2,
   p,
   dl,
   dd,
@@ -768,6 +790,133 @@
     margin-block-start: var(--space-3);
   }
 
+  /*
+   * The opening is the prose's illustrated chapter, built like the Programma:
+   * the paragraph on the left, the glass on the right, the paragraph's lines
+   * crossing the drawing. The glass shares the plate's idiom — one tinted ink
+   * (--ornament), one stroke of 1.6 px, no fill, no frame, the foot on one
+   * short ground rule — but it is a device of its own, tied to "si assaggia il
+   * vino", not a mark of the page or the Locandina. It is decorative and
+   * carries no text; the suite keeps the two drawings on the same idiom.
+   */
+  .apertura {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "stage";
+  }
+
+  .apertura__prose {
+    grid-area: stage;
+    /* The prose crosses the drawing, so it is lifted above it. */
+    position: relative;
+    z-index: 1;
+  }
+
+  .apertura__prose > p {
+    /* Two cream passes keep the glyph edge clean where a line crosses a
+     * stroke; on the paper they are the ground's own colour. */
+    text-shadow:
+      0 0 2px var(--surface),
+      0 0 2px var(--surface),
+      var(--text-shadow);
+  }
+
+  .cantina__plate {
+    grid-area: stage;
+    justify-self: end;
+    /*
+     * The drawing is as tall as the Programma plate: its width is the 14 rem
+     * plate's height expressed in this drawing's ratio, so the two drawings
+     * match in height and share the same side at every width.
+     */
+    inline-size: calc(14rem * 376 / 358 * 120 / 149);
+    /* Dropped one spacing step, as the Programma plate is, so the opening
+     * lines sit on clean paper. */
+    margin-block-start: var(--space-7);
+    block-size: auto;
+    aspect-ratio: 120 / 149;
+    color: var(--ornament);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .cantina__plate * {
+    vector-effect: non-scaling-stroke;
+  }
+
+  /*
+   * The programme continues the prose: it is the running order the Comitato
+   * has confirmed, not a second band. Its heading is the print's label, in the
+   * same register as DOVE and DALLE ORE — sans, the small step, bold, wide
+   * tracking, muted ink — so the section reads as a caption set into the page
+   * instead of a serif headline. The paragraph keeps the prose's serif and
+   * measure. The label always stays with the paragraph it introduces.
+   */
+  .programma {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "label"
+      "stage";
+    margin-block-start: var(--space-6);
+  }
+
+  .programma h2 {
+    grid-area: label;
+    color: var(--ink-muted);
+    font-family: var(--sans);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
+    margin-block-end: var(--space-3);
+  }
+
+  /*
+   * The plate is decorative and carries no text; the paragraph names the four
+   * instruments. Its ink is --ornament, a gold pressed into the paper, so the
+   * bordeaux prose keeps AA where it crosses a stroke. The stroke is 1.6 px at
+   * every size, and the drawing inherits the one ink and no fill.
+   */
+  .programma__plate {
+    grid-area: stage;
+    justify-self: end;
+    inline-size: 14rem;
+    margin-block-start: var(--space-7);
+    block-size: auto;
+    aspect-ratio: 358 / 376;
+    color: var(--ornament);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .programma__plate * {
+    vector-effect: non-scaling-stroke;
+  }
+
+  .programma > p {
+    grid-area: stage;
+    position: relative;
+    z-index: 1;
+    /* On a phone the prose crosses the plate; two cream passes keep the glyph
+     * edge clean where a line passes under a letter. The desktop keeps the
+     * page's one-pixel lift, because the plate is beside the paragraph's ends. */
+    text-shadow:
+      0 0 2px var(--surface),
+      0 0 2px var(--surface),
+      var(--text-shadow);
+  }
+
   /* --------------------------------------------------------- banda finale */
   /*
    * One bordeaux band closes the page. Cream carries the text and gold-light
@@ -933,13 +1082,61 @@
     }
 
     /*
-     * The prose uses the width. column-width, not column-count, so it folds
-     * back to one column under zoom without a second breakpoint.
+     * The prose uses the width: the cantina widens to 64 rem and the two
+     * chapters open across it.
      */
     .cantina {
       max-inline-size: 64rem;
-      columns: 22rem 2;
-      column-gap: var(--space-7);
+    }
+
+    /*
+     * The opening opens as the Programma does: 34 rem of paragraph on the left
+     * and the plate's stage on the right. The glass is narrower than the
+     * Programma's plate by its own ratio — it is the same height, not the same
+     * width — and it overflows its track to the left, so the prose's last lines
+     * cross its inner rim.
+     */
+    .apertura {
+      grid-template-columns: minmax(0, 34rem) minmax(0, 1fr);
+      grid-template-areas: "text stage";
+    }
+
+    .apertura__prose {
+      grid-area: text;
+    }
+
+    .cantina__plate {
+      grid-area: stage;
+      justify-self: end;
+      inline-size: calc(34rem * 376 / 358 * 120 / 149);
+      margin-block-start: 0;
+      max-inline-size: none;
+    }
+
+    /*
+     * The Programma opens as a full-width chapter: the paragraph on the left,
+     * the plate on the right, the paragraph's last lines crossing the plate's
+     * inner rim. The plate is wider than its 24 rem track, so it overflows
+     * left; that overflow is the overlap, and max-inline-size is released for
+     * it alone.
+     */
+    .programma {
+      grid-template-columns: minmax(0, 34rem) minmax(0, 1fr);
+      grid-template-areas:
+        "label label"
+        "text stage";
+    }
+
+    .programma > p {
+      grid-area: text;
+    }
+
+    .programma__plate {
+      grid-area: stage;
+      justify-self: end;
+      inline-size: 34rem;
+      margin-block-start: 0;
+      max-inline-size: none;
     }
 
     .band__inner {
@@ -966,13 +1163,14 @@
   /*
    * The page opens by stepping out from under the arch, then prints itself.
    * The photograph is the paper and the view recedes out of it first; the
-   * signature is pressed into it and the date is set with it; the lockup is
-   * inked behind them and the subtitle settles, each step following the one
-   * before. Below the fold the view steps back out of the Cantina arch as it
-   * is reached, the prose and the facts rise, and the actions' rules draw
-   * themselves as they enter the viewport. Every duration and delay is a token,
-   * and every animation is an addition: with reduced motion the page is the
-   * finished spread, immediately.
+   * signature is pressed into it and the date is set with it, numeral and all;
+   * the lockup is inked behind them and the subtitle settles, each step
+   * following the one before. As the cover leaves, the grapes drift behind the
+   * fixed masthead. Below the fold the view steps back out of the Cantina
+   * arch, the prose prints in reading order, the gallery recedes photo by
+   * photo, the facts rise and the actions' rules draw themselves. Every
+   * duration and delay is a token, and every animation is an addition: with
+   * reduced motion the page is the finished spread, immediately.
    */
   @media (prefers-reduced-motion: no-preference) {
     /* The link's colour and rule; focus never waits for them. */
@@ -991,6 +1189,17 @@
      */
     .hero-photo img {
       animation: photograph-recede var(--motion-recede) var(--ease-press) both;
+    }
+
+    /*
+     * The day numeral is set into the band: it settles down from a hair as the
+     * band is wiped in, on the paper's delay, so it belongs to the press rather
+     * than trailing it.
+     */
+    .date-day {
+      animation:
+        numeral-set var(--motion-numeral) var(--ease-press)
+        var(--motion-after-paper) both;
     }
 
     .signature path {
@@ -1058,51 +1267,151 @@
     }
 
     /*
-     * Scroll-driven reveals belong to the Cantina photograph, the prose and the
-     * facts band. The hero — the signature, its lockup and subtitle, and the
-     * date — is fully present on the first screen and never waits for the
-     * scroll. The band's two actions are never faded: only their rules are
-     * ruled. view() is recent, so a browser without it serves the static page.
+     * Scroll-driven motion is one story. The hero is complete on the first
+     * screen and never waits for the scroll; its one scroll effect is the
+     * grapes' transform-only drift, which never hides or fades the cover. Below
+     * it, the Cantina photograph, the prose and Programma, the gallery and the
+     * band arrive in reading order. The band's two actions are never faded:
+     * only their rules are ruled. view() is recent, so a browser without it
+     * serves the static page.
      */
     @supports (animation-timeline: view()) {
-      .cantina {
+      /*
+       * The cover is the paper: it is never faded or hidden. Once the page has
+       * settled, the grapes drift up and slightly in behind the fixed masthead
+       * as the cover leaves. The drift rides the picture wrapper, so the image
+       * keeps its entrance; the growing scale keeps the frame's edges covered
+       * while the view moves. `exit` starts at the first scroll pixel, so the
+       * first screen is the neutral state.
+       */
+      .hero-photo picture {
+        animation: cover-drift linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: exit 0% exit 100%;
+      }
+
+      /*
+       * The prose prints in reading order: the glass inks, then the first
+       * paragraph, then the second; the Programma follows with its label, its
+       * plate and its paragraph. Each is its own view() subject, so the
+       * sequence is the page being set rather than one block arriving at once.
+       */
+      .apertura > .cantina__plate {
+        animation: ink-in linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 25%;
+      }
+
+      .apertura__prose > p:nth-of-type(1) {
         animation: section-rise linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: entry 10% entry 45%;
       }
 
-      /* The tear is cut in the frame: the view recedes, the edge stays. On a
+      .apertura__prose > p:nth-of-type(2) {
+        animation: section-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 20% entry 50%;
+      }
+
+      .cantina > .programma > h2 {
+        animation: ink-in linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 30%;
+      }
+
+      /*
+       * The plate inks between the label and the paragraph: label, drawing,
+       * prose. It reuses ink-in, so the motion vocabulary gains no word.
+       */
+      .cantina > .programma > .programma__plate {
+        animation: ink-in linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 10% cover 40%;
+      }
+
+      .cantina > .programma > p {
+        animation: section-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 30% entry 65%;
+      }
+
+      /*
+       * The tear is cut in the frame: the view recedes, the edge stays. On a
        * phone the band is partly on screen at load, so `entry` is already most
        * of the way through when the page settles and the move would be over
        * before it was seen. `cover` is measured from first sight to last, so
        * the recede starts just after the page settles and runs while the
        * photograph is looked at. It is a zoom and not a fade: the photograph
-       * is the paper, and the reader is walking out from under the arch. */
+       * is the paper, and the reader is walking out from under the arch.
+       */
       .photo-band img {
         animation: photograph-recede linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: cover 20% cover 60%;
       }
 
-      /* The gallery keeps the same vocabulary: each photograph recedes out of
-       * its frame as it is reached, inside the frame's clip, so the gallery is
-       * the walk through the cellars continuing, not a second effect. */
-      .gallery__frame img {
+      /*
+       * The gallery keeps the same vocabulary: the lead landscape recedes
+       * first, then the three portraits left to right, each with its own
+       * window. The photo essay is the walk through the cellars continuing,
+       * not a second effect.
+       */
+      .gallery__frame--wide img {
         animation: photograph-recede linear var(--motion-scroll) both;
         animation-timeline: view();
-        animation-range: cover 20% cover 60%;
+        animation-range: cover 10% cover 50%;
       }
 
-      .facts {
-        animation: section-rise linear var(--motion-scroll) both;
+      .gallery__row > .gallery__frame:nth-child(1) img {
+        animation: photograph-recede linear var(--motion-scroll) both;
         animation-timeline: view();
-        animation-range: entry 10% entry 45%;
+        animation-range: cover 16% cover 56%;
       }
 
-      .band__actions a::before {
+      .gallery__row > .gallery__frame:nth-child(2) img {
+        animation: photograph-recede linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: cover 22% cover 62%;
+      }
+
+      .gallery__row > .gallery__frame:nth-child(3) img {
+        animation: photograph-recede linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: cover 28% cover 68%;
+      }
+
+      /*
+       * The facts rise in sequence: DOVE, then A CURA DI. They are transform
+       * only, so the band is legible the moment it is on screen; the facts are
+       * content, not a curtain.
+       */
+      .facts > :nth-child(1) {
+        animation: fact-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 100%;
+      }
+
+      .facts > :nth-child(2) {
+        animation: fact-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 50% entry 100%;
+      }
+
+      /*
+       * The two action rules are drawn one after the other. The actions
+       * themselves never fade; only their rules are ruled.
+       */
+      .band__actions > p:nth-of-type(1) > a::before {
         animation: rule-rule linear var(--motion-rule) both;
         animation-timeline: view();
-        animation-range: entry 10% entry 45%;
+        animation-range: entry 0% entry 100%;
+      }
+
+      .band__actions > p:nth-of-type(2) > a::before {
+        animation: rule-rule linear var(--motion-rule) both;
+        animation-timeline: view();
+        animation-range: entry 50% entry 100%;
       }
     }
   }
@@ -1169,6 +1478,40 @@
     }
     to {
       transform: scaleX(1);
+    }
+  }
+
+  /* The numeral is set into the band, settling down from a hair. */
+  @keyframes numeral-set {
+    from {
+      transform: translateY(0.06em);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  /*
+   * The grapes drift behind the masthead as the cover leaves. The scale grows
+   * with the rise, so the frame's edges stay covered for the whole move and the
+   * first frame keeps the cover's own crop.
+   */
+  @keyframes cover-drift {
+    from {
+      transform: translateY(0) scale(1);
+    }
+    to {
+      transform: translateY(-2%) scale(1.08);
+    }
+  }
+
+  /* The facts rise without dissolving: the band is content, not a curtain. */
+  @keyframes fact-rise {
+    from {
+      transform: translateY(8px);
+    }
+    to {
+      transform: none;
     }
   }
 }

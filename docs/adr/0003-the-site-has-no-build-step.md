@@ -2,7 +2,7 @@
 
 - **Status:** accepted
 - **Date:** 2026-11-14
-- **Related:** ADR-0001, README (*Editor workflow*, *Adding the programme*,
+- **Related:** ADR-0001, README (*Editor workflow*, *The Programma*,
   *Tests*, *Deployment*), `tests/site.test.mjs`
 
 The site ships as the files it is: `index.html`, `assets/css/style.css`,

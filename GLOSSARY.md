@@ -1,6 +1,6 @@
 # Glossary
 
-The seven terms sVino uses, with the meaning the organisation gives them. Use
+The eight terms sVino uses, with the meaning the organisation gives them. Use
 this vocabulary and these spellings in code, tests, issues and documents; do
 not drift to synonyms.
 
@@ -9,8 +9,8 @@ Spelling and capitalisation fixed by the project:
 - `sVino` — lower-case `s`, capital `V`. Never "Svino" or "SVino".
 - `II Edizione` in running prose; the printed lockup is `II EDIZIONE`.
 - `Turania (RI)` — with a space before the province abbreviation, exactly.
-- `Locandina`, `Cantina`, `Borgo` and `Comitato Feste Turania` are capitalised
-  when they name the event's own artefact, venues and body.
+- `Locandina`, `Cantina`, `Borgo`, `Programma` and `Comitato Feste Turania` are
+  capitalised when they name the event's own artefact, venues and body.
 
 ## sVino
 
@@ -32,10 +32,14 @@ prose, not the lockup.
 ## Cantina
 
 A wine cellar of the Borgo. The event happens inside the Cantine: visitors
-taste wine and move from one Cantina to the next. Capitalise when naming the
-event's venues as a set (`le Cantine del Borgo`); the page prose uses the
-lower-case form (`nelle cantine del borgo`). Do not infer a number of Cantine,
-food, duration or price from the term; none of those is decided.
+taste wine and move from one Cantina to the next. Some of the Cantine also
+serve food, confirmed by the Comitato in November 2026; the page prose says
+only that the walk stops to eat, naming no vendor and no number of Cantine.
+Capitalise when
+naming the event's venues as a set (`le Cantine del Borgo`); the page prose
+uses the lower-case form (`nelle cantine del borgo`). Do not infer a number of
+Cantine, a menu, a vendor, a duration or a price from the term; none of those
+is decided.
 
 ## Borgo
 
@@ -47,8 +51,14 @@ Turania (RI), not a separate place. Lower-case in the page prose
 
 The committee that organises sVino and the body that owns its content. It is
 the `A CURA DI` value and appears exactly as `Comitato Feste Turania`, without
-a leading article. It decides the programme, any entry policy and any contact
+a leading article. It decides the Programma, any entry policy and any contact
 details; until it does, none of those appears on the page.
+
+## Programma
+
+The running order of sVino: the acts, performances and events the Comitato
+has confirmed, with the times it has set. An item belongs to the Programma
+only once the Comitato has confirmed it; a proposal or a possibility does not.
 
 ## Locandina
 
