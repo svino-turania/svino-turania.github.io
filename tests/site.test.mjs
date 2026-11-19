@@ -17,7 +17,7 @@ const PHOTO_SIZES = '100vw';
 const HERO_SIZES = '100vw';
 
 const CANTINA_PARAGRAPH =
-  "Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva. Si cammina piano. Ci si ferma a parlare con chi si incontra, e non si guarda l'orologio. Questa pagina sarà aggiornata con tutte le novità dell'evento. Vi aspettiamo.";
+  "Per la seconda edizione si torna nelle cantine del borgo: si assaggia il vino e da una cantina si passa alla successiva. Lungo il percorso alcune cucinano, e ci si ferma a mangiare. Si cammina piano. Si parla con chi si incontra, e non si guarda l'orologio. Questa pagina sarà aggiornata con tutte le novità dell'evento. Vi aspettiamo.";
 
 /*
  * The Programma the Comitato confirmed for the second edition: the one act it
