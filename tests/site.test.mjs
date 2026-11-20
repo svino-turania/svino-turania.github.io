@@ -36,6 +36,25 @@ const HERO_ALT =
   "Primo piano di un grappolo d'uva nera: acini fitti e tondi, di un viola quasi nero, con riflessi chiari e un rametto verde tra gli acini.";
 
 /*
+ * The two profiles the Comitato confirmed in November 2026: the name the
+ * anchor exposes, its destination, and the two values the counter records.
+ */
+const PROFILES = Object.freeze([
+  {
+    name: 'Instagram',
+    href: 'https://www.instagram.com/comitato_feste_turania',
+    click: 'apri-instagram',
+    title: 'Apri Instagram',
+  },
+  {
+    name: 'Facebook',
+    href: 'https://www.facebook.com/comitato.feste.turania',
+    click: 'apri-facebook',
+    title: 'Apri Facebook',
+  },
+]);
+
+/*
  * The four photographs in the gallery, in page order. The landscape is the
  * one wide frame; the three portraits follow in one row.
  */
@@ -2341,7 +2360,7 @@ test('i due fatti stanno su due colonne e ognuno va a capo dentro la sua', () =>
   );
 });
 
-test('le due azioni stanno una sopra l’altra a tutta riga, con la riga che attraversa il fondo', () => {
+test('le due azioni tipografiche stanno una sopra l’altra a tutta riga, con la riga che attraversa il fondo', () => {
   const css = stripCssComments(servedStylesheet());
   assertDesktopComposition(css);
 
@@ -2358,7 +2377,7 @@ test('le due azioni stanno una sopra l’altra a tutta riga, con la riga che att
   assert.match(
     actions,
     /(?:^|;)\s*(?:display\s*:\s*grid|flex-direction\s*:\s*column)/,
-    'sul telefono le due azioni non stanno una sopra l’altra a tutta riga',
+    'sul telefono le due azioni tipografiche non stanno una sopra l’altra a tutta riga',
   );
 
   const action =
@@ -2397,6 +2416,32 @@ test('le due azioni stanno una sopra l’altra a tutta riga, con la riga che att
     desktop,
     /\.band__actions\s*\{[^}]*grid-column:\s*2/s,
     'le azioni non stanno nella colonna di destra della banda',
+  );
+});
+
+/*
+ * On the desktop composition the facts and the actions start on the same
+ * horizontal line. The actions column is taller than the facts — it carries
+ * four actions — so the grid must align the two columns at the top. Bottom
+ * alignment lifted the actions above the facts once the profile icons joined
+ * the column.
+ */
+test('sul desktop i fatti e le azioni della banda partono dalla stessa riga', () => {
+  const css = stripCssComments(servedStylesheet());
+  assertDesktopComposition(css);
+
+  const desktop = desktopComposition(css);
+  const inner = desktop.match(/\.band__inner\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(inner, 'manca la regola desktop della banda');
+  assert.match(
+    inner,
+    /(?:^|;)\s*align-items\s*:\s*start/,
+    'i fatti e le azioni non partono dalla stessa riga',
+  );
+  assert.doesNotMatch(
+    inner,
+    /(?:^|;)\s*align-items\s*:\s*end/,
+    'le colonne sono allineate al piede: le azioni salgono sopra i fatti',
   );
 });
 
@@ -2662,8 +2707,10 @@ test('la mappa e la Locandina sono azioni tipografiche con riga e freccia, non b
   const document = loadSite();
   const band = document.querySelector('footer.band');
   assert.ok(band, 'manca la banda che chiude la pagina');
-  const actions = [...band.querySelectorAll('.band__actions a')];
-  assert.equal(actions.length, 2, 'la banda non ha le due azioni');
+  const actions = [
+    ...band.querySelectorAll('.map-link a, .locandina-download a'),
+  ];
+  assert.equal(actions.length, 2, 'la banda non ha le due azioni tipografiche');
 
   const css = stripCssComments(servedStylesheet());
   const actionRule = css.match(/\.band__actions\s+a\s*\{([^}]*)\}/s)?.[1] ?? '';
@@ -2871,7 +2918,7 @@ test('nessun host di tracciamento, pubblicità o registrazione sessione compare 
 
 /*
  * The counter is one script and one fallback pixel. The script reads the
- * source, the region and the two clicks; the pixel in <noscript> counts a
+ * source, the region and the four clicks; the pixel in <noscript> counts a
  * reader without JavaScript and is never rendered when scripting is on. The
  * test pins both services and the privacy attributes so the line cannot
  * quietly become another vendor.
@@ -2975,10 +3022,14 @@ test('c’è un solo contatore: uno script esterno e un pixel di riserva senza J
   );
 });
 
-test('i due link misurano il clic: la mappa e la locandina', () => {
+test('i quattro link misurano il clic: la mappa, la locandina, Instagram e Facebook', () => {
   const document = loadSite();
   const clickable = [...document.querySelectorAll('[data-goatcounter-click]')];
-  assert.equal(clickable.length, 2, 'la pagina non misura esattamente due clic');
+  assert.equal(
+    clickable.length,
+    4,
+    'la pagina non misura esattamente quattro clic',
+  );
 
   const map = document.querySelector('a[href^="https://www.google.com/maps/"]');
   assert.ok(map, 'manca il link alla mappa');
@@ -2994,6 +3045,191 @@ test('i due link misurano il clic: la mappa e la locandina', () => {
   assert.equal(
     download.getAttribute('data-goatcounter-title'),
     'Scarica la locandina',
+  );
+
+  const profiles = PROFILES.map(({ name, href, click, title }) => {
+    const anchor = document.querySelector(`a[href="${href}"]`);
+    assert.ok(anchor, `manca il link a ${name}`);
+    assert.equal(
+      anchor.getAttribute('data-goatcounter-click'),
+      click,
+      `il clic su ${name} non è misurato come ${click}`,
+    );
+    assert.equal(
+      anchor.getAttribute('data-goatcounter-title'),
+      title,
+      `il clic su ${name} non è intitolato "${title}"`,
+    );
+    return anchor;
+  });
+
+  // The two profiles are the band's last actions, after the Locandina.
+  const actions = [...document.querySelectorAll('.band__actions a')];
+  assert.deepEqual(
+    actions.slice(-2),
+    profiles,
+    'i profili non chiudono le azioni della banda dopo la Locandina',
+  );
+  assert.equal(
+    actions[actions.length - 3],
+    download,
+    'i profili non seguono il download della Locandina',
+  );
+});
+
+/*
+ * The two profile actions are icon-only: the anchor carries the name, the
+ * glyph is decoration. The glyph is inline SVG in `currentColor`, so the band's
+ * ink roles reach it and the page makes no request for it.
+ */
+test('i profili sono icone in linea, senza testo visibile e con nome accessibile', () => {
+  const document = loadSite();
+
+  for (const { href, name } of PROFILES) {
+    const anchor = document.querySelector(`a[href="${href}"]`);
+    assert.ok(anchor, `manca il link a ${name}`);
+    assert.ok(
+      document.querySelector('.band__actions').contains(anchor),
+      `il link a ${name} non sta nelle azioni della banda`,
+    );
+    assert.equal(
+      anchor.getAttribute('target'),
+      '_blank',
+      `il link a ${name} non si apre in un nuovo contesto`,
+    );
+    assert.equal(
+      anchor.getAttribute('rel'),
+      'noopener noreferrer',
+      `il link a ${name} non è isolato dal contesto che apre`,
+    );
+    assert.equal(
+      accessibleName(document, anchor),
+      name,
+      `il link a ${name} non ha il nome accessibile "${name}"`,
+    );
+    assert.equal(
+      normalize(anchor.textContent),
+      '',
+      `il link a ${name} porta testo visibile`,
+    );
+    assert.equal(
+      anchor.querySelectorAll('img, picture, object, embed').length,
+      0,
+      `il link a ${name} carica un'immagine invece di un'icona in linea`,
+    );
+
+    const icon = anchor.querySelector('svg');
+    assert.ok(icon, `il link a ${name} non contiene un'icona SVG`);
+    assert.equal(
+      [...anchor.children].filter(
+        (child) => child.tagName.toLowerCase() === 'svg',
+      ).length,
+      1,
+      `il link a ${name} non ha una sola icona in linea`,
+    );
+    assert.equal(
+      icon.getAttribute('aria-hidden'),
+      'true',
+      `l'icona di ${name} non è nascosta alle tecnologie assistive`,
+    );
+    assert.equal(
+      icon.getAttribute('focusable'),
+      'false',
+      `l'icona di ${name} può ricevere il focus`,
+    );
+
+    const shapes = [
+      ...icon.querySelectorAll('path, circle, rect, line, polyline, polygon'),
+    ];
+    assert.ok(shapes.length > 0, `l'icona di ${name} non disegna nulla`);
+    for (const shape of shapes) {
+      const inks = [shape.getAttribute('fill'), shape.getAttribute('stroke')]
+        .filter((ink) => ink && ink !== 'none');
+      assert.ok(inks.length > 0, `l'icona di ${name} non inchiostra una forma`);
+      for (const ink of inks) {
+        assert.equal(
+          ink,
+          'currentColor',
+          `l'icona di ${name} non inchiostra con currentColor: ${ink}`,
+        );
+      }
+      assert.doesNotMatch(
+        shape.outerHTML,
+        /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/,
+        `l'icona di ${name} porta un colore grezzo`,
+      );
+    }
+    assert.doesNotMatch(
+      icon.outerHTML,
+      /<(?:image|use)\b|\bhref=|\bxlink:href=|url\(|https?:\/\//i,
+      `l'icona di ${name} richiede una risorsa fuori da sé`,
+    );
+    assert.equal(
+      anchor.querySelectorAll('[src], [srcset]').length,
+      0,
+      `il link a ${name} nomina una risorsa`,
+    );
+  }
+});
+
+test('i profili hanno un bersaglio di almeno 44 px e restano azioni della banda', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  const groupRule = css.match(/\.band__social\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(groupRule, 'i profili non hanno un gruppo nella banda');
+  assert.match(
+    groupRule,
+    /(?:^|;)\s*display\s*:\s*flex/,
+    'i profili non stanno in fila, come un gruppo di icone',
+  );
+  assert.match(
+    groupRule,
+    /(?:^|;)\s*gap\s*:\s*var\(--space-3\)/,
+    'i profili non hanno la spaziatura delle azioni',
+  );
+
+  const targetRule =
+    css.match(/\.band__social\s+a\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(targetRule, 'i profili non hanno una regola di bersaglio');
+  const inline = targetRule.match(
+    /(?:^|;)\s*(?:min-)?inline-size\s*:\s*(\d+)px/,
+  );
+  assert.ok(inline, 'il bersaglio dei profili non dichiara la larghezza');
+  assert.ok(
+    Number(inline[1]) >= 44,
+    `il bersaglio dei profili è largo ${inline[1]} px, sotto i 44`,
+  );
+  const block = targetRule.match(
+    /(?:^|;)\s*(?:min-)?block-size\s*:\s*(\d+)px/,
+  );
+  assert.ok(block, 'il bersaglio dei profili non dichiara l’altezza');
+  assert.ok(
+    Number(block[1]) >= 44,
+    `il bersaglio dei profili è alto ${block[1]} px, sotto i 44`,
+  );
+  assert.match(targetRule, /(?:^|;)\s*display\s*:\s*inline-flex/, 'l’icona non è centrata nel bersaglio');
+  assert.match(targetRule, /(?:^|;)\s*align-items\s*:\s*center/, 'l’icona non è centrata in verticale');
+  assert.match(targetRule, /(?:^|;)\s*justify-content\s*:\s*center/, 'l’icona non è centrata in orizzontale');
+  // The typographic actions keep room between the text and the rule; the icon
+  // resets it, or the inherited space would push the glyph off centre.
+  assert.match(
+    targetRule,
+    /(?:^|;)\s*padding-block-end\s*:\s*0/,
+    'il bersaglio dei profili eredita lo spazio del testo e decentra l’icona',
+  );
+
+  // The band's ink shift is what hover and focus do to its actions, and the
+  // glyph reads `currentColor`, so the shift reaches it without a rule of its
+  // own.
+  const hoverRule =
+    css.match(
+      /\.band__actions a:hover,\s*\.band__actions a:focus-visible\s*\{([^}]*)\}/s,
+    )?.[1] ?? '';
+  assert.ok(hoverRule, 'le azioni della banda non hanno uno stato di hover');
+  assert.match(
+    hoverRule,
+    /(?:^|;)\s*color\s*:\s*var\(--link-hover\)/,
+    'hover e focus non cambiano l’inchiostro dell’azione',
   );
 });
 
@@ -4177,7 +4413,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     assert.doesNotMatch(
       selector,
       /\.band__inner\b/,
-      'la banda intera sfuma: le due azioni non devono stare in un contenitore che sfuma',
+      'la banda intera sfuma: le azioni non devono stare in un contenitore che sfuma',
     );
   }
 
@@ -4354,6 +4590,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
   const actionOrder = [
     '.band__actions > p:nth-of-type(1) > a::before',
     '.band__actions > p:nth-of-type(2) > a::before',
+    '.band__actions > .band__social > a::before',
   ];
   const actionStarts = actionOrder.map((selector) => {
     const body = ruleBodyFor(selector);
@@ -4363,6 +4600,11 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     return Number(start);
   });
   assert.deepEqual(actionStarts, [...actionStarts].sort((a, b) => a - b));
+  assert.equal(
+    actionStarts[2],
+    actionStarts[1],
+    'i filetti dei profili non si tirano con la Locandina',
+  );
   assert.doesNotMatch(
     rules,
     /\.facts\s*\{[^}]*\bopacity\s*:/s,
@@ -4405,7 +4647,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
   assert.doesNotMatch(
     clean,
     /\.band(?:__inner|__actions)?\s*\{[^}]*\banimation\s*:/s,
-    'la banda o le sue azioni sfumano: le due azioni devono essere subito visibili',
+    'la banda o le sue azioni sfumano: le azioni devono essere subito visibili',
   );
   for (const [, selector, body] of clean.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     if (/:focus(?:-visible|-within)?\b/.test(selector)) {

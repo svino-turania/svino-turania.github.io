@@ -8,7 +8,8 @@ Status: the page is a cover, recorded in ADR-0009, with the grapes photograph
 full-bleed and the masthead set on it in cream over a bordeaux scrim; after the
 prose, a gallery of four cellar photographs closes the page (ADR-0012). It
 carries the Locandina's facts, the Cantina prose, the confirmed Programma, the
-map link and one Locandina download. The identity (palette and type), the
+map link, one Locandina download and the Comitato's Instagram and Facebook
+icons. The identity (palette and type), the
 outlined signature with the `II EDIZIONE` lockup, the full-bleed grapes cover,
 the Cantina photograph with its single torn lower edge, the gallery, the Open
 Graph and Twitter metadata, the square social preview, the print-derived motion
@@ -50,8 +51,9 @@ Check the page before merging, in the browser's responsive mode:
   between two gold hairlines, the Cantina photograph edge to edge, the prose
   with the tasting glass on the right, behind the paragraph's last words and
   dropped one step, the Programma with its 14 rem plate on the same side and at
-  the same height, the facts paired and the two actions stacked; no horizontal
-  scrolling, and the signature and the date fit the first screen.
+  the same height, the facts paired, the two actions stacked and the two
+  profile icons in a row; no horizontal scrolling, and the signature and the
+  date fit the first screen.
 - 768 px: the same composition, with the shell's gutter at its widest; both
   drawings keep their height and their side.
 - 1024, 1440×900 and 1920 px: the one desktop composition — the wide cover
@@ -151,7 +153,8 @@ frame, standing on a single ground rule. It is decorative (`aria-hidden`); the
 paragraph carries the words and stays the section's only `<p>`. Every glyph on
 the page carries a one-pixel warm letterpress shadow (`--text-shadow`, bronze
 at 30%): visible on the paper, and warm on the bordeaux band and the cover. The
-facts pair and the two actions stack at every width.
+facts pair and the two actions stack at every width, with the two profile icons
+closing the actions in a row.
 
 From 64 rem there is one desktop composition, and it gives the width only to
 what the phone already has: the cover widens to a 3:2 crop and the signature
@@ -163,9 +166,10 @@ inner rim; the closing band puts the facts left and the actions right, with the
 colophon on a full-width tail. The content order does not change.
 
 One bordeaux band closes the page: `DOVE`, `A CURA DI`, the map link, the
-Locandina download and the colophon, cream on bordeaux with the role labels in
-gold-light. The Locandina has one download anchor, in that band. There is no
-second copy and no show/hide rule, so there is nothing to keep in step.
+Locandina download, the Instagram and Facebook icons and the colophon, cream on
+bordeaux with the role labels in gold-light. The Locandina has one download
+anchor, in that band. There is no second copy and no show/hide rule, so there
+is nothing to keep in step.
 
 Each fact has one home, so the page does not read as duplicated boilerplate:
 the time is in the date under `DALLE ORE`; the place is under `DOVE`; the
@@ -197,8 +201,8 @@ paragraph, the second paragraph, then the Programma label, the plate and its
 paragraph. The gallery recedes photo by
 photo, the lead landscape first and the three portraits left to right. The facts
 rise in sequence, DOVE then A CURA DI, without dissolving; the band is content,
-not a curtain. The two action rules draw one after the other, and the actions
-themselves never fade.
+not a curtain. The action rules draw in order, and the profiles' two rules draw
+with the Locandina's; the actions themselves never fade.
 
 The hero — the signature, its lockup and subtitle on the grapes photograph, and
 the date — is complete on the first screen and never waits for the scroll.
@@ -207,10 +211,11 @@ glass, the Programma (its label, plate and paragraph), the gallery and the
 facts band; the hero's one scroll effect is the grapes' drift, which never
 hides or fades.
 
-The page has two links and both respond: the ink shifts, a second rule re-inks
-over the printed one from its left edge, and the arrow leads by 2 px, as if the
-label were picked up. The link settles 1 px while pressed. Nothing else
-responds to the pointer, because nothing else on the page is interactive.
+The page has four links and all respond: the ink shifts, and a second rule
+re-inks over the printed one from its left edge. The two typographic actions
+also lead their arrows by 2 px, as if the label were picked up. Each link
+settles 1 px while pressed. Nothing else responds to the pointer, because
+nothing else on the page is interactive.
 
 Motion is CSS only. The no-JavaScript guard allows exactly one script, the
 counter, so no effect may depend on one. The rules are:
@@ -389,7 +394,7 @@ link names, the three narrow guards — one `<script>`, the counter's, pinned to
 GoatCounter's CDN, with no inline handler or shipped `.js`; no host on the
 documented tracker denylist; no font fetched from outside the origin — and the
 content policy. The visit counter is GoatCounter's script at the end of
-`<body>`, which reads the source domain, the region and the two clicks; the
+`<body>`, which reads the source domain, the region and the four clicks; the
 pixel stays in the colophon inside `<noscript>` for readers without JavaScript,
 with no Referer, an empty `alt`, and a cookie-free notice linking the
 processor's privacy page. The pixel is the page's only external image request.
@@ -414,8 +419,8 @@ asserted as a section inside the prose container, after the approved region and
 before the gallery: one `h2` set in the printed-label register, and the
 approved paragraph verbatim with no time of its own. The strong surface
 appears on the closing band and nowhere else; the band carries `DOVE`,
-`A CURA DI`, the map link, the single Locandina download, the counter notice and
-the colophon, and
+`A CURA DI`, the map link, the single Locandina download, the Instagram and
+Facebook icons, the counter notice and the colophon, and
 the date carries the lockup and `DALLE ORE` with the time. The stylesheet declares no dark-mode block. The
 suite measures cream and gold-light on bordeaux and records the ratios beside
 the palette, and pins the favicon's path data to the inline signature path.
@@ -426,9 +431,14 @@ a readable RGB JPEG; no rule that styles the band or its actions hides it. The
 time, place, organiser and the `DALLE ORE`, `DOVE`, `A CURA DI` labels each occur
 exactly once in the visible body text; the map link opens `Turania (RI)` on
 Google Maps in a new context with `noopener noreferrer` and its text need not
-repeat the place; and the reading order is brand first. The two actions are
-typographic rules, not buttons; each carries exactly one `aria-hidden` arrow
-that is absent from the name computed from the markup.
+repeat the place; and the reading order is brand first. The two typographic
+actions are rules, not buttons; each carries exactly one `aria-hidden` arrow
+that is absent from the name computed from the markup. The two profile links
+are icon-only: each carries an `aria-label` and no visible text, an inline
+`currentColor` SVG that is `aria-hidden` and `focusable="false"` with no
+external reference, a target of at least 44 × 44 px, and the same
+`noopener noreferrer` new-context contract as the map. All four actions count
+their click.
 
 The stylesheet keeps its own maintainability contracts: the layer order, the
 token isolation (no raw hex outside the tokens layer), and the primitives and
@@ -744,10 +754,18 @@ The page states nothing the Comitato has not decided. Until it decides, the
 following are absent by choice:
 
 - any entry statement or price;
-- any contact details (email, phone, social account);
+- any contact detail the Comitato has not confirmed — email and phone remain
+  absent;
 - any Programma item, time or detail the Comitato has not confirmed;
 - any placeholder copy — "in via di definizione", "da definire",
   "prossimamente" and the like.
+
+The Comitato confirmed two channels in November 2026, and the page links them
+as icon-only actions in the closing band: the Instagram profile at
+`https://www.instagram.com/comitato_feste_turania` and the Facebook profile at
+`https://www.facebook.com/comitato.feste.turania`. They are anchors, not
+resources: the page loads no embed, feed, script, pixel or image from either
+host.
 
 Empty is acceptable; a placeholder is not. Do not invent details to fill a
 section: the number of Cantine, food, duration and weather are not stated
