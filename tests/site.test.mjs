@@ -2420,6 +2420,32 @@ test('le due azioni tipografiche stanno una sopra l’altra a tutta riga, con la
 });
 
 /*
+ * On the desktop composition the facts and the actions start on the same
+ * horizontal line. The actions column is taller than the facts — it carries
+ * four actions — so the grid must align the two columns at the top. Bottom
+ * alignment lifted the actions above the facts once the profile icons joined
+ * the column.
+ */
+test('sul desktop i fatti e le azioni della banda partono dalla stessa riga', () => {
+  const css = stripCssComments(servedStylesheet());
+  assertDesktopComposition(css);
+
+  const desktop = desktopComposition(css);
+  const inner = desktop.match(/\.band__inner\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(inner, 'manca la regola desktop della banda');
+  assert.match(
+    inner,
+    /(?:^|;)\s*align-items\s*:\s*start/,
+    'i fatti e le azioni non partono dalla stessa riga',
+  );
+  assert.doesNotMatch(
+    inner,
+    /(?:^|;)\s*align-items\s*:\s*end/,
+    'le colonne sono allineate al piede: le azioni salgono sopra i fatti',
+  );
+});
+
+/*
  * The Cantina photograph follows the date's lower hairline directly: the band
  * is the separation, not a margin. It runs edge to edge at every width and
  * declares no measure of its own.

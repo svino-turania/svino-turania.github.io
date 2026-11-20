@@ -1163,7 +1163,12 @@
 
     .band__inner {
       grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-      align-items: end;
+      /*
+       * Both columns start at the band's top edge. The actions carry four
+       * links and are taller than the facts; bottom alignment let them reach
+       * above the facts instead of sharing their first line.
+       */
+      align-items: start;
       column-gap: var(--space-8);
     }
 
