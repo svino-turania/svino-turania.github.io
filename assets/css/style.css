@@ -971,7 +971,7 @@
   }
 
   /*
-   * The two actions are typographic, not buttons: the print's rule carries the
+   * The two typographic actions are not buttons: the print's rule carries the
    * link and an arrow in the margin points where it goes. The rule is a
    * pseudo-line rather than a border so the motion layer can rule it without
    * touching the link's text or its focus ring; the motion layer adds a second
@@ -1018,6 +1018,28 @@
     margin-inline-start: 0.55em;
     color: inherit;
     font-weight: 400;
+  }
+
+  /*
+   * The Comitato's two profiles are icon-only actions at the foot of the same
+   * column. Each glyph keeps a 44 px target; the band's ink shift and its rule
+   * reach the glyph through the action rules above, so it never becomes a
+   * button with a panel or a rounded corner.
+   */
+  .band__social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .band__social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 44px;
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    padding-block-end: 0;
   }
 
   .colophon {
@@ -1271,7 +1293,7 @@
      * screen and never waits for the scroll; its one scroll effect is the
      * grapes' transform-only drift, which never hides or fades the cover. Below
      * it, the Cantina photograph, the prose and Programma, the gallery and the
-     * band arrive in reading order. The band's two actions are never faded:
+     * band arrive in reading order. The band's actions are never faded:
      * only their rules are ruled. view() is recent, so a browser without it
      * serves the static page.
      */
@@ -1399,8 +1421,9 @@
       }
 
       /*
-       * The two action rules are drawn one after the other. The actions
-       * themselves never fade; only their rules are ruled.
+       * The action rules are drawn in order, and the profiles' two rules draw
+       * with the Locandina's. The actions themselves never fade; only their
+       * rules are ruled.
        */
       .band__actions > p:nth-of-type(1) > a::before {
         animation: rule-rule linear var(--motion-rule) both;
@@ -1409,6 +1432,13 @@
       }
 
       .band__actions > p:nth-of-type(2) > a::before {
+        animation: rule-rule linear var(--motion-rule) both;
+        animation-timeline: view();
+        animation-range: entry 50% entry 100%;
+      }
+
+      /* The profiles' two rules draw with the Locandina's. */
+      .band__actions > .band__social > a::before {
         animation: rule-rule linear var(--motion-rule) both;
         animation-timeline: view();
         animation-range: entry 50% entry 100%;

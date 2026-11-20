@@ -1,6 +1,6 @@
 # The counter is one script and a fallback pixel
 
-- **Status:** accepted
+- **Status:** accepted, superseded in part by ADR-0018 (the two-click event set)
 - **Date:** 2026-11-16
 - **Supersedes:** ADR-0013. Supersedes in part the no-JavaScript element of
   ADR-0005, ADR-0006, ADR-0007, ADR-0008, ADR-0009, ADR-0010 and ADR-0011.

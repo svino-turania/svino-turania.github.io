@@ -56,11 +56,14 @@
         delle Cantine; non porta testo e nomina il vino che il paragrafo
         assaggia. È un segno della pagina, non della Locandina.
       - Locandina: un solo link di download, nella banda che chiude la pagina.
+      - Profili social: le due icone di Instagram e Facebook in fondo alla
+        banda, senza testo visibile; il nome accessibile sta sull'ancora e il
+        disegno è decorativo.
 
       L'ordine di lettura è: firma e sottotitolo sull'immagine di apertura
       (in basso a sinistra), data, fotografia della cantina, prosa (il calice
       davanti al primo paragrafo), Programma illustrato, galleria delle
-      cantine, banda (fatti, mappa, Locandina, colophon).
+      cantine, banda (fatti, mappa, Locandina, profili social, colophon).
 
       Non serve alcuna build: la pagina è servita così com'è scritta.
     -->
@@ -460,6 +463,63 @@
               data-goatcounter-title="Scarica la locandina"
             >Scarica la locandina<span class="action__arrow" aria-hidden="true">→</span></a>
           </p>
+
+          <!-- INSTAGRAM e FACEBOOK: i due profili che il Comitato ha
+               confermato. Sono icone in linea senza testo visibile: il nome
+               accessibile sta sull'ancora, il disegno è decorativo. -->
+          <div class="band__social">
+            <a
+              href="https://www.instagram.com/comitato_feste_turania"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              data-goatcounter-click="apri-instagram"
+              data-goatcounter-title="Apri Instagram"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <rect
+                  x="3" y="3" width="18" height="18" rx="5"
+                  fill="none" stroke="currentColor" stroke-width="1.6"
+                />
+                <circle
+                  cx="12" cy="12" r="4.2"
+                  fill="none" stroke="currentColor" stroke-width="1.6"
+                />
+                <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" />
+              </svg>
+            </a>
+            <a
+              href="https://www.facebook.com/comitato.feste.turania"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              data-goatcounter-click="apri-facebook"
+              data-goatcounter-title="Apri Facebook"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <circle
+                  cx="12" cy="12" r="9"
+                  fill="none" stroke="currentColor" stroke-width="1.6"
+                />
+                <path
+                  d="M13.8 20.5v-7h2.3l.35-2.7h-2.65V9.1c0-.78.22-1.3 1.34-1.3h1.43V5.4c-.25-.03-1.1-.1-2.08-.1-2.06 0-3.47 1.26-3.47 3.56v1.94H8.7v2.7h2.32v7z"
+                  fill="currentColor"
+                />
+              </svg>
+            </a>
+          </div>
         </div>
 
         <!-- COLOPHON: l'edizione apre il colophon; sotto, il contatore senza cookie. -->
@@ -484,7 +544,7 @@
         </div>
       </div>
     </footer>
-    <!-- CONTATORE: GoatCounter legge la sorgente, la regione e i due clic; il pixel nel colophon copre chi non ha JavaScript. Vedi ADR-0014. -->
+    <!-- CONTATORE: GoatCounter legge la sorgente, la regione e i quattro clic; il pixel nel colophon copre chi non ha JavaScript. Vedi ADR-0014. -->
     <script
       async
       src="https://gc.zgo.at/count.js"
