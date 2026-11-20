@@ -1,6 +1,6 @@
 # Glossary
 
-The eight terms sVino uses, with the meaning the organisation gives them. Use
+The nine terms sVino uses, with the meaning the organisation gives them. Use
 this vocabulary and these spellings in code, tests, issues and documents; do
 not drift to synonyms.
 
@@ -9,15 +9,17 @@ Spelling and capitalisation fixed by the project:
 - `sVino` — lower-case `s`, capital `V`. Never "Svino" or "SVino".
 - `II Edizione` in running prose; the printed lockup is `II EDIZIONE`.
 - `Turania (RI)` — with a space before the province abbreviation, exactly.
-- `Locandina`, `Cantina`, `Borgo`, `Programma` and `Comitato Feste Turania` are
-  capitalised when they name the event's own artefact, venues and body.
+- `Locandina`, `Cantina`, `Borgo`, `Programma`, `Mercatino` and
+  `Comitato Feste Turania` are capitalised when they name the event's own
+  artefact, venues and body.
 
 ## sVino
 
 The event: a wine tasting held in the Cantine of the Borgo, on 6 December
 2026, a cura del Comitato Feste Turania. Always written `sVino`. The wine is
 not from Turania: do not write "il vino di Turania", nor "vino locale" or
-"del territorio".
+"del territorio". The Mercatino's `produttori locali` describe the producers,
+not the wine: the wine rule stands, and `vino locale` remains forbidden.
 The capital V is deliberate and highlights "Vino"; the signature lettering
 keeps it as a separate gesture, with no ligature and no tracking.
 
@@ -59,6 +61,15 @@ details; until it does, none of those appears on the page.
 The running order of sVino: the acts, performances and events the Comitato
 has confirmed, with the times it has set. An item belongs to the Programma
 only once the Comitato has confirmed it; a proposal or a possibility does not.
+
+## Mercatino
+
+The market of local producers that sVino hosts, present since the first
+edition. "Local" means the area around Turania; the term states no boundary,
+village or list. Capitalise when naming the event's own market (`il
+Mercatino`); the page prose uses the lower-case form (`un mercatino`). Do not
+infer exhibitors, a count, a place or a time from the term; only the Comitato
+confirms them.
 
 ## Locandina
 
