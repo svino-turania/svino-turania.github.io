@@ -29,6 +29,15 @@ const CANTINA_PARAGRAPH =
 const PROGRAMMA_PARAGRAPH =
   "I Menestrelli del Cicolano girano per il borgo con organetto, fisarmonica, chitarra e tamburo. Suonano stornelli e canti popolari in dialetto, e i saltarelli delle feste di paese. Si fermano, suonano, ripartono; chi li ascolta resta lì, e poi la passeggiata prosegue con il bicchiere in mano.";
 
+/*
+ * The Mercatino the Comitato confirmed for the second edition: the market is
+ * part of sVino and existed in the first edition, and this is the paragraph it
+ * approved. It names no exhibitor, count, place, time or specific goods; the
+ * glossary's `produttori locali` describe the producers, not the wine.
+ */
+const MERCATINO_PARAGRAPH =
+  "Come nella prima edizione, anche quest'anno c'è un mercatino: produttori locali espongono i loro prodotti. Si gira tra le bancarelle senza fretta, si guarda, si chiede, e ci si porta a casa qualcosa. La cosa migliore, qui come nelle cantine, è fermarsi a parlare.";
+
 const PHOTO_ALT =
   "Interno di una cantina scavata nella roccia: soffitto e pareti di pietra grezza, una lampadina nuda appesa a un filo, damigiane di vetro anche dentro cesti di vimini, una botte coricata e un grande tino chiaro con il coperchio; un palo di legno regge la volta.";
 
@@ -191,6 +200,19 @@ function viewTimelines(css) {
     }
   }
   return selectors;
+}
+
+/* The declarations of the first rule matching `selector`, comments removed. */
+function ruleBodyFor(css, selector) {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return css.match(new RegExp(`${escaped}\\s*\\{([^{}]*)\\}`, 's'))?.[1] ?? '';
+}
+
+/* The start percentage of a rule's `entry N%` animation range. */
+function rangeStart(body) {
+  const start = body.match(/animation-range:\s*entry\s+(\d+)%/)?.[1];
+  assert.ok(start !== undefined, 'manca l’intervallo entry di una regola');
+  return Number(start);
 }
 
 function withoutBlocks(css, blocks) {
@@ -715,8 +737,15 @@ test('il Programma confermato segue la prosa e non porta un orario', () => {
   );
   assert.equal(
     document.querySelectorAll('h2').length,
-    1,
-    'il Programma non è l’unico titolo di secondo livello della pagina',
+    2,
+    'la pagina non ha esattamente i due titoli dei capitoli illustrati',
+  );
+  assert.deepEqual(
+    [...document.querySelectorAll('h2')].map((node) =>
+      normalize(node.textContent),
+    ),
+    ['PROGRAMMA', 'MERCATINO'],
+    'i titoli di secondo livello non sono le due etichette dei capitoli',
   );
 
   const paragraphs = [...programme.querySelectorAll('p')].map((node) =>
@@ -749,6 +778,269 @@ test('il Programma confermato segue la prosa e non porta un orario', () => {
   assert.ok(galleryAt !== -1, 'manca la galleria');
   assert.ok(endMarker < sectionAt, 'il Programma sta dentro la regione modificabile');
   assert.ok(sectionAt < galleryAt, 'il Programma non precede la galleria');
+});
+
+test('il Mercatino segue il Programma, precede la galleria e porta il paragrafo approvato', () => {
+  const document = loadSite();
+
+  const prose = document.querySelector('.cantina');
+  const programme = prose?.querySelector('section[aria-labelledby="programma"]');
+  const market = prose?.querySelector('section[aria-labelledby="mercatino"]');
+  assert.ok(programme, 'manca il Programma dentro la prosa delle Cantine');
+  assert.ok(market, 'manca il Mercatino dentro la prosa delle Cantine');
+
+  const heading = market.querySelector('h2#mercatino');
+  assert.ok(heading, 'manca il titolo MERCATINO con l’ancora che la sezione nomina');
+  assert.equal(
+    normalize(heading.textContent),
+    'MERCATINO',
+    'il titolo del Mercatino non è l’etichetta stampata',
+  );
+
+  const paragraphs = [...market.querySelectorAll('p')].map((node) =>
+    normalize(node.textContent),
+  );
+  assert.equal(paragraphs.length, 1, 'il Mercatino ha un solo paragrafo approvato');
+  assert.equal(
+    paragraphs[0],
+    MERCATINO_PARAGRAPH,
+    'il paragrafo del Mercatino non è quello approvato, alla lettera',
+  );
+  assert.doesNotMatch(
+    paragraphs[0],
+    /\d{1,2}:\d{2}/,
+    'il Mercatino stampa un orario',
+  );
+  assert.equal(
+    market.querySelector('time, dt, dd'),
+    null,
+    'il Mercatino contiene un orario o una lista di fatti',
+  );
+
+  // Source order: after the Programma, before the gallery. The Mercatino is
+  // prose of the page, not a second band.
+  const gallery = document.querySelector('.gallery');
+  assert.ok(gallery, 'manca la galleria');
+  const elements = [...document.querySelectorAll('*')];
+  const programmeAt = elements.indexOf(programme);
+  const marketAt = elements.indexOf(market);
+  const galleryAt = elements.indexOf(gallery);
+  assert.ok(programmeAt < marketAt, 'il Mercatino non segue il Programma');
+  assert.ok(marketAt < galleryAt, 'il Mercatino non precede la galleria');
+});
+
+test('il banco del Mercatino è decorativo e nomina il mercatino', () => {
+  const document = loadSite();
+  const market = document.querySelector('.cantina > .mercatino');
+  assert.ok(market, 'manca il Mercatino dentro la prosa delle Cantine');
+
+  const plate = market.querySelector('svg.mercatino__plate');
+  assert.ok(plate, 'manca il banco del Mercatino');
+  assert.equal(
+    plate.getAttribute('aria-hidden'),
+    'true',
+    'il banco non è nascosto alle tecnologie assistive',
+  );
+  assert.equal(
+    plate.getAttribute('focusable'),
+    'false',
+    'il banco può ricevere il fuoco',
+  );
+  assert.equal(
+    plate.querySelector('title, text, image, use'),
+    null,
+    'il banco porta un titolo, del testo, un’immagine o un riferimento',
+  );
+  assert.equal(
+    [...plate.querySelectorAll('*')].filter(
+      (node) => node.hasAttribute('href') || node.hasAttribute('xlink:href'),
+    ).length,
+    0,
+    'il banco porta un riferimento esterno',
+  );
+
+  const figure = plate.querySelector('[data-figure]');
+  assert.ok(figure, 'manca il gruppo del banco');
+  assert.equal(
+    figure.getAttribute('data-figure'),
+    'mercatino',
+    'il disegno non nomina il mercatino',
+  );
+  assert.ok(
+    MERCATINO_PARAGRAPH.includes('mercatino'),
+    'il paragrafo non nomina più il mercatino che il banco disegna',
+  );
+
+  const paragraph = market.querySelector('p');
+  assert.ok(paragraph, 'manca il paragrafo del Mercatino');
+  assert.equal(
+    market.querySelectorAll('p').length,
+    1,
+    'il banco ha aggiunto un paragrafo al Mercatino',
+  );
+  assert.equal(
+    plate.previousElementSibling,
+    market.querySelector('h2'),
+    'il banco non segue l’etichetta del Mercatino',
+  );
+  assert.equal(
+    plate.nextElementSibling,
+    paragraph,
+    'il banco non sta fra l’etichetta e il paragrafo',
+  );
+});
+
+test('il banco del Mercatino sta accanto al paragrafo: 12 rem, 22 rem e la colonna da 34 rem', () => {
+  const css = stripCssComments(servedStylesheet());
+  assertDesktopComposition(css);
+
+  const market = css.match(/(?:^|})\s*\.mercatino\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(market, 'manca la regola del Mercatino');
+  assert.match(market, /display:\s*grid/, 'il Mercatino non è una griglia');
+  assert.match(
+    market,
+    /grid-template-areas:\s*"label"\s*"stage"/,
+    'il Mercatino non impagina etichetta e banco',
+  );
+  assert.match(
+    market,
+    /margin-block-start:\s*var\(--space-6\)/,
+    'il Mercatino non apre un capitolo nuovo dopo il Programma',
+  );
+
+  /*
+   * The label is the printed register of DOVE, DALLE ORE and PROGRAMMA. The
+   * two chapter labels are asserted equal, so they cannot drift apart.
+   */
+  const label = css.match(/(?:^|})\s*\.mercatino\s+h2\s*\{([^}]*)\}/s)?.[1] ?? '';
+  const programmeLabel =
+    css.match(/(?:^|})\s*\.programma\s+h2\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(label, 'manca la regola dell’etichetta MERCATINO');
+  assert.ok(programmeLabel, 'manca la regola dell’etichetta PROGRAMMA');
+  assert.equal(
+    normalize(label),
+    normalize(programmeLabel),
+    'l’etichetta del Mercatino non ha il registro stampato del Programma',
+  );
+
+  const plate = css.match(/(?:^|})\s*\.mercatino__plate\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(plate, 'manca la regola del banco');
+  assert.match(plate, /grid-area:\s*stage/, 'il banco non impagina nella sua area');
+  assert.match(plate, /justify-self:\s*end/, 'il banco non sta a destra');
+  assert.match(plate, /inline-size:\s*12rem/, 'il banco del telefono non è di 12 rem');
+  assert.match(
+    plate,
+    /aspect-ratio:\s*224 \/ 162/,
+    'il banco non ha la proporzione del disegno',
+  );
+  assert.match(plate, /color:\s*var\(--ornament\)/, 'il banco non usa l’oro tinto');
+  assert.match(plate, /fill:\s*none/, 'il banco è riempito');
+  assert.match(plate, /stroke-width:\s*1\.6/, 'il banco non ha il tratto unico');
+  assert.match(plate, /pointer-events:\s*none/, 'il banco intercetta il puntatore');
+  assert.match(
+    plate,
+    /margin-block-start:\s*var\(--space-7\)/,
+    'il banco del telefono non è abbassato',
+  );
+
+  const proseBase = css.match(/(?:^|})\s*\.mercatino\s*>\s*p\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(proseBase, 'manca la regola del paragrafo del Mercatino');
+  assert.match(
+    proseBase,
+    /text-shadow:\s*0 0 2px var\(--surface\)/,
+    'il paragrafo non ha l’alone crema sul telefono',
+  );
+
+  const desktop = desktopComposition(css);
+  assert.match(
+    desktop,
+    /\.mercatino\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*34rem\)\s*minmax\(0,\s*1fr\)/s,
+    'la colonna del paragrafo non è di 34 rem',
+  );
+  assert.match(
+    desktop,
+    /\.mercatino\s*>\s*p\s*\{[^}]*grid-area:\s*text/s,
+    'il paragrafo desktop non sta nella colonna del testo',
+  );
+  assert.match(
+    desktop,
+    /\.mercatino__plate\s*\{[^}]*inline-size:\s*22rem/s,
+    'il banco desktop non è di 22 rem',
+  );
+  assert.match(
+    desktop,
+    /\.mercatino__plate\s*\{[^}]*justify-self:\s*end/s,
+    'il banco desktop non sta a destra',
+  );
+  assert.doesNotMatch(
+    desktop,
+    /\.mercatino__plate\s*\{[^}]*max-inline-size:\s*none/s,
+    'il banco è liberato dalla sua traccia senza doverci stare',
+  );
+  assert.match(
+    desktop,
+    /\.mercatino__plate\s*\{[^}]*margin-block-start:\s*0/s,
+    'il banco desktop resta abbassato',
+  );
+  const desktopProse = desktop.match(/\.mercatino > p\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(desktopProse, 'manca la regola desktop del paragrafo del Mercatino');
+  assert.doesNotMatch(
+    desktopProse,
+    /text-shadow/,
+    'il paragrafo desktop azzera le due passate crema',
+  );
+});
+
+test('il Mercatino si stampa dopo il Programma: etichetta, banco, prosa', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  const label = ruleBodyFor(css, '.cantina > .mercatino > h2');
+  assert.ok(label, 'manca il movimento dell’etichetta del Mercatino');
+  assert.match(
+    label,
+    /animation:\s*ink-in\b/,
+    'l’etichetta del Mercatino non si inchiostra',
+  );
+  assert.match(
+    label,
+    /animation-timeline:\s*view\(\)/,
+    'l’etichetta del Mercatino non segue lo scorrimento',
+  );
+
+  const plate = ruleBodyFor(css, '.cantina > .mercatino > .mercatino__plate');
+  assert.ok(plate, 'manca il movimento del banco');
+  assert.match(plate, /animation:\s*ink-in\b/, 'il banco non si inchiostra');
+  assert.match(
+    plate,
+    /animation-timeline:\s*view\(\)/,
+    'il banco non segue lo scorrimento',
+  );
+
+  const prose = ruleBodyFor(css, '.cantina > .mercatino > p');
+  assert.ok(prose, 'manca il movimento del paragrafo del Mercatino');
+  assert.match(
+    prose,
+    /animation:\s*section-rise\b/,
+    'il paragrafo del Mercatino non sale come la prosa',
+  );
+  assert.match(
+    prose,
+    /animation-timeline:\s*view\(\)/,
+    'il paragrafo del Mercatino non segue lo scorrimento',
+  );
+
+  assert.ok(
+    rangeStart(label) < rangeStart(plate) && rangeStart(plate) < rangeStart(prose),
+    'il Mercatino non si stampa etichetta, banco, prosa',
+  );
+
+  // The chapter adds no word to the motion vocabulary: no keyframe is named
+  // after it, and it borrows the two the page already has.
+  assert.equal(
+    atRuleBlocks(css, '@keyframes\\s+[\\w-]*mercatino[\\w-]*\\s*\\{').length,
+    0,
+    'il Mercatino aggiunge una sequenza di movimento propria',
+  );
 });
 
 test('il fregio dei Menestrelli è decorativo e nomina i quattro strumenti', () => {
@@ -1021,7 +1313,7 @@ test('il calice è il secondo disegno, alla stessa altezza del fregio', () => {
   );
 });
 
-test('il calice si inchiostra per primo e condivide l’idioma dei due disegni', () => {
+test('il calice si inchiostra per primo e condivide l’idioma dei tre disegni', () => {
   const css = stripCssComments(servedStylesheet());
 
   const motion =
@@ -1034,20 +1326,19 @@ test('il calice si inchiostra per primo e condivide l’idioma dei due disegni',
     'il calice non segue lo scorrimento',
   );
 
-  const startOf = (body) =>
-    Number(body.match(/animation-range:\s*entry\s+(\d+)%/)?.[1]);
   const first =
     css.match(/\.apertura__prose\s*>\s*p:nth-of-type\(1\)\s*\{([^}]*)\}/s)?.[1] ??
     '';
   assert.ok(first, 'manca il movimento del primo paragrafo');
   assert.ok(
-    startOf(motion) < startOf(first),
+    rangeStart(motion) < rangeStart(first),
     'la prosa sale prima del suo disegno',
   );
 
   for (const [name, selector] of [
     ['il fregio del Programma', '\\.programma__plate'],
     ['il calice della prosa', '\\.cantina__plate'],
+    ['il banco del Mercatino', '\\.mercatino__plate'],
   ]) {
     const body =
       css.match(new RegExp(`(?:^|})\\s*${selector}\\s*\\{([^}]*)\\}`, 's'))?.[1] ??
@@ -4476,11 +4767,6 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
   assert.match(numeralBody, /translateY\(\s*0\.06em\s*\)/, 'il numero non si posa');
   assert.doesNotMatch(numeralBody, /\bopacity\s*:/, 'il numero sfuma invece di posarsi');
 
-  const ruleBodyFor = (selector) => {
-    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return rules.match(new RegExp(`${escaped}\\s*\\{([^{}]*)\\}`, 's'))?.[1] ?? '';
-  };
-
   /*
    * The prose prints in reading order. The range starts are asserted to be
    * increasing, so a later paragraph cannot arrive before an earlier one.
@@ -4491,15 +4777,13 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     '.cantina > .programma > p',
   ];
   const proseStarts = proseOrder.map((selector) => {
-    const body = ruleBodyFor(selector);
+    const body = ruleBodyFor(rules, selector);
     assert.match(
       body,
       /animation:\s*section-rise\b/,
       `la prosa non sale: ${selector}`,
     );
-    const start = body.match(/animation-range:\s*entry\s+(\d+)%/)?.[1];
-    assert.ok(start !== undefined, `manca l’intervallo della prosa: ${selector}`);
-    return Number(start);
+    return rangeStart(body);
   });
   assert.deepEqual(
     proseStarts,
@@ -4512,7 +4796,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     'la prosa si rivela tutta insieme',
   );
 
-  const labelBody = ruleBodyFor('.cantina > .programma > h2');
+  const labelBody = ruleBodyFor(rules, '.cantina > .programma > h2');
   assert.match(
     labelBody,
     /animation:\s*ink-in\b/,
@@ -4528,7 +4812,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
    * The plate is the drawing between the label and the paragraph: it inks
    * after the label and before the prose, so the section prints in order.
    */
-  const plateBody = ruleBodyFor('.cantina > .programma > .programma__plate');
+  const plateBody = ruleBodyFor(rules, '.cantina > .programma > .programma__plate');
   assert.match(plateBody, /animation:\s*ink-in\b/, 'il fregio non si inchiostra');
   assert.match(
     plateBody,
@@ -4556,7 +4840,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     '.gallery__row > .gallery__frame:nth-child(3) img',
   ];
   const galleryStarts = galleryOrder.map((selector) => {
-    const body = ruleBodyFor(selector);
+    const body = ruleBodyFor(rules, selector);
     assert.match(
       body,
       /animation:\s*photograph-recede\b/,
@@ -4578,7 +4862,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
    */
   const factsOrder = ['.facts > :nth-child(1)', '.facts > :nth-child(2)'];
   const factStarts = factsOrder.map((selector) => {
-    const body = ruleBodyFor(selector);
+    const body = ruleBodyFor(rules, selector);
     assert.match(body, /animation:\s*fact-rise\b/, `i fatti non salgono: ${selector}`);
     assert.doesNotMatch(body, /\bopacity\s*:/, 'i fatti vengono nascosti');
     const start = body.match(/animation-range:\s*entry\s+(\d+)%/)?.[1];
@@ -4593,7 +4877,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     '.band__actions > .band__social > a::before',
   ];
   const actionStarts = actionOrder.map((selector) => {
-    const body = ruleBodyFor(selector);
+    const body = ruleBodyFor(rules, selector);
     assert.match(body, /animation:\s*rule-rule\b/, `il filetto non si tira: ${selector}`);
     const start = body.match(/animation-range:\s*entry\s+(\d+)%/)?.[1];
     assert.ok(start !== undefined, `manca l’intervallo del filetto: ${selector}`);

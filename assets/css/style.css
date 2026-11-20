@@ -797,7 +797,7 @@
    * (--ornament), one stroke of 1.6 px, no fill, no frame, the foot on one
    * short ground rule — but it is a device of its own, tied to "si assaggia il
    * vino", not a mark of the page or the Locandina. It is decorative and
-   * carries no text; the suite keeps the two drawings on the same idiom.
+   * carries no text; the suite keeps the drawings on the same idiom.
    */
   .apertura {
     display: grid;
@@ -911,6 +911,66 @@
     /* On a phone the prose crosses the plate; two cream passes keep the glyph
      * edge clean where a line passes under a letter. The desktop keeps the
      * page's one-pixel lift, because the plate is beside the paragraph's ends. */
+    text-shadow:
+      0 0 2px var(--surface),
+      0 0 2px var(--surface),
+      var(--text-shadow);
+  }
+
+  /*
+   * The Mercatino continues the prose after the Programma: the same
+   * illustrated chapter — label, plate, paragraph — built on the same grid and
+   * closing after the paragraph, so the chapters cannot drift apart. Its
+   * plate is a market stall: a canopy on two posts over a table, three crates
+   * and one basket beneath, on a single ground rule. The drawing names the
+   * market the paragraph names; it adds no exhibitor, count or specific goods.
+   */
+  .mercatino {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "label"
+      "stage";
+    margin-block-start: var(--space-6);
+  }
+
+  /* The printed-label register of the Programma, repeated verbatim. */
+  .mercatino h2 {
+    grid-area: label;
+    color: var(--ink-muted);
+    font-family: var(--sans);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
+    margin-block-end: var(--space-3);
+  }
+
+  .mercatino__plate {
+    grid-area: stage;
+    justify-self: end;
+    inline-size: 12rem;
+    margin-block-start: var(--space-7);
+    block-size: auto;
+    aspect-ratio: 224 / 162;
+    color: var(--ornament);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .mercatino__plate * {
+    vector-effect: non-scaling-stroke;
+  }
+
+  .mercatino > p {
+    grid-area: stage;
+    position: relative;
+    z-index: 1;
     text-shadow:
       0 0 2px var(--surface),
       0 0 2px var(--surface),
@@ -1161,6 +1221,30 @@
       max-inline-size: none;
     }
 
+    /*
+     * The Mercatino opens as the Programma does: 34 rem of paragraph on the
+     * left and the plate's stage on the right. Its plate is narrower — 22 rem —
+     * because the drawing is a stall, not a frieze, and it sits beside the
+     * paragraph's ends without crossing them.
+     */
+    .mercatino {
+      grid-template-columns: minmax(0, 34rem) minmax(0, 1fr);
+      grid-template-areas:
+        "label label"
+        "text stage";
+    }
+
+    .mercatino > p {
+      grid-area: text;
+    }
+
+    .mercatino__plate {
+      grid-area: stage;
+      justify-self: end;
+      inline-size: 22rem;
+      margin-block-start: 0;
+    }
+
     .band__inner {
       grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
       /*
@@ -1358,6 +1442,29 @@
       }
 
       .cantina > .programma > p {
+        animation: section-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 30% entry 65%;
+      }
+
+      /*
+       * The Mercatino follows the Programma in the same order: the label inks,
+       * then the stall, then the prose. It reuses ink-in and section-rise, so
+       * the motion vocabulary gains no word.
+       */
+      .cantina > .mercatino > h2 {
+        animation: ink-in linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 30%;
+      }
+
+      .cantina > .mercatino > .mercatino__plate {
+        animation: ink-in linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 10% cover 40%;
+      }
+
+      .cantina > .mercatino > p {
         animation: section-rise linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: entry 30% entry 65%;

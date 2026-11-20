@@ -52,6 +52,9 @@
       - Fregio del Programma: il disegno decorativo dentro la sezione; non
         porta testo e nomina solo i quattro strumenti del paragrafo
         approvato. È un segno della pagina, non della Locandina.
+      - Mercatino: la sezione dopo il Programma, con il paragrafo approvato e
+        il banco decorativo; non nomina espositori, numero, luogo o orario, e
+        non elenca le merci.
       - Calice della prosa: il disegno decorativo davanti al primo paragrafo
         delle Cantine; non porta testo e nomina il vino che il paragrafo
         assaggia. È un segno della pagina, non della Locandina.
@@ -62,8 +65,9 @@
 
       L'ordine di lettura è: firma e sottotitolo sull'immagine di apertura
       (in basso a sinistra), data, fotografia della cantina, prosa (il calice
-      davanti al primo paragrafo), Programma illustrato, galleria delle
-      cantine, banda (fatti, mappa, Locandina, profili social, colophon).
+      davanti al primo paragrafo), Programma illustrato, Mercatino illustrato,
+      galleria delle cantine, banda (fatti, mappa, Locandina, profili social,
+      colophon).
 
       Non serve alcuna build: la pagina è servita così com'è scritta.
     -->
@@ -338,6 +342,56 @@
           </svg>
 
           <p>I Menestrelli del Cicolano girano per il borgo con organetto, fisarmonica, chitarra e tamburo. Suonano stornelli e canti popolari in dialetto, e i saltarelli delle feste di paese. Si fermano, suonano, ripartono; chi li ascolta resta lì, e poi la passeggiata prosegue con il bicchiere in mano.</p>
+        </section>
+
+        <!--
+          MERCATINO: il mercatino dei produttori locali, presente dalla prima
+          edizione, dopo il Programma e prima della galleria. L'etichetta è
+          quella stampata; il paragrafo è il testo approvato e non nomina
+          espositori, numero, luogo o orario, e non elenca le merci.
+        -->
+        <section class="mercatino" aria-labelledby="mercatino">
+          <h2 id="mercatino">MERCATINO</h2>
+
+          <!--
+            BANCO: decorativo, aria-hidden; il paragrafo nomina già il
+            mercatino. Il banco è una bancarella con il tendone sopra due pali,
+            la tavola, tre cassette e un cesto sotto, su un'unica riga di terra.
+            Un solo tratto in --ornament, nessun riempimento, nessun testo;
+            data-figure="mercatino" e il test lo confronta con la parola
+            "mercatino" del paragrafo approvato.
+          -->
+          <svg
+            class="mercatino__plate"
+            viewBox="8 32 224 162"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <line class="mercatino__rule" x1="16" y1="186" x2="224" y2="186" />
+            <g data-figure="mercatino">
+              <path d="M36 76 L24 40 L216 40 L204 76" />
+              <path d="M36 76 Q50 88 64 76 Q78 88 92 76 Q106 88 120 76 Q134 88 148 76 Q162 88 176 76 Q190 88 204 76" />
+              <path d="M48 76 L48 186" />
+              <path d="M192 76 L192 186" />
+              <path d="M62 118 L178 118" />
+              <path d="M62 118 L62 186" />
+              <path d="M178 118 L178 186" />
+              <rect x="66" y="148" width="24" height="38" />
+              <path d="M66 160 L90 160" />
+              <path d="M66 172 L90 172" />
+              <rect x="94" y="148" width="24" height="38" />
+              <path d="M94 160 L118 160" />
+              <path d="M94 172 L118 172" />
+              <rect x="122" y="148" width="24" height="38" />
+              <path d="M122 160 L146 160" />
+              <path d="M122 172 L146 172" />
+              <path d="M150 152 L176 152 L172 186 L154 186 Z" />
+              <path d="M154 152 Q163 136 172 152" />
+              <path d="M152 168 L174 168" />
+            </g>
+          </svg>
+
+          <p>Come nella prima edizione, anche quest'anno c'è un mercatino: produttori locali espongono i loro prodotti. Si gira tra le bancarelle senza fretta, si guarda, si chiede, e ci si porta a casa qualcosa. La cosa migliore, qui come nelle cantine, è fermarsi a parlare.</p>
         </section>
       </div>
 
