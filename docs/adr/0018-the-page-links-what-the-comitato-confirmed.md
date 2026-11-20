@@ -2,6 +2,8 @@
 
 - **Status:** accepted
 - **Date:** 2026-11-20
+- **Superseded in part by:** ADR-0019 (the Mercatino becomes the Programma's
+  sibling; the tracked-link inventory, the profiles and the paragraphs stand)
 - **Supersedes in part:** ADR-0014 — its "the two actions are events" clause,
   its "exactly two `data-goatcounter-click` attributes" test, and its
   two-click counts in the Decision and Consequences. The counter itself, its

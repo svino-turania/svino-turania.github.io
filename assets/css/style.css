@@ -101,7 +101,9 @@
      * the ground so the measurement holds on the paper. Measured on the cream
      * surface, bordeaux on the tint is 7.00:1, so the paragraph keeps AA where
      * it crosses a stroke; the tint on cream is 1.42:1, which is the point —
-     * the plate is furniture, not content.
+     * the plate is furniture, not content. The strong chapter re-mixes the
+     * same gold share into --strong, where the ink is cream and a light line
+     * would vanish into the prose.
      */
     --ornament: color-mix(in srgb, var(--gold) 40%, var(--cream));
     /*
@@ -225,6 +227,18 @@
      * below the shell's width the gutter wins, above it the shell centres.
      */
     --shell-pad: max(var(--gutter), calc((100% - var(--shell)) / 2));
+    /*
+     * The illustrated chapters keep the print measure: a 48 rem column on a
+     * phone and a 64 rem box including the gutters from the desktop composition,
+     * centred on the page. The wide content is therefore 58 rem, so the 34 rem
+     * glass and the 34 rem Programma plate still overflow their 24 rem stages
+     * and the paragraphs' last lines cross them. The desktop block widens the
+     * token; the full-bleed bands and the gallery use --shell-pad.
+     */
+    --chapter-pad: max(
+      var(--gutter),
+      calc((100% - var(--measure)) / 2 + var(--gutter))
+    );
 
     /* The tall sections cap their height so a wide screen keeps a rhythm. */
     --photo-max: 42rem;
@@ -457,10 +471,16 @@
     min-inline-size: 0;
   }
 
+  /*
+   * The prose is a chapter of the walk and keeps the print measure: its content
+   * is the 58 rem left inside the 64 rem box, centred on the page. The 34 rem
+   * text column and the glass keep their relationship, so the glass still
+   * overflows its stage and the paragraph's last lines cross its inner rim.
+   */
   .cantina {
-    max-inline-size: var(--measure);
-    margin-inline: auto;
-    padding-inline: var(--gutter);
+    max-inline-size: none;
+    margin-inline: 0;
+    padding-inline: var(--chapter-pad);
     padding-block: var(--space-4) var(--space-7);
   }
 
@@ -620,9 +640,10 @@
 
   /* ----------------------------------------------------------------- data */
   /*
-   * One bordeaux band closes the page. It is the page's only strong surface:
-   * the date is now a band on cream, so a colour change still has one place
-   * to go and no third surface can declare it.
+   * One bordeaux band closes the page. It is one of the page's two strong
+   * surfaces — the other is the Programma interlude — and the date stays on
+   * cream, so a colour change still has one vocabulary to read and no third
+   * surface can declare it.
    */
   .band {
     background: var(--strong);
@@ -810,6 +831,10 @@
     /* The prose crosses the drawing, so it is lifted above it. */
     position: relative;
     z-index: 1;
+    /* The page's print measure: the prose never runs wider than 48 rem, even
+     * when the chapter uses the whole shell. On the desktop grid the 34 rem
+     * column is narrower, so the cap has no effect there. */
+    max-inline-size: var(--measure);
   }
 
   .apertura__prose > p {
@@ -821,6 +846,12 @@
       var(--text-shadow);
   }
 
+  /* --------------------------------------------------------------- disegni */
+  /*
+   * Every illustrated chapter sets its drawing on the same idiom: one 1.6 px
+   * stroke in --ornament, no fill, no text, no shadow, decorative and
+   * aria-hidden, on a ground rule.
+   */
   .cantina__plate {
     grid-area: stage;
     justify-self: end;
@@ -850,12 +881,14 @@
   }
 
   /*
-   * The programme continues the prose: it is the running order the Comitato
-   * has confirmed, not a second band. Its heading is the print's label, in the
-   * same register as DOVE and DALLE ORE — sans, the small step, bold, wide
-   * tracking, muted ink — so the section reads as a caption set into the page
-   * instead of a serif headline. The paragraph keeps the prose's serif and
-   * measure. The label always stays with the paragraph it introduces.
+   * The Programma is the page's second illustrated chapter and its mid-walk
+   * strong surface: a full-bleed bordeaux band between the cream prose and the
+   * cream Mercatino. It carries the running order the Comitato has confirmed.
+   * Its heading is the print's label, in the same register as DOVE and DALLE
+   * ORE — sans, the small step, bold, wide tracking, gold-light on the strong
+   * ground — so the chapter reads as a caption set into the page instead of a
+   * serif headline. The paragraph keeps the prose's serif and measure. The
+   * label always stays with the paragraph it introduces.
    */
   .programma {
     display: grid;
@@ -863,7 +896,42 @@
     grid-template-areas:
       "label"
       "stage";
-    margin-block-start: var(--space-6);
+    margin-block-start: 0;
+    padding-inline: var(--chapter-pad);
+    padding-block: var(--space-8) var(--space-7);
+  }
+
+  /*
+   * The strong chapter reads the same vocabulary as the closing band. The
+   * grain is laid over the bordeaux, so the band is still paper; the date
+   * stays on cream, and the page has exactly two strong surfaces.
+   *
+   * Its ornament is the same gold share mixed into the strong ground instead
+   * of the cream. A light gold line under cream prose disappears: the two
+   * share a tone, and the paragraph crossing the plate turns to noise. Mixed
+   * into the bordeaux, the drawing is a darker gold pressed into the ground,
+   * and the cream prose keeps AA where a stroke passes beneath it.
+   */
+  .chapter--strong {
+    background: var(--strong);
+    background-image: var(--grain-image);
+    color: var(--strong-ink);
+    --ink: var(--strong-ink);
+    --ink-muted: var(--strong-ink-muted);
+    --rule: var(--strong-rule);
+    --ornament: color-mix(in srgb, var(--gold) 40%, var(--strong));
+  }
+
+  /*
+   * The paragraph still crosses the plate. Its halo is the strong ground, not
+   * the cream surface: two bordeaux passes keep the glyph edge clean where a
+   * line passes under a letter, and the one-pixel lift stays warm.
+   */
+  .chapter--strong .programma > p {
+    text-shadow:
+      0 0 2px var(--strong),
+      0 0 2px var(--strong),
+      var(--text-shadow);
   }
 
   .programma h2 {
@@ -879,9 +947,11 @@
 
   /*
    * The plate is decorative and carries no text; the paragraph names the four
-   * instruments. Its ink is --ornament, a gold pressed into the paper, so the
-   * bordeaux prose keeps AA where it crosses a stroke. The stroke is 1.6 px at
-   * every size, and the drawing inherits the one ink and no fill.
+   * instruments. Its ink is --ornament, on this surface 40% gold mixed into
+   * the strong ground: a dark gold pressed into the bordeaux, so the cream
+   * prose keeps AA where it crosses a stroke instead of fading into a light
+   * line. The stroke is 1.6 px at every size, and the drawing inherits the one
+   * ink and no fill.
    */
   .programma__plate {
     grid-area: stage;
@@ -908,6 +978,11 @@
     grid-area: stage;
     position: relative;
     z-index: 1;
+    /* The chapter left `.cantina`, so it carries the prose's serif and size
+     * itself; otherwise it would fall back to the page's sans body. */
+    font-family: var(--serif);
+    font-size: var(--step-1);
+    line-height: 1.6;
     /* On a phone the prose crosses the plate; two cream passes keep the glyph
      * edge clean where a line passes under a letter. The desktop keeps the
      * page's one-pixel lift, because the plate is beside the paragraph's ends. */
@@ -931,7 +1006,9 @@
     grid-template-areas:
       "label"
       "stage";
-    margin-block-start: var(--space-6);
+    margin-block-start: 0;
+    padding-inline: var(--chapter-pad);
+    padding-block: var(--space-8) var(--space-7);
   }
 
   /* The printed-label register of the Programma, repeated verbatim. */
@@ -971,6 +1048,9 @@
     grid-area: stage;
     position: relative;
     z-index: 1;
+    font-family: var(--serif);
+    font-size: var(--step-1);
+    line-height: 1.6;
     text-shadow:
       0 0 2px var(--surface),
       0 0 2px var(--surface),
@@ -981,8 +1061,8 @@
   /*
    * One bordeaux band closes the page. Cream carries the text and gold-light
    * the secondary tone; both clear AA on the strong surface. The band shares
-   * the strong surface's base and ink with the date, and adds the link and
-   * rule roles its actions read.
+   * the strong surface's base and ink with the Programma interlude, and adds
+   * the link and rule roles its actions read. The date stays on cream.
    */
   .band {
     --ink: var(--strong-ink);
@@ -1130,6 +1210,19 @@
    */
   @media (min-width: 64rem) {
     /*
+     * The chapters widen from the 48 rem measure to the 64 rem print box, so
+     * their content is 58 rem and the glass and plate still overflow their
+     * stages. The token lives in the components layer, after tokens, so this
+     * override wins the cascade.
+     */
+    :root {
+      --chapter-pad: max(
+        var(--gutter),
+        calc((100% - 64rem) / 2 + var(--gutter))
+      );
+    }
+
+    /*
      * 3:2, not a cinematic band: at 1024 px a 2.1:1 cover is shorter than
      * twice the masthead and the photograph all but disappears behind the
      * scrim. 3:2 keeps the middle band of the grapes and leaves a third of
@@ -1164,14 +1257,9 @@
     }
 
     /*
-     * The prose uses the width: the cantina widens to 64 rem and the two
-     * chapters open across it.
-     */
-    .cantina {
-      max-inline-size: 64rem;
-    }
-
-    /*
+     * The prose uses the chapter measure at every width, so the desktop only
+     * gives the apertura its 34 rem column and the drawing's stage.
+     *
      * The opening opens as the Programma does: 34 rem of paragraph on the left
      * and the plate's stage on the right. The glass is narrower than the
      * Programma's plate by its own ratio — it is the same height, not the same
@@ -1243,6 +1331,20 @@
       justify-self: end;
       inline-size: 22rem;
       margin-block-start: 0;
+    }
+
+    /*
+     * The gallery's three portraits are staggered: the middle one drops one
+     * spacing step, so the photo essay has a moving baseline instead of a
+     * ruler. The phone composition is the 37 rem container query and never sees
+     * this rule, because it lives inside the 64 rem block.
+     */
+    .gallery__row {
+      align-items: start;
+    }
+
+    .gallery__row > .gallery__frame:nth-child(2) {
+      margin-block-start: var(--space-8);
     }
 
     .band__inner {
@@ -1425,7 +1527,11 @@
         animation-range: entry 20% entry 50%;
       }
 
-      .cantina > .programma > h2 {
+      /*
+       * The chapters keep their ink entrance: the label, the drawing, the
+       * paragraph, each on its own view() range.
+       */
+      .chapter.programma > h2 {
         animation: ink-in linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: entry 0% cover 30%;
@@ -1435,13 +1541,13 @@
        * The plate inks between the label and the paragraph: label, drawing,
        * prose. It reuses ink-in, so the motion vocabulary gains no word.
        */
-      .cantina > .programma > .programma__plate {
+      .chapter.programma > .programma__plate {
         animation: ink-in linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: entry 10% cover 40%;
       }
 
-      .cantina > .programma > p {
+      .chapter.programma > p {
         animation: section-rise linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: entry 30% entry 65%;
@@ -1452,19 +1558,19 @@
        * then the stall, then the prose. It reuses ink-in and section-rise, so
        * the motion vocabulary gains no word.
        */
-      .cantina > .mercatino > h2 {
+      .chapter.mercatino > h2 {
         animation: ink-in linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: entry 0% cover 30%;
       }
 
-      .cantina > .mercatino > .mercatino__plate {
+      .chapter.mercatino > .mercatino__plate {
         animation: ink-in linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: entry 10% cover 40%;
       }
 
-      .cantina > .mercatino > p {
+      .chapter.mercatino > p {
         animation: section-rise linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: entry 30% entry 65%;

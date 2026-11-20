@@ -724,11 +724,12 @@ test('il Programma confermato segue la prosa e non porta un orario', () => {
   const html = readFileSync(join(SITE, 'index.html'), 'utf8');
   const document = loadSite();
 
-  const prose = document.querySelector('.cantina');
-  const programme = prose?.querySelector('section[aria-labelledby="programma"]');
-  assert.ok(programme, 'manca il Programma dentro la prosa delle Cantine');
+  const programme = document.querySelector(
+    'section.programma[aria-labelledby="programma-title"]',
+  );
+  assert.ok(programme, 'manca il Programma come capitolo dopo la prosa');
 
-  const heading = programme.querySelector('h2#programma');
+  const heading = programme.querySelector('h2#programma-title');
   assert.ok(heading, 'manca il titolo PROGRAMMA con l’ancora che la sezione nomina');
   assert.equal(
     normalize(heading.textContent),
@@ -769,27 +770,30 @@ test('il Programma confermato segue la prosa e non porta un orario', () => {
   );
 
   // Source order: after the approved prose's closing marker, before the
-  // gallery. The Programma is prose of the page, not a second band.
+  // gallery. The Programma is the chapter after the prose.
   const endMarker = html.indexOf('CANTINA — FINE REGIONE MODIFICABILE');
-  const sectionAt = html.indexOf('aria-labelledby="programma"');
-  const galleryAt = html.indexOf('<section class="gallery"');
+  const sectionAt = html.indexOf('aria-labelledby="programma-title"');
+  const galleryAt = html.indexOf('id="galleria"');
   assert.ok(endMarker !== -1, 'manca il segnaposto di fine della regione');
   assert.ok(sectionAt !== -1, 'manca la sezione del Programma');
   assert.ok(galleryAt !== -1, 'manca la galleria');
-  assert.ok(endMarker < sectionAt, 'il Programma sta dentro la regione modificabile');
+  assert.ok(endMarker < sectionAt, 'il Programma precede la fine della regione');
   assert.ok(sectionAt < galleryAt, 'il Programma non precede la galleria');
 });
 
 test('il Mercatino segue il Programma, precede la galleria e porta il paragrafo approvato', () => {
   const document = loadSite();
 
-  const prose = document.querySelector('.cantina');
-  const programme = prose?.querySelector('section[aria-labelledby="programma"]');
-  const market = prose?.querySelector('section[aria-labelledby="mercatino"]');
-  assert.ok(programme, 'manca il Programma dentro la prosa delle Cantine');
-  assert.ok(market, 'manca il Mercatino dentro la prosa delle Cantine');
+  const programme = document.querySelector(
+    'section.programma[aria-labelledby="programma-title"]',
+  );
+  const market = document.querySelector(
+    'section.mercatino[aria-labelledby="mercatino-title"]',
+  );
+  assert.ok(programme, 'manca il Programma dopo la prosa');
+  assert.ok(market, 'manca il Mercatino dopo il Programma');
 
-  const heading = market.querySelector('h2#mercatino');
+  const heading = market.querySelector('h2#mercatino-title');
   assert.ok(heading, 'manca il titolo MERCATINO con l’ancora che la sezione nomina');
   assert.equal(
     normalize(heading.textContent),
@@ -818,7 +822,7 @@ test('il Mercatino segue il Programma, precede la galleria e porta il paragrafo 
   );
 
   // Source order: after the Programma, before the gallery. The Mercatino is
-  // prose of the page, not a second band.
+  // the chapter after the Programma.
   const gallery = document.querySelector('.gallery');
   assert.ok(gallery, 'manca la galleria');
   const elements = [...document.querySelectorAll('*')];
@@ -831,8 +835,8 @@ test('il Mercatino segue il Programma, precede la galleria e porta il paragrafo 
 
 test('il banco del Mercatino è decorativo e nomina il mercatino', () => {
   const document = loadSite();
-  const market = document.querySelector('.cantina > .mercatino');
-  assert.ok(market, 'manca il Mercatino dentro la prosa delle Cantine');
+  const market = document.querySelector('section.mercatino');
+  assert.ok(market, 'manca il Mercatino dopo il Programma');
 
   const plate = market.querySelector('svg.mercatino__plate');
   assert.ok(plate, 'manca il banco del Mercatino');
@@ -904,7 +908,12 @@ test('il banco del Mercatino sta accanto al paragrafo: 12 rem, 22 rem e la colon
   );
   assert.match(
     market,
-    /margin-block-start:\s*var\(--space-6\)/,
+    /padding-inline:\s*var\(--chapter-pad\)/,
+    'il Mercatino non usa la misura dei capitoli',
+  );
+  assert.match(
+    market,
+    /margin-block-start:\s*0/,
     'il Mercatino non apre un capitolo nuovo dopo il Programma',
   );
 
@@ -950,6 +959,16 @@ test('il banco del Mercatino sta accanto al paragrafo: 12 rem, 22 rem e la colon
     /text-shadow:\s*0 0 2px var\(--surface\)/,
     'il paragrafo non ha l’alone crema sul telefono',
   );
+  assert.match(
+    proseBase,
+    /font-family:\s*var\(--serif\)/,
+    'il paragrafo del Mercatino non porta il serif della prosa',
+  );
+  assert.match(
+    proseBase,
+    /font-size:\s*var\(--step-1\)/,
+    'il paragrafo del Mercatino non ha il corpo della prosa',
+  );
 
   const desktop = desktopComposition(css);
   assert.match(
@@ -994,7 +1013,7 @@ test('il banco del Mercatino sta accanto al paragrafo: 12 rem, 22 rem e la colon
 test('il Mercatino si stampa dopo il Programma: etichetta, banco, prosa', () => {
   const css = stripCssComments(servedStylesheet());
 
-  const label = ruleBodyFor(css, '.cantina > .mercatino > h2');
+  const label = ruleBodyFor(css, '.chapter.mercatino > h2');
   assert.ok(label, 'manca il movimento dell’etichetta del Mercatino');
   assert.match(
     label,
@@ -1007,7 +1026,7 @@ test('il Mercatino si stampa dopo il Programma: etichetta, banco, prosa', () => 
     'l’etichetta del Mercatino non segue lo scorrimento',
   );
 
-  const plate = ruleBodyFor(css, '.cantina > .mercatino > .mercatino__plate');
+  const plate = ruleBodyFor(css, '.chapter.mercatino > .mercatino__plate');
   assert.ok(plate, 'manca il movimento del banco');
   assert.match(plate, /animation:\s*ink-in\b/, 'il banco non si inchiostra');
   assert.match(
@@ -1016,7 +1035,7 @@ test('il Mercatino si stampa dopo il Programma: etichetta, banco, prosa', () => 
     'il banco non segue lo scorrimento',
   );
 
-  const prose = ruleBodyFor(css, '.cantina > .mercatino > p');
+  const prose = ruleBodyFor(css, '.chapter.mercatino > p');
   assert.ok(prose, 'manca il movimento del paragrafo del Mercatino');
   assert.match(
     prose,
@@ -1045,8 +1064,8 @@ test('il Mercatino si stampa dopo il Programma: etichetta, banco, prosa', () => 
 
 test('il fregio dei Menestrelli è decorativo e nomina i quattro strumenti', () => {
   const document = loadSite();
-  const programme = document.querySelector('.cantina > .programma');
-  assert.ok(programme, 'manca il Programma dentro la prosa delle Cantine');
+  const programme = document.querySelector('section.programma');
+  assert.ok(programme, 'manca il Programma dopo la prosa');
 
   const plate = programme.querySelector('svg.programma__plate');
   assert.ok(plate, 'manca il fregio del Programma');
@@ -1131,6 +1150,16 @@ test('il fregio del Programma sta accanto al paragrafo e si sovrappone', () => {
     proseBase,
     /text-shadow:\s*0 0 2px var\(--surface\)/,
     'il paragrafo non ha l’alone crema sul telefono',
+  );
+  assert.match(
+    proseBase,
+    /font-family:\s*var\(--serif\)/,
+    'il paragrafo del Programma non porta il serif della prosa',
+  );
+  assert.match(
+    proseBase,
+    /font-size:\s*var\(--step-1\)/,
+    'il paragrafo del Programma non ha il corpo della prosa',
   );
 
   const desktop = desktopComposition(css);
@@ -2767,7 +2796,7 @@ test('la fotografia segue la data e esce dai margini a ogni larghezza', () => {
   );
 });
 
-test('la banda bordeaux chiude la pagina con fatti, azioni e colophon ed è l’unica superficie forte', () => {
+test('la banda bordeaux chiude la pagina con fatti, azioni e colophon ed è una delle due superfici forti', () => {
   const document = loadSite();
   const bands = [...document.querySelectorAll('.band')];
   assert.equal(bands.length, 1, 'la pagina non ha una sola banda');
@@ -2816,40 +2845,38 @@ test('la banda bordeaux chiude la pagina con fatti, azioni e colophon ed è l’
     /--strong-rule:\s*var\(--gold-light\)\s*;/,
     'la riga della superficie forte non è oro chiaro',
   );
-  // The closing band is the page's only strong surface. The date is a band on
-  // cream now, so one rule declares the bordeaux ground and one consumer
-  // reads it.
+  // The page has two strong surfaces: the Programma interlude and the closing
+  // band. The date is a band on cream, so every bordeaux ground reads the same
+  // roles and no third surface can declare one.
   const strongRules = [
     ...css.matchAll(
       /([^{}]+)\{\s*([^{}]*background:\s*var\(--strong\)\s*;[^{}]*)\}/gs,
     ),
   ];
-  assert.equal(
-    strongRules.length,
-    1,
-    'la superficie forte non ha una sola casa',
+  assert.equal(strongRules.length, 2, 'la pagina non ha due superfici forti');
+  const strongSelectors = strongRules.map(([, selector]) => normalize(selector));
+  assert.deepEqual(
+    strongSelectors.sort(),
+    ['.band', '.chapter--strong'].sort(),
+    'le superfici forti non sono il Programma e la banda che chiude la pagina',
   );
-  const [, strongSelector, strongBody] = strongRules[0];
-  assert.equal(
-    normalize(strongSelector),
-    '.band',
-    'la superficie forte non è la sola banda che chiude la pagina',
-  );
-  assert.match(
-    strongBody,
-    /background:\s*var\(--strong\)\s*;/,
-    'la superficie forte non dichiara il fondo bordeaux semantico',
-  );
-  assert.match(
-    strongBody,
-    /color:\s*var\(--strong-ink\)\s*;/,
-    'la superficie forte non dichiara il testo crema semantico',
-  );
-  assert.doesNotMatch(
-    strongBody,
-    /#[0-9a-fA-F]{3,8}\b/,
-    'la superficie forte dichiara un colore grezzo invece di un ruolo',
-  );
+  for (const [, strongSelector, strongBody] of strongRules) {
+    assert.match(
+      strongBody,
+      /background:\s*var\(--strong\)\s*;/,
+      `la superficie forte non dichiara il fondo bordeaux semantico: ${normalize(strongSelector)}`,
+    );
+    assert.match(
+      strongBody,
+      /color:\s*var\(--strong-ink\)\s*;/,
+      `la superficie forte non dichiara il testo crema semantico: ${normalize(strongSelector)}`,
+    );
+    assert.doesNotMatch(
+      strongBody,
+      /#[0-9a-fA-F]{3,8}\b/,
+      `la superficie forte dichiara un colore grezzo invece di un ruolo: ${normalize(strongSelector)}`,
+    );
+  }
   assert.doesNotMatch(
     css,
     /\.date\s*\{[^{}]*background:\s*var\(--strong\)/s,
@@ -4109,6 +4136,129 @@ test('la galleria chiude la pagina con quattro fotografie descritte e leggere', 
   );
 });
 
+test('il Programma è la seconda superficie forte e la galleria sfalsa il centro solo sul desktop', () => {
+  const document = loadSite();
+  const programme = document.querySelector('section.programma');
+  const market = document.querySelector('section.mercatino');
+  assert.ok(programme, 'manca il Programma');
+  assert.ok(market, 'manca il Mercatino');
+  assert.ok(
+    programme.classList.contains('chapter--strong'),
+    'il Programma non è la seconda superficie forte',
+  );
+  assert.equal(
+    programme.querySelector('h2').id,
+    'programma-title',
+    'il titolo del Programma non è l’ancora che la sezione nomina',
+  );
+  assert.equal(
+    programme.getAttribute('aria-labelledby'),
+    'programma-title',
+    'la sezione del Programma non è nominata dal suo titolo',
+  );
+  assert.equal(
+    market.querySelector('h2').id,
+    'mercatino-title',
+    'il titolo del Mercatino non è l’ancora che la sezione nomina',
+  );
+  assert.equal(
+    market.getAttribute('aria-labelledby'),
+    'mercatino-title',
+    'la sezione del Mercatino non è nominata dal suo titolo',
+  );
+
+  const css = stripCssComments(servedStylesheet());
+  const strong = ruleBodyFor(css, '.chapter--strong');
+  assert.match(
+    strong,
+    /background:\s*var\(--strong\)/,
+    'la seconda superficie forte non è bordeaux',
+  );
+  assert.match(
+    strong,
+    /color:\s*var\(--strong-ink\)/,
+    'la seconda superficie forte non legge il testo crema',
+  );
+  assert.match(
+    strong,
+    /--rule:\s*var\(--strong-rule\)/,
+    'la seconda superficie forte non legge il filetto oro chiaro',
+  );
+  // The strong ground flips the ornament's job: the prose is cream, so a
+  // light gold line would merge with the letters. The same gold share is
+  // mixed into the strong ground, and cream keeps AA where the paragraph
+  // crosses a stroke.
+  const ornament = strong.match(
+    /--ornament:\s*color-mix\(\s*in srgb\s*,\s*var\(--gold\)\s+(\d+(?:\.\d+)?)%\s*,\s*var\(--strong\)\s*\)/,
+  );
+  assert.ok(
+    ornament,
+    'la superficie forte non mescola l’oro nel proprio fondo',
+  );
+  const share = Number(ornament[1]) / 100;
+  assert.equal(
+    share,
+    0.4,
+    `la superficie forte non usa la stessa quota d’oro del fregio: ${share}`,
+  );
+  const gold = rgb(resolveTokenColour('gold', css));
+  const bordeaux = rgb(resolveTokenColour('strong', css));
+  const plateInk = {
+    r: gold.r * share + bordeaux.r * (1 - share),
+    g: gold.g * share + bordeaux.g * (1 - share),
+    b: gold.b * share + bordeaux.b * (1 - share),
+  };
+  const onPlate = contrastRatio(rgb(resolveTokenColour('cream', css)), plateInk);
+  assert.ok(
+    onPlate >= 4.5,
+    `la crema sul fregio del Programma misura ${onPlate.toFixed(2)}:1, sotto AA`,
+  );
+  const plateOnGround = contrastRatio(plateInk, bordeaux);
+  assert.ok(
+    plateOnGround >= 1.4,
+    `il fregio del Programma si perde nel bordeaux: ${plateOnGround.toFixed(2)}:1`,
+  );
+  const halo = ruleBodyFor(css, '.chapter--strong .programma > p');
+  assert.match(
+    halo,
+    /text-shadow:[\s\S]*var\(--strong\)[\s\S]*var\(--strong\)/,
+    'il paragrafo del Programma non ha l’alone bordeaux sul fregio',
+  );
+
+  const tokens = layerBlock(css, 'tokens');
+  assert.match(
+    tokens,
+    /--chapter-pad:\s*max\([\s\S]*var\(--measure\)/,
+    'la misura dei capitoli non parte dai 48 rem del telefono',
+  );
+
+  const desktop = desktopComposition(css);
+  assert.match(
+    desktop,
+    /:root\s*\{[^}]*--chapter-pad:\s*max\([\s\S]*64rem/s,
+    'la misura dei capitoli non si allarga a 64 rem sul desktop',
+  );
+  assert.match(
+    desktop,
+    /\.gallery__row\s*\{[^}]*align-items:\s*start/s,
+    'la fila della galleria non parte dall’alto',
+  );
+  assert.match(
+    desktop,
+    /\.gallery__row > \.gallery__frame:nth-child\(2\)\s*\{[^}]*margin-block-start:\s*var\(--space-8\)/s,
+    'il ritratto centrale della galleria non è sfalsato sul desktop',
+  );
+
+  const layout = layerBlock(css, 'layout');
+  const phone = atRuleBlocks(layout, '@container\\s*\\(max-width:\\s*37rem\\)');
+  assert.equal(phone.length, 1, 'manca la composizione da telefono della galleria');
+  assert.doesNotMatch(
+    layout.slice(phone[0].start, phone[0].end + 1),
+    /nth-child\(2\)/,
+    'lo sfalsamento della galleria scende nel layout da telefono',
+  );
+});
+
 test('la pagina ha una shell e una sola composizione desktop', () => {
   const css = stripCssComments(servedStylesheet());
   assertDesktopComposition(css);
@@ -4675,16 +4825,44 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
    * which is transform-only and never hides the cover.
    */
   const rules = stripCssComments(css);
-  const reveals = viewTimelines(css);
+  const reveals = viewTimelines(rules);
   assert.ok(reveals.length > 0, 'manca il reveal scroll della prosa e della banda');
   assert.ok(
-    reveals.some((selector) => /\.cantina\b/.test(selector)),
+    reveals.some((selector) => /\.apertura__prose\b/.test(selector)),
     'la prosa non si rivela entrando nel viewport',
   );
   assert.ok(
     reveals.some((selector) => /\.facts\b/.test(selector)),
     'i fatti non si rivelano entrando nel viewport',
   );
+
+  /*
+   * The reveal subjects are an explicit list, not a pattern: the opening
+   * glass, the two prose paragraphs, the Programma and Mercatino chapters,
+   * the photographs, the fact rows and the action rules. A selector outside
+   * the list must be a deliberate decision, not a regex accident.
+   */
+  const REVEAL_SUBJECTS = new Set([
+    '.apertura > .cantina__plate',
+    '.apertura__prose > p:nth-of-type(1)',
+    '.apertura__prose > p:nth-of-type(2)',
+    '.chapter.programma > h2',
+    '.chapter.programma > .programma__plate',
+    '.chapter.programma > p',
+    '.chapter.mercatino > h2',
+    '.chapter.mercatino > .mercatino__plate',
+    '.chapter.mercatino > p',
+    '.photo-band img',
+    '.gallery__frame--wide img',
+    '.gallery__row > .gallery__frame:nth-child(1) img',
+    '.gallery__row > .gallery__frame:nth-child(2) img',
+    '.gallery__row > .gallery__frame:nth-child(3) img',
+    '.facts > :nth-child(1)',
+    '.facts > :nth-child(2)',
+    '.band__actions > p:nth-of-type(1) > a::before',
+    '.band__actions > p:nth-of-type(2) > a::before',
+    '.band__actions > .band__social > a::before',
+  ]);
 
   const HERO_DRIFT = /\.hero-photo\s+picture\b/;
   for (const selector of reveals) {
@@ -4696,10 +4874,9 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
       /(?:\.masthead|\.signature|\.lockup|\.subtitle|\.date|\.hero-photo)\b/,
       `l’eroe ha un reveal scroll: ${selector}`,
     );
-    assert.match(
-      selector,
-      /\.(?:cantina|apertura)(?:__[a-z]+)?\b|\.facts\b|\.band__actions\b|\.photo-band\b|\.gallery__frame\b/,
-      `il reveal scroll è fuori dalla fotografia, dalla prosa, dalla galleria e dalla banda: ${selector}`,
+    assert.ok(
+      REVEAL_SUBJECTS.has(selector),
+      `il reveal scroll è fuori dal vocabolario della pagina: ${selector}`,
     );
     assert.doesNotMatch(
       selector,
@@ -4774,7 +4951,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
   const proseOrder = [
     '.apertura__prose > p:nth-of-type(1)',
     '.apertura__prose > p:nth-of-type(2)',
-    '.cantina > .programma > p',
+    '.chapter.programma > p',
   ];
   const proseStarts = proseOrder.map((selector) => {
     const body = ruleBodyFor(rules, selector);
@@ -4796,7 +4973,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     'la prosa si rivela tutta insieme',
   );
 
-  const labelBody = ruleBodyFor(rules, '.cantina > .programma > h2');
+  const labelBody = ruleBodyFor(rules, '.chapter.programma > h2');
   assert.match(
     labelBody,
     /animation:\s*ink-in\b/,
@@ -4812,7 +4989,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
    * The plate is the drawing between the label and the paragraph: it inks
    * after the label and before the prose, so the section prints in order.
    */
-  const plateBody = ruleBodyFor(rules, '.cantina > .programma > .programma__plate');
+  const plateBody = ruleBodyFor(rules, '.chapter.programma > .programma__plate');
   assert.match(plateBody, /animation:\s*ink-in\b/, 'il fregio non si inchiostra');
   assert.match(
     plateBody,

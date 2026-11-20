@@ -2,6 +2,8 @@
 
 - **Status:** accepted
 - **Date:** 2026-11-19
+- **Superseded in part by:** ADR-0019 (the Programma leaves `.cantina` and
+  becomes the strong interlude; the plate, the paragraph and the label stand)
 - **Related:** ADR-0009, ADR-0012, ADR-0015, issue #70, `index.html`,
   `assets/css/style.css`, `tests/site.test.mjs`, `README.md`
 - **Prototype:** `prototype/programma-plate` (five variants; winner D · Largo)

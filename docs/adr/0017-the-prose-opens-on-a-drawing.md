@@ -2,6 +2,8 @@
 
 - **Status:** accepted
 - **Date:** 2026-11-20
+- **Superseded in part by:** ADR-0019 (the two illustrated chapters sit in one
+  walk; the glass, its height, the 64 rem measure and the overlap stand)
 - **Related:** ADR-0009, ADR-0015, ADR-0016, `index.html`,
   `assets/css/style.css`, `tests/site.test.mjs`, `README.md`
 - **Supersedes in part:** ADR-0009 (the prose in two columns of `22rem`),

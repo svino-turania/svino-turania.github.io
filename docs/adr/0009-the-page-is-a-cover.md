@@ -2,6 +2,9 @@
 
 - **Status:** accepted
 - **Date:** 2026-11-15
+- **Superseded in part by:** ADR-0019 (the single strong surface; the cover, the
+  scrim, the date, the tear, the closing band and the 64 rem chapter measure
+  stand)
 - **Supersedes in part:** ADR-0007 (the one column at every width, the 48 rem
   measure and the no-threshold rule; the date's single geometry as a dark
   field), ADR-0008 (the column-bound 4:5 hero, the cream wash and the
