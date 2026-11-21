@@ -7,6 +7,9 @@
   (the gallery composition), ADR-0016 (the Programma's place inside `.cantina`),
   ADR-0017 (the chapter heading) and ADR-0018 (the Mercatino's place inside
   `.cantina`)
+- **Superseded in part by:** ADR-0020 (the gallery is no longer the last
+  photographs before the closing band; the cartoline chapter sits between the
+  Mercatino and the gallery)
 - **Related:** ADR-0002, ADR-0005, ADR-0011, README (*Composition*, *Motion*,
   *Tests*), `index.html`, `assets/css/style.css`, `tests/site.test.mjs`
 

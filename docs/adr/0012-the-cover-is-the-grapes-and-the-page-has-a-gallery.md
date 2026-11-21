@@ -4,6 +4,8 @@
 - **Date:** 2026-11-16
 - **Superseded in part by:** ADR-0019 (the gallery's desktop stagger; the
   photographs, the tear, the lazy loading and the phone pair stand)
+- **Superseded in part by:** ADR-0020 (the no-frame, no-shadow and no-radius
+  rule, for the cartoline chapter alone; every other photograph keeps it)
 - **Revised:** 2026-11-16 — the 4× upscale arrived; the cover ships a
   three-width ladder from it instead of the single native copy.
 - **Revised:** 2026-11-16 — on a phone the three portraits are a pair, and the

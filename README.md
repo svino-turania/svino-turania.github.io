@@ -6,7 +6,9 @@ repository `svino-turania/svino-turania.github.io`.
 
 Status: the page is a cover, recorded in ADR-0009, with the grapes photograph
 full-bleed and the masthead set on it in cream over a bordeaux scrim; after the
-prose, a gallery of four cellar photographs closes the page (ADR-0012). It
+prose, a gallery of four cellar photographs closes the page (ADR-0012), and the
+eight cartoline d'epoca of Turania and Petescia are laid between the Mercatino
+and the gallery (ADR-0020). It
 carries the Locandina's facts, the Cantina prose, the confirmed Programma and
 Mercatino, the map link, one Locandina download and the Comitato's Instagram
 and Facebook icons. The identity (palette and type), the
@@ -52,17 +54,22 @@ Check the page before merging, in the browser's responsive mode:
   with the tasting glass on the right, behind the paragraph's last words and
   dropped one step, the Programma with its 14 rem plate on the same side and at
   the same height, the Mercatino with its 12 rem stall on the same side, the
+  eight cartoline stacked at the page's measure, each on its own tilt, the
   facts paired, the two actions stacked and the two
   profile icons in a row; no horizontal scrolling, and the signature and the
   date fit the first screen.
 - 768 px: the same composition, with the shell's gutter at its widest; all
-  three drawings keep their height and their side.
+  three drawings keep their height and their side, and the cartoline become a
+  two-up spread — four rows, the right-hand card dropped a step — so their
+  printed lettering stays legible.
 - 1024, 1440×900 and 1920 px: the one desktop composition — the wide cover
   crop, the date on one line, the Cantina photograph full-bleed with its height
   cap, the chapters opening on their 64 rem measure with 34 rem of prose on the
   left and the drawing on the right (28.75 rem of glass, 34 rem of plate, the
   same height, and the Mercatino's 22 rem stall beside its paragraph's ends),
-  and the closing band split facts left, actions right. The
+  the cartoline as an album of three rows — three, three and two — with the
+  Turania montage as the anchor, and the closing band split facts left, actions
+  right. The
   signature and the date still fit the first screen.
 
 Repeat at 200% text zoom: the date, the place and the organiser must stay
@@ -73,14 +80,32 @@ and the chapters keep their prose readable beside the drawings.
 ## Composition
 
 The page is a cover and a walk: the cream ground is the page itself, with no
-sheet, panel, border or shadow. The opening photograph — a close-up of black
+sheet or panel; apart from the cartoline's cards (ADR-0020), no border and no
+shadow. The opening photograph — a close-up of black
 grapes — runs edge to edge at every width, and the masthead — the signature, the
 `II EDIZIONE` lockup and the subtitle — is set at its foot, inside the content
 shell, in cream on a bordeaux scrim. The order is the cover, the date, the
 Cantina photograph, the Cantina prose with its glass opening
 as the first illustrated chapter, the Programma as the second chapter and the
 page's mid-walk bordeaux interlude, the Mercatino as the third chapter on cream,
-the gallery of four cellar photographs and one closing bordeaux band.
+the cartoline d'epoca, the gallery of four cellar photographs and one closing
+bordeaux band.
+
+The cartoline are eight archival photographs of Turania and Petescia, laid
+between the Mercatino and the gallery: the old village, then today's cellars,
+then the band. The chapter has no heading and no caption — the lettering
+printed inside the cards is its only caption, and the `alt` sentences carry it
+for screen readers. Each card is cream paper with a hairline and a small ink
+shadow, its photograph matted uncropped at its native aspect, and the cards
+carry a ±1.5° tilt: they are the page's one framed, shadowed object, an
+exception ADR-0020 grants this chapter alone; every other photograph keeps
+ADR-0012's no-frame rule. On a phone the eight stack in one column; on a tablet
+the stack becomes a two-up spread, asked of the chapter's own width; on the
+desktop shell they are an album of three rows — three, three and two — the
+Turania montage as the anchor, with neighbours tucking a step under one
+another. They are not links, so they gain no hover state and no lightbox;
+their only movement is the settle as they enter, a rotation with no fade,
+static under reduced motion.
 
 The gallery sits after the prose, on the paper, with the page's gutter: the one
 landscape photograph at the shell's
@@ -211,11 +236,13 @@ place without repeating it, and the colophon states the edition only.
 ADR-0019 governs the walk: the Programma interlude and the staggered gallery.
 It supersedes ADR-0009 (the single strong surface), ADR-0012 (the gallery
 composition), ADR-0016 (the Programma's place inside the prose), ADR-0017 (the
-chapter heading) and ADR-0018 (the Mercatino's place) in part. ADR-0009 still
+chapter heading) and ADR-0018 (the Mercatino's place) in part. ADR-0020 governs
+the cartoline chapter between the Mercatino and the gallery and supersedes
+ADR-0012's no-frame, no-shadow rule for that chapter alone. ADR-0009 still
 governs the cover, the scrim, the date, the tear and the chapter measure;
-ADR-0012 still governs the photographs; ADR-0016, ADR-0017 and ADR-0018 still
-govern the plates, the paragraphs and the tracked links. ADR-0004 is superseded
-for all of them.
+ADR-0012 still governs every photograph except the cartoline; ADR-0016, ADR-0017
+and ADR-0018 still govern the plates, the paragraphs and the tracked links.
+ADR-0004 is superseded for all of them.
 
 ## Motion
 
@@ -236,7 +263,8 @@ the Cantina arch — a zoom, never a fade, inside the tear the frame cuts, so th
 edge never moves. The prose prints itself: the glass, the first
 paragraph, the second paragraph; then the Programma label, the plate
 and its bordeaux paragraph; then the Mercatino label, its stall and
-its paragraph; then the gallery, which recedes photo by photo,
+its paragraph; then the cartoline, which settle one by one in reading order;
+then the gallery, which recedes photo by photo,
 the lead landscape first and the three portraits left to right. The facts rise
 in sequence, DOVE then A CURA DI, without dissolving; the band is content, not a
 curtain. The action rules draw in order, and the profiles' two rules draw with
@@ -246,8 +274,9 @@ The hero — the signature, its lockup and subtitle on the grapes photograph, an
 the date — is complete on the first screen and never waits for the scroll.
 Scroll-driven reveals are only for the Cantina photograph, the
 prose and its glass, the Programma (its label, plate and paragraph), the
-Mercatino (its label, stall and paragraph), the gallery and the facts band; the
-hero's one scroll effect is the grapes' drift, which never hides or fades.
+Mercatino (its label, stall and paragraph), the cartoline, the gallery and the
+facts band; the hero's one scroll effect is the grapes' drift, which never hides
+or fades.
 
 The page's four tracked links all respond: they shift their ink and re-ink
 their rule from the left edge. The two typographic actions also lead their
@@ -287,7 +316,8 @@ The signature has no stroke, so the press edge is a `clip-path` on the filled
 path, not a stroke animation. The actions' rules are pseudo-lines rather than
 borders precisely so they can be ruled; the extra 1px of padding keeps their
 rendered boxes identical. ADR-0019 records the walk and its two strong surfaces;
-ADR-0015 records the earlier scroll story, the
+ADR-0020 records the cartoline settle, the one keyframe that rotation adds to
+the vocabulary; ADR-0015 records the earlier scroll story, the
 cover drift and its stagger ranges. The motion itself is cheap to reverse.
 
 ## Editor workflow (Comitato)
@@ -507,7 +537,12 @@ exactly one torn edge measured in
 `cqw` against the photograph band (`container-type: inline-size` on
 `.photo-band`), with no raster tear shipped. The gallery follows the prose with
 four described photographs, each a JPEG/WebP pair at its native width, lazy and
-asynchronous, with no caption, no tear and no preload. The
+asynchronous, with no caption, no tear and no preload. The cartoline sit between
+the Mercatino and the gallery: eight described JPEG/WebP pairs at 800 px, lazy
+and asynchronous, with no heading, no caption and no visible text of their own;
+the card is asserted to be the page's one shadow, to carry a frame and a tilt,
+and never to crop its photograph, and the chapter's settle is asserted to be a
+rotation in reading order. The
 Programma and the Mercatino are asserted as chapters after the prose, siblings
 of the prose chapter and before the gallery: the page's two `h2` labels set in
 the printed-label register, and each approved paragraph verbatim with no time
@@ -777,6 +812,39 @@ done
 Keep each file at its native size and RGB. If a source is replaced with a
 differently sized photograph, rename the derivative and update both the `<img>`
 intrinsic size and the test inventory.
+
+### The cartoline
+
+The eight cartoline d'epoca are page-only assets without a counterpart on the
+Locandina. Their sources live in `/Users/angelo/svino/images/postcards/` as the
+copies taken from the Comitato's WhatsApp group on 21 November 2026 — five from
+Riccardo and three from Giovanni — and they are the only copies, because
+WhatsApp expires media, and the originals are already recompressed by the
+messenger (1080–1600 px on the long side). Each ships as one
+800 px JPEG/WebP pair, which covers the largest card at 2×; the page never
+requests a wider copy. The files are named for the place printed inside the
+card — `turania` or `petescia`, the village's earlier name — and never by a
+date, because none of the eight is dated with certainty. Do not crop a card: the
+printed lettering sits at the photograph's edges, and the cream margin grows
+around the native format. Do not add a look filter: they are historical
+documents, and the palette does the unifying.
+
+```sh
+for name in cartolina-turania-montaggio cartolina-turania-piazza \
+            cartolina-turania-piazza-vasca cartolina-turania-cappella \
+            cartolina-petescia-montaggio cartolina-petescia-piazza \
+            cartolina-petescia-piazza-umberto cartolina-petescia-panorama; do
+  source="/Users/angelo/svino/images/postcards/$name.jpg"
+  magick "$source" -resize '800x>' -strip \
+    -sampling-factor 2x2,1x1,1x1 -quality 92 "assets/img/$name-800.jpg"
+  height=$(magick identify -format '%h' "assets/img/$name-800.jpg")
+  cwebp -q 82 -resize 800 "$height" "$source" -o "assets/img/$name-800.webp"
+done
+```
+
+The WebP is resized to the JPEG's exact height so the two candidates declare
+one intrinsic size; a one-pixel disagreement would shift the card's frame when
+a browser swaps sources.
 
 ### The square social preview
 
