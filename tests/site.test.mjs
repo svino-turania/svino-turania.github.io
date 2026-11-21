@@ -179,6 +179,7 @@ const POSTCARDS = Object.freeze([
 const SHIPPED_IMAGE_FILES = Object.freeze([
   'assets/download/locandina-svino-ii-edizione.jpg',
   'assets/icons/apple-touch-icon.png',
+  'assets/icons/favicon-256.png',
   'assets/icons/favicon.svg',
   'assets/img/cartolina-petescia-montaggio-800.jpg',
   'assets/img/cartolina-petescia-montaggio-800.webp',
@@ -1925,18 +1926,81 @@ test('la pagina fornisce anteprime Open Graph e Twitter con l’immagine quadrat
   assert.equal(metaContent(document, 'name', 'twitter:image'), image);
 });
 
-test('la pagina dichiara un’icona, un’icona touch e il colore del tema della palette', () => {
+test('la home page dichiara il nome del sito con WebSite structured data', () => {
+  const document = loadSite();
+  const canonical = document
+    .querySelector('link[rel="canonical"]')
+    .getAttribute('href');
+
+  const blocks = [...document.querySelectorAll('script[type="application/ld+json"]')];
+  assert.ok(blocks.length > 0, 'manca un blocco application/ld+json');
+
+  const schemas = blocks.map((block) => {
+    try {
+      return JSON.parse(block.textContent);
+    } catch (error) {
+      assert.fail(`il blocco JSON-LD non è JSON valido: ${error.message}`);
+    }
+  });
+  const website = schemas.find((schema) => schema['@type'] === 'WebSite');
+  assert.ok(website, 'manca il WebSite structured data: Google ripiega sull’host');
+
+  assert.equal(
+    website.name,
+    'sVino',
+    'il nome del sito non è quello che il Comitato usa',
+  );
+  assert.equal(
+    website.url,
+    canonical,
+    'l’URL del WebSite non è la home page canonica',
+  );
+  assert.equal(
+    website['@context'],
+    'https://schema.org',
+    'il WebSite structured data non usa il vocabolario schema.org',
+  );
+});
+
+test('la pagina dichiara un’icona in un formato che Google rende, un’icona touch e il colore del tema della palette', () => {
   const document = loadSite();
 
-  const icon = document.querySelector('link[rel="icon"]');
-  assert.ok(icon, 'manca il link rel="icon"');
+  // Google Search lists BMP, GIF, ICO, PNG, JPEG, PPM and TIFF as favicon
+  // formats; SVG is not among them, so the declared icon must be a raster.
+  const googleFaviconTypes = new Set([
+    'image/bmp',
+    'image/gif',
+    'image/vnd.microsoft.icon',
+    'image/x-icon',
+    'image/png',
+    'image/jpeg',
+    'image/pjpeg',
+    'image/x-portable-pixmap',
+    'image/tiff',
+  ]);
+  const icons = [...document.querySelectorAll('link[rel="icon"]')];
   assert.equal(
-    icon.getAttribute('type'),
-    'image/svg+xml',
-    'l’icona dichiarata non è un SVG',
+    icons.length,
+    1,
+    `la pagina dichiara ${icons.length} icone: Google ne usa una per host`,
+  );
+  const icon = icons[0];
+  assert.ok(
+    googleFaviconTypes.has((icon.getAttribute('type') ?? '').toLowerCase()),
+    `l’icona dichiarata non è in un formato che Google rende: ${icon.getAttribute('type')}`,
   );
   const iconUrl = sameOriginUrl(icon.getAttribute('href'));
-  assert.match(iconUrl.pathname, /\.svg$/i, 'l’icona non è un file SVG');
+  assert.match(iconUrl.pathname, /\.png$/i, 'l’icona dichiarata non è un PNG');
+  assert.equal(
+    icon.getAttribute('sizes'),
+    '256x256',
+    'l’icona dichiarata non dichiara la sua dimensione',
+  );
+
+  const iconBytes = readFileSync(siteFileFor(icon.getAttribute('href')).file);
+  const frame = pngFrame(iconBytes);
+  assert.equal(frame.width, 256, 'l’icona dichiarata non è larga 256 px');
+  assert.equal(frame.height, 256, 'l’icona dichiarata non è alta 256 px');
 
   const touch = document.querySelector('link[rel="apple-touch-icon"]');
   assert.ok(touch, 'manca il link rel="apple-touch-icon"');
@@ -1952,7 +2016,7 @@ test('la pagina dichiara un’icona, un’icona touch e il colore del tema della
   );
 });
 
-test('le due icone esistono nel sito e sono l’unico patrimonio iconografico', () => {
+test('le icone esistono nel sito e sono l’unico patrimonio iconografico', () => {
   const document = loadSite();
 
   for (const rel of ['icon', 'apple-touch-icon']) {
@@ -1966,15 +2030,20 @@ test('le due icone esistono nel sito e sono l’unico patrimonio iconografico', 
     .sort();
   assert.deepEqual(
     icons,
-    ['assets/icons/apple-touch-icon.png', 'assets/icons/favicon.svg'],
+    [
+      'assets/icons/apple-touch-icon.png',
+      'assets/icons/favicon-256.png',
+      'assets/icons/favicon.svg',
+    ],
     `il sito distribuisce altri file di identità: ${icons.join(', ')}`,
   );
 });
 
 test('l’icona vettoriale è la firma in bordeaux su un disco di crema chiara', () => {
   const document = loadSite();
-  const href = document.querySelector('link[rel="icon"]').getAttribute('href');
-  const { file } = siteFileFor(href);
+  // The SVG is the master both rasters are rendered from; it is not the
+  // declared icon, because Google Search does not render SVG favicons.
+  const { file } = siteFileFor('/assets/icons/favicon.svg');
   const svg = readFileSync(file, 'utf8');
 
   const viewBox = svg.match(/<svg\b[^>]*\bviewBox="([^"]+)"/);
@@ -3216,18 +3285,30 @@ test('la mappa e la Locandina sono azioni tipografiche con riga e freccia, non b
 });
 
 /*
+ * Scripts the browser executes. A JSON-LD block is structured data, not code:
+ * it has no src and the browser never runs it, so it is outside this count.
+ */
+function executableScripts(document) {
+  return [
+    ...document.querySelectorAll(
+      'script:not([type="application/ld+json"])',
+    ),
+  ];
+}
+
+/*
  * First of the three narrow guards. It states the script allowance on its own
  * so that the blanket third-party assertion can be removed without silently
- * dropping the guarantee: exactly one script, the counter's, with no inline
- * handler and no shipped .js.
+ * dropping the guarantee: exactly one executable script, the counter's, with
+ * no inline handler and no shipped .js.
  */
-test('la pagina carica un solo script, il contatore, e nessun gestore inline o file .js', () => {
+test('la pagina carica un solo script eseguibile, il contatore, e nessun gestore inline o file .js', () => {
   const document = loadSite();
-  const scripts = [...document.querySelectorAll('script')];
+  const scripts = executableScripts(document);
   assert.equal(
     scripts.length,
     1,
-    'la pagina contiene più di uno script, o nessuno',
+    'la pagina contiene più di uno script eseguibile, o nessuno',
   );
 
   const script = scripts[0];
@@ -3356,8 +3437,8 @@ test('nessun host di tracciamento, pubblicità o registrazione sessione compare 
 test('c’è un solo contatore: uno script esterno e un pixel di riserva senza JavaScript', () => {
   const document = loadSite();
 
-  const scripts = [...document.querySelectorAll('script')];
-  assert.equal(scripts.length, 1, 'la pagina non ha un solo script');
+  const scripts = executableScripts(document);
+  assert.equal(scripts.length, 1, 'la pagina non ha un solo script eseguibile');
   const script = scripts[0];
   const rawSrc = script.getAttribute('src') ?? '';
   assert.ok(rawSrc, 'lo script del contatore non ha src');
