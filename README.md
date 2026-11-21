@@ -359,6 +359,13 @@ Open Graph and Twitter tags and the `og:image:alt` value repeat the edition,
 the date and the place: update them in the same change so the page and its
 social preview agree.
 
+`<head>` also carries a `WebSite` JSON-LD block naming the site `sVino`, with
+`sVino Turania` as the alternate name. That block is what Google reads for the
+site name beside a result. Without it, a subdomain on `github.io` falls back to
+the domain's name and Google writes "GitHub". The block is data, not code: the
+suite allows it alongside the one executable script, and its `url` must stay
+the canonical home page.
+
 The body text states each fact once. If the place changes, update `DOVE`, the
 metadata and the query in the map link's `href` (Google Maps), which must keep
 matching the place (`Turania%20(RI)` today); do not repeat the place in the link
@@ -874,15 +881,24 @@ the master it derives from.
 
 ### Icons for the tab and home screen
 
-`assets/icons/favicon.svg` and `assets/icons/apple-touch-icon.png` are both
-derived from the signature outline already inlined in `index.html`. They are not
-new artwork. The tab icon inverts the page's pairing: a cream-light `#f2e8d5`
-disc with the signature in bordeaux `#5c1a24`, and a bordeaux ring 0.12 units
-thick drawn inside the disc so the cream does not dissolve into a white or
-light tab bar. The inversion is deliberate and site-only — the print master
-sets the signature cream on bordeaux, and the icon is not a copy of that
-pairing. Do not "correct" it back to match the signature. The page declares the
-icons, and keeps `theme-color` bordeaux, in its `<head>`.
+`assets/icons/favicon.svg`, `assets/icons/favicon-256.png` and
+`assets/icons/apple-touch-icon.png` are all derived from the signature outline
+already inlined in `index.html`. They are not new artwork. The tab icon
+inverts the page's pairing: a cream-light `#f2e8d5` disc with the signature in
+bordeaux `#5c1a24`, and a bordeaux ring 0.12 units thick drawn inside the disc
+so the cream does not dissolve into a white or light tab bar. The inversion is
+deliberate and site-only — the print master sets the signature cream on
+bordeaux, and the icon is not a copy of that pairing. Do not "correct" it back
+to match the signature. The page declares the icons, and keeps `theme-color`
+bordeaux, in its `<head>`.
+
+The page declares `favicon-256.png`, not `favicon.svg`. Google Search lists
+BMP, GIF, ICO, PNG, JPEG, PPM and TIFF as favicon formats and does not render
+SVG, so an SVG-only declaration leaves the result without an icon. The SVG
+stays the vector master both rasters are rendered from; the 256 px PNG is the
+one Googlebot-Image fetches. Keep exactly one `rel="icon"` link: Google uses
+one favicon per hostname, and a second candidate it cannot render is a way to
+lose the icon again.
 
 The page SVG's viewBox keeps room below the outline for the `II EDIZIONE`
 lockup. The icon crops to the outline's own bounds instead —
@@ -895,12 +911,13 @@ which leaves about 9 % of the radius between the signature's ends and the ring.
 The touch icon is not the tab icon at another size. iOS masks it itself and
 composites transparent pixels onto black, so it must be a full cream square —
 no transparent corners, no ring. It is rendered from `favicon.svg` through
-`scripts/render-touch-icon.mjs`, which swaps the disc for a full-square
-`<rect>`, drops the ring and hands the result to `rsvg-convert`; never render
-it from a copy:
+`scripts/render-icons.mjs`, which swaps the disc for a full-square `<rect>`,
+drops the ring and hands the result to `rsvg-convert`; never render it from a
+copy. The same script renders the declared 256 px favicon from the SVG
+unchanged:
 
 ```sh
-node scripts/render-touch-icon.mjs
+node scripts/render-icons.mjs
 ```
 
 Regenerate both if the signature outline changes:
@@ -915,18 +932,18 @@ Regenerate both if the signature outline changes:
    in `#5c1a24` scaled 0.86 about the centre, and the ring — a stroked
    `<circle>` in `#5c1a24`, 0.12 units wide, its outer edge meeting the disc's.
    No `<text>` lockup.
-4. Render the touch icon from that vector, never from a copy:
+4. Render both rasters from that vector, never from a copy:
 
    ```sh
-   node scripts/render-touch-icon.mjs
+   node scripts/render-icons.mjs
    ```
 
 Keep `theme-color` equal to the stylesheet's `--bordeaux` token: the icon is the
 mark, the browser chrome is the frame, and cream chrome on a cream page would
-flatten both. The test suite checks the declarations, the two files, the disc's
-shape and centring, the ring, the mark's colour, and the touch icon's
-180 × 180 size, RGB colour model and cream corner, so a regeneration that misses
-a step fails before publishing.
+flatten both. The test suite checks the declarations, the three files, the
+disc's shape and centring, the ring, the mark's colour, the declared icon's
+256 × 256 PNG frame, and the touch icon's 180 × 180 size, RGB colour model and
+cream corner, so a regeneration that misses a step fails before publishing.
 
 The print workspace is separate and must not be modified from this repository.
 Do not commit print sources, print build scripts or generated print artefacts
