@@ -54,22 +54,25 @@ Check the page before merging, in the browser's responsive mode:
   with the tasting glass on the right, behind the paragraph's last words and
   dropped one step, the Programma with its 14 rem plate on the same side and at
   the same height, the Mercatino with its 12 rem stall on the same side, the
-  eight cartoline stacked at the page's measure, each on its own tilt, the
-  facts paired, the two actions stacked and the two
+  eight cartoline in one column, each narrower than the measure by its own
+  pair of insets, led by its own gap and on its own tilt, the facts paired,
+  the two actions stacked and the two
   profile icons in a row; no horizontal scrolling, and the signature and the
   date fit the first screen.
 - 768 px: the same composition, with the shell's gutter at its widest; all
   three drawings keep their height and their side, and the cartoline become a
-  two-up spread — four rows, the right-hand card dropped a step — so their
-  printed lettering stays legible.
+  two-up spread — four rows of two, each card dropped and nudged by its own
+  step — so their printed lettering stays legible and the spread is laid out,
+  not ruled.
 - 1024, 1440×900 and 1920 px: the one desktop composition — the wide cover
   crop, the date on one line, the Cantina photograph full-bleed with its height
   cap, the chapters opening on their 64 rem measure with 34 rem of prose on the
   left and the drawing on the right (28.75 rem of glass, 34 rem of plate, the
   same height, and the Mercatino's 22 rem stall beside its paragraph's ends),
-  the cartoline as an album of three rows — three, three and two — with the
-  Turania montage as the anchor, and the closing band split facts left, actions
-  right. The
+  the cartoline as a scatter of cards laid on the paper in three rows — three,
+  three and two — the Turania montage as the anchor, every card with its own
+  width and its own drop, neighbours tucking a shallow paper edge under one
+  another, and the closing band split facts left, actions right. The
   signature and the date still fit the first screen.
 
 Repeat at 200% text zoom: the date, the place and the organiser must stay
@@ -99,13 +102,16 @@ for screen readers. Each card is cream paper with a hairline and a small ink
 shadow, its photograph matted uncropped at its native aspect, and the cards
 carry a ±1.5° tilt: they are the page's one framed, shadowed object, an
 exception ADR-0020 grants this chapter alone; every other photograph keeps
-ADR-0012's no-frame rule. On a phone the eight stack in one column; on a tablet
-the stack becomes a two-up spread, asked of the chapter's own width; on the
-desktop shell they are an album of three rows — three, three and two — the
-Turania montage as the anchor, with neighbours tucking a step under one
-another. They are not links, so they gain no hover state and no lightbox;
-their only movement is the settle as they enter, a rotation with no fade,
-static under reduced motion.
+ADR-0012's no-frame rule. On a phone the eight are one column, each card inset
+from the measure by its own pair of amounts and spaced by its own lead; on a
+tablet the column becomes a two-up spread, asked of the chapter's own width,
+each card dropped and nudged by its own step; on the desktop shell they are
+cards laid on the paper in three rows — three, three and two — the Turania
+montage as the anchor, every card with its own width and its own drop,
+neighbours tucking a shallow paper edge under one another so the chapter reads
+as a handful of cards on a table rather than a grid. They are not links, so
+they gain no hover state and no lightbox; their only movement is the settle as
+they enter, a rotation with no fade, static under reduced motion.
 
 The gallery sits after the prose, on the paper, with the page's gutter: the one
 landscape photograph at the shell's

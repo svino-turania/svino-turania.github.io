@@ -4354,7 +4354,7 @@ test('le cartoline d’epoca stanno fra il Mercatino e la galleria, senza didasc
     'la cartolina promette un’interazione che non ha',
   );
 
-  // On a phone the sheet is one column; the album is the desktop composition.
+  // On a phone the sheet is one column; the scatter is the desktop composition.
   const layout = layerBlock(css, 'layout');
   const sheetRule =
     layout.match(/\.cartoline__sheet\s*\{([^}]*)\}/s)?.[1] ?? '';
@@ -4362,6 +4362,13 @@ test('le cartoline d’epoca stanno fra il Mercatino e la galleria, senza didasc
     sheetRule,
     /grid-template-columns:\s*minmax\(0,\s*1fr\)/,
     'sul telefono le cartoline non stanno in colonna',
+  );
+  // The column is spaced by the cards, not by one gap between all of them:
+  // each card's lead is its own, so the sheet carries no row gap.
+  assert.match(
+    sheetRule,
+    /gap:\s*0/,
+    'la colonna del telefono torna a un passo unico tra le cartoline',
   );
   const desktop = desktopComposition(css);
   assert.match(
@@ -4373,12 +4380,46 @@ test('le cartoline d’epoca stanno fra il Mercatino e la galleria, senza didasc
     assert.match(
       desktop,
       new RegExp(
-        `\\.cartoline__sheet\\s*>\\s*\\.cartolina:nth-child\\(${index}\\)\\s*\\{[^}]*grid-row:\\s*[123]`,
+        `\\.cartoline__sheet\\s*>\\s*\\.cartolina:nth-child\\(${index}\\)\\s*\\{[^}]*grid-column:\\s*\\d+\\s*\\/\\s*(?:-1|span\\s+\\d+)[^}]*grid-row:\\s*[123]`,
         's',
       ),
       `la cartolina ${index} non ha un posto nel foglio desktop`,
     );
   }
+
+  // The scatter is cards laid on the paper, not a grid: the eight do not share
+  // one width. Three distinct spans are enough to prove the sizes vary; what
+  // matters is that no row is a set of equal columns.
+  const spans = new Set(
+    [...desktop.matchAll(
+      /\.cartoline__sheet\s*>\s*\.cartolina:nth-child\(\d+\)\s*\{[^}]*grid-column:\s*\d+\s*\/\s*(?:-1|span\s+(\d+))/gs,
+    )].map((match) => match[1] ?? 'rest'),
+  );
+  assert.ok(
+    spans.size >= 3,
+    'le cartoline del foglio desktop hanno tutte la stessa larghezza',
+  );
+
+  // The phone column and the two-up spread are laid out the same way: every
+  // card carries its own offsets. They live in the components layer beside the
+  // card, because the card's own margin reset is declared there and would win
+  // the cascade from a layout-layer offset.
+  const components = layerBlock(css, 'components');
+  assert.match(
+    components,
+    /\.cartoline__sheet\s*>\s*\.cartolina\s*\{[^}]*margin-block-start:\s*var\(--card-lead\)[^}]*margin-inline-start:\s*var\(--card-start\)[^}]*margin-inline-end:\s*var\(--card-end\)/s,
+    'la colonna del telefono non legge il passo e gli scarti di ogni cartolina',
+  );
+  assert.match(
+    components,
+    /@container\s*\(min-width:\s*44rem\)\s*\{[^}]*\.cartoline__sheet\s*>\s*\.cartolina\s*\{[^}]*margin-block-start:\s*var\(--card-drop\)/s,
+    'la disposizione del tablet non legge la caduta di ogni cartolina',
+  );
+  assert.match(
+    components,
+    /@container\s*\(min-width:\s*44rem\)\s*\{[^}]*\.cartoline__sheet\s*>\s*\.cartolina\s*\{[^}]*margin-inline-start:\s*var\(--card-nudge\)/s,
+    'la disposizione del tablet non legge lo scarto di ogni cartolina',
+  );
 });
 
 test('il Programma è la seconda superficie forte e la galleria sfalsa il centro solo sul desktop', () => {

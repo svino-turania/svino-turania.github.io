@@ -61,22 +61,29 @@ Mercatino and the gallery.**
 - **The photograph is never cropped.** The card's margin grows around the
   native aspect, so the printed captions at the edges survive and the card
   heights vary as real postcards do. No `object-fit`, no common ratio.
-- **On a phone the cards stack; a tablet is a two-up spread; the desktop shell
-  is an album.** The base composition is one column at the chapter measure,
-  each card on its own small tilt. When the chapter's own width can hold two
-  cards — a container query at 44 rem, as the gallery asks its own width — the
-  stack becomes four rows of two, the right-hand card dropped a step. At 64 rem
-  the sheet is a 16-column measure with the cards in three rows — three, three
-  and two: the anchor spans six columns, the neighbours five or six, and each
-  tucks a spacing step or two under the one before, with vertical offsets that
-  make the rows enter at different heights. The tuck is shallow so
-  no printed caption is covered. No viewport threshold is added.
+- **On a phone the cards are one column set by hand; a tablet is a two-up
+  spread; the desktop shell is a scatter of cards laid on the table.** The base
+  composition is one column at the chapter measure. Each card is narrower than
+  the measure by its own pair of insets and sits under the card before it by
+  its own lead, so no two cards share a left edge, a right edge or a gap; the
+  insets are percentages of the column, so the scatter keeps its proportions
+  from the narrowest phone to the spread's threshold, and each card keeps its
+  own small tilt. When the chapter's own width can hold two cards — a container
+  query at 44 rem, as the gallery asks its own width — the column becomes four
+  rows of two, and each card is dropped and nudged by its own step, so the
+  columns keep their measure but not their baseline. At 64 rem the sheet is a
+  16-column measure with the cards in three rows — three, three and two —
+  every card with its own width (four to seven columns) and its own drop: the
+  rows enter at different heights, the second row begins before the first has
+  ended, and neighbours tuck only a shallow paper edge under one another. The
+  tuck never covers a printed caption or a photograph's subject, and every card
+  stays whole. No viewport threshold is added.
 - **The cards settle; they do not perform.** One new keyframe, `card-settle`:
   each card arrives turned two degrees past its resting tilt and a hair low,
   then comes to rest, on a `view()` range that starts later for each card in
   reading order. Rotation and translation only — no opacity, so a card is never
   a blank space. The animation lives under `prefers-reduced-motion:
-  no-preference`; under `reduce` the album is already laid out.
+  no-preference`; under `reduce` the cards are already laid out.
 - **The cards are not controls.** No hover lift, no tilt-follow, no lightbox,
   no link: a pointer affordance would promise an interaction the page does not
   have (ADR-0019).
@@ -102,11 +109,16 @@ Mercatino and the gallery.**
   per card, all lazy and below the fold. The source is 1600 px at its widest, so
   800 px is the largest copy shipped; a 3× phone upscales slightly, which is
   recorded here and not hidden.
-- **The tablet is a two-up spread, not the album.** At 768 px the chapter's own
-  width holds two cards, so the stack becomes four rows of two with the
-  right-hand card dropped a step. The full 16-column album below 64 rem would
-  shrink the printed lettering below legibility; the two-up spread asks the
-  chapter's own width instead of adding a viewport threshold.
+- **The phone's cards are narrower than the measure.** The scatter insets a
+  card by up to 16 % of the column, so the smallest card on a 320 px phone is
+  about 238 px wide instead of 280. The lettering printed inside the cards was
+  already marginal at this size; the scatter trades a little of it for the
+  chapter's composition, and each `alt` sentence carries the words.
+- **The tablet is a two-up spread, not the 16-column sheet.** At 768 px the
+  chapter's own width holds two cards, so the stack becomes four rows of two,
+  each card dropped and nudged by its own step. The full 16-column sheet below
+  64 rem would shrink the printed lettering below legibility; the two-up spread
+  asks the chapter's own width instead of adding a viewport threshold.
 - **The walk changes shape.** The page now reads: cover, date, cellar
   photograph, prose, Programma (bordeaux), Mercatino, the old village, today's
   cellars, the closing band. The gallery is no longer the last photographs
@@ -137,7 +149,7 @@ Mercatino and the gallery.**
 - **A heading and per-card captions.** Rejected: visible copy belongs to the
   Comitato; the printed lettering already captions the cards.
 - **A fan or a single row of eight.** Rejected: it hides seven cards behind the
-  first at this count and loses the album.
+  first at this count and loses the scattered sheet.
 - **A horizontal scroll or a lightbox.** Rejected: the page never asks the
   reader to drag, and a lightbox needs a script and a new UI.
 - **A hover lift or tilt-follow.** Rejected: the cards are not links; a pointer
@@ -146,6 +158,6 @@ Mercatino and the gallery.**
   the event's subject, and the old village is a prelude to them.
 - **A two-width `srcset` ladder.** Rejected: eight cards at one size do not
   justify two copies each, and the source tops out at 1600 px.
-- **The full album on a tablet.** Rejected: the printed lettering shrinks below
-  legibility; a two-up spread, asked of the chapter's own width, keeps the
-  letters readable without a second viewport threshold.
+- **The full 16-column sheet on a tablet.** Rejected: the printed lettering
+  shrinks below legibility; a two-up spread, asked of the chapter's own width,
+  keeps the letters readable without a second viewport threshold.

@@ -560,27 +560,34 @@
   /*
    * The cartoline are a chapter of the walk: they keep the print measure and
    * the chapter's gutters. On a phone the sheet is one column of cards, each
-   * on its own tilt; the album's two rows are the desktop composition, in the
-   * components layer, so the page keeps its single 64 rem threshold.
+   * on its own tilt; the desktop scatter is the composition at 64 rem, in the
+   * components layer, so the page keeps its single viewport threshold.
    */
   .cartoline {
     padding-inline: var(--chapter-pad);
     padding-block: 0 var(--space-7);
   }
 
+  /*
+   * The sheet's own gap is zero: on the phone each card carries its own lead
+   * between itself and the card before, so the single column is spaced by the
+   * cards and not by a rhythm. The two-up spread sets its gap again.
+   */
   .cartoline__sheet {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-items: start;
-    gap: var(--space-6);
+    gap: 0;
   }
 
   /*
    * When the chapter's own measure can hold two cards, the stack becomes a
-   * two-up spread — four rows of two, the right-hand card dropped a step. It
-   * is asked of the section's width, as the gallery asks its own, so the page
-   * keeps its single viewport threshold. The desktop album, in the components
-   * layer, overrides it at 64 rem.
+   * two-up spread — four rows of two. It is asked of the section's width, as
+   * the gallery asks its own, so the page keeps its single viewport threshold.
+   * The columns are the sheet's; each card's lead, inset and drop are its own,
+   * and live in the components layer beside the card, because the card's own
+   * `margin` reset is declared there. The desktop scatter overrides them at
+   * 64 rem.
    */
   .cartoline {
     container-type: inline-size;
@@ -590,10 +597,6 @@
     .cartoline__sheet {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--space-6) var(--space-5);
-    }
-
-    .cartoline__sheet > .cartolina:nth-child(even) {
-      margin-block-start: var(--space-6);
     }
   }
 
@@ -1265,6 +1268,11 @@
    */
   .cartolina {
     --card-tilt: -1deg;
+    --card-lead: 0rem;
+    --card-start: 0%;
+    --card-end: 0%;
+    --card-drop: 0rem;
+    --card-nudge: 0rem;
     margin: 0;
     padding: var(--space-2) var(--space-2) var(--space-3);
     background: var(--card-paper);
@@ -1273,32 +1281,103 @@
     transform: rotate(var(--card-tilt));
   }
 
+  /*
+   * Each card's place, written on the card. Two sets of amounts: the lead and
+   * the two insets set the single column on a phone, the drop and the nudge
+   * set the two-up spread. The desktop composition below gives every card its
+   * own place on the sheet instead.
+   */
+  .cartolina:nth-child(1) {
+    --card-tilt: -1deg;
+    --card-end: 8%;
+  }
+
   .cartolina:nth-child(2) {
     --card-tilt: 0.8deg;
+    --card-lead: 1.25rem;
+    --card-start: 10%;
+    --card-end: 0%;
+    --card-drop: var(--space-6);
+    --card-nudge: calc(-1 * var(--space-3));
   }
 
   .cartolina:nth-child(3) {
     --card-tilt: -0.6deg;
+    --card-lead: 2.5rem;
+    --card-start: 2%;
+    --card-end: 12%;
+    --card-drop: var(--space-3);
   }
 
   .cartolina:nth-child(4) {
     --card-tilt: 1deg;
+    --card-lead: 1rem;
+    --card-start: 14%;
+    --card-end: 2%;
+    --card-drop: var(--space-8);
+    --card-nudge: calc(-1 * var(--space-1));
   }
 
   .cartolina:nth-child(5) {
     --card-tilt: -0.8deg;
+    --card-lead: 3rem;
+    --card-start: 0%;
+    --card-end: 10%;
+    --card-drop: var(--space-5);
   }
 
   .cartolina:nth-child(6) {
     --card-tilt: 0.7deg;
+    --card-lead: 1.5rem;
+    --card-start: 8%;
+    --card-end: 8%;
+    --card-drop: var(--space-7);
+    --card-nudge: calc(-1 * var(--space-3));
   }
 
   .cartolina:nth-child(7) {
     --card-tilt: -1deg;
+    --card-lead: 2.25rem;
+    --card-start: 4%;
+    --card-end: 0%;
+    --card-drop: var(--space-2);
   }
 
   .cartolina:nth-child(8) {
     --card-tilt: 0.9deg;
+    --card-lead: 1.5rem;
+    --card-start: 10%;
+    --card-end: 4%;
+    --card-drop: var(--space-6);
+    --card-nudge: calc(-1 * var(--space-2));
+  }
+
+  /*
+   * The phone column: each card takes its own lead from the card before and
+   * its own pair of insets from the column's edges, so the single file is set
+   * by hand — no two cards share a left edge, a right edge or a gap. The insets
+   * are percentages of the column, so the scatter keeps its proportions from
+   * the narrowest phone up to the spread's threshold. The offset rule lives
+   * here, beside the card, because the card's own `margin` reset is declared in
+   * this layer.
+   */
+  .cartoline__sheet > .cartolina {
+    margin-block-start: var(--card-lead);
+    margin-inline-start: var(--card-start);
+    margin-inline-end: var(--card-end);
+  }
+
+  /*
+   * The two-up spread reads each card's drop and nudge instead. It sits after
+   * the phone column's rule, so its offsets win; the 64 rem composition below
+   * resets the offsets and gives every card its own place.
+   */
+  @container (min-width: 44rem) {
+    .cartoline__sheet > .cartolina {
+      margin-block-start: var(--card-drop);
+      margin-inline-start: var(--card-nudge);
+      margin-inline-end: 0;
+    }
   }
 
   .cartolina picture {
@@ -1459,12 +1538,15 @@
     }
 
     /*
-     * The cartoline are a handful, not a grid: three rows of three, three and
-     * two, the Turania montage the anchor at three-eighths of the measure. A
-     * card tucks a step or two under its neighbour and each row enters at a
-     * different height, so the composition reads as cards laid on the paper.
-     * The tuck stays shallow — it never covers a printed caption or a
-     * photograph's subject. The sheet is the 16-column measure so the spans
+     * The cartoline are a handful of cards laid on the paper, not a grid.
+     * The eight keep three rows in reading order — three, three and two — but
+     * each card has its own width, its own drop and, where it tucks, its own
+     * shallow overlap, so no two cards share a top edge or a column line. The
+     * Turania montage opens the sheet; the second row starts high on the left
+     * and runs past the first row's foot; the last two lie lower, one small
+     * and one broad. The tuck stays shallow and on the paper margin — it never
+     * covers a printed caption or a photograph's subject, and every card keeps
+     * its photograph whole. The sheet is the 16-column measure so the spans
      * fall on the same rhythm as the rest of the walk. The reset releases the
      * two-up spread's offsets.
      */
@@ -1479,6 +1561,7 @@
     .cartoline__sheet > .cartolina {
       margin-block-start: 0;
       margin-inline-start: 0;
+      margin-inline-end: 0;
     }
 
     .cartoline__sheet > .cartolina:nth-child(1) {
@@ -1491,52 +1574,54 @@
       grid-column: 7 / span 5;
       grid-row: 1;
       margin-block-start: var(--space-6);
-      margin-inline-start: calc(-1 * var(--space-4));
+      margin-inline-start: calc(-1 * var(--space-2));
       --card-tilt: 1.2deg;
     }
 
     .cartoline__sheet > .cartolina:nth-child(3) {
-      grid-column: 12 / -1;
+      grid-column: 13 / -1;
       grid-row: 1;
-      margin-block-start: var(--space-7);
-      margin-inline-start: calc(-1 * var(--space-2));
-      --card-tilt: -0.8deg;
+      margin-block-start: var(--space-4);
+      margin-inline-start: calc(-1 * var(--space-4));
+      --card-tilt: -0.7deg;
     }
 
     .cartoline__sheet > .cartolina:nth-child(4) {
-      grid-column: 1 / span 5;
+      grid-column: 2 / span 4;
       grid-row: 2;
-      --card-tilt: 1.5deg;
+      margin-block-start: calc(-1 * var(--space-7));
+      --card-tilt: 1.4deg;
     }
 
     .cartoline__sheet > .cartolina:nth-child(5) {
-      grid-column: 6 / span 5;
+      grid-column: 6 / span 6;
       grid-row: 2;
-      margin-block-start: var(--space-4);
+      margin-block-start: calc(-1 * var(--space-1));
       margin-inline-start: calc(-1 * var(--space-4));
-      --card-tilt: -1.2deg;
+      --card-tilt: -1.1deg;
     }
 
     .cartoline__sheet > .cartolina:nth-child(6) {
-      grid-column: 11 / -1;
+      grid-column: 11 / span 5;
       grid-row: 2;
-      margin-block-start: var(--space-6);
-      margin-inline-start: calc(-1 * var(--space-2));
+      margin-block-start: calc(-1 * var(--space-6));
+      margin-inline-start: var(--space-6);
       --card-tilt: 0.9deg;
     }
 
     .cartoline__sheet > .cartolina:nth-child(7) {
-      grid-column: 3 / span 5;
+      grid-column: 2 / span 5;
       grid-row: 3;
-      margin-block-start: var(--space-4);
-      --card-tilt: -1.1deg;
+      margin-block-start: calc(-1 * var(--space-5));
+      margin-inline-start: calc(-1 * var(--space-2));
+      --card-tilt: -1.3deg;
     }
 
     .cartoline__sheet > .cartolina:nth-child(8) {
-      grid-column: 8 / span 6;
+      grid-column: 9 / span 7;
       grid-row: 3;
-      margin-block-start: var(--space-6);
-      margin-inline-start: calc(-1 * var(--space-3));
+      margin-block-start: calc(-1 * var(--space-3));
+      margin-inline-start: calc(-1 * var(--space-4));
       --card-tilt: 1.3deg;
     }
 
@@ -1819,7 +1904,7 @@
        * degrees past its resting tilt, a hair low, and comes to rest. It is
        * the card being laid on the table — a rotation, never a fade — so the
        * photograph is legible from its first frame. Under reduced motion the
-       * album is already laid out.
+       * cards are already laid out.
        */
       .cartoline__sheet > .cartolina:nth-child(1) {
         animation: card-settle linear var(--motion-scroll) both;
