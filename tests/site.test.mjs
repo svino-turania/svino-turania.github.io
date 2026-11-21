@@ -1962,6 +1962,65 @@ test('la home page dichiara il nome del sito con WebSite structured data', () =>
   );
 });
 
+test('la home page annuncia l’evento con Event structured data', () => {
+  const document = loadSite();
+  const canonical = document
+    .querySelector('link[rel="canonical"]')
+    .getAttribute('href');
+
+  const blocks = [...document.querySelectorAll('script[type="application/ld+json"]')];
+  const schemas = blocks.map((block) => JSON.parse(block.textContent));
+  const event = schemas.find((schema) => schema['@type'] === 'Event');
+  assert.ok(
+    event,
+    'manca l’Event structured data: Google non sa che la pagina annuncia un evento',
+  );
+
+  assert.equal(event['@context'], 'https://schema.org');
+  assert.equal(event.name, 'sVino — II EDIZIONE');
+  assert.equal(
+    event.startDate,
+    '2026-12-06T12:00:00+01:00',
+    'la data dell’Event non concorda con il <time> della pagina',
+  );
+  assert.equal(event.url, canonical);
+  assert.equal(event.eventStatus, 'https://schema.org/EventScheduled');
+  assert.equal(
+    event.eventAttendanceMode,
+    'https://schema.org/OfflineEventAttendanceMode',
+  );
+
+  assert.equal(event.location['@type'], 'Place');
+  assert.equal(event.location.name, 'Piazza Umberto I');
+  assert.equal(event.location.address['@type'], 'PostalAddress');
+  assert.equal(event.location.address.streetAddress, 'Piazza Umberto I');
+  assert.equal(event.location.address.addressLocality, 'Turania');
+  assert.equal(event.location.address.addressRegion, 'RI');
+  assert.equal(event.location.address.postalCode, '02020');
+  assert.equal(event.location.address.addressCountry, 'IT');
+
+  assert.equal(event.organizer.name, 'Comitato Feste Turania');
+  assert.equal(event.performer.name, 'I Menestrelli del Cicolano');
+
+  assert.equal(
+    event.offers,
+    undefined,
+    'l’Event dichiara un prezzo che il Comitato non ha deciso',
+  );
+  assert.equal(
+    event.endDate,
+    undefined,
+    'l’Event pubblica un orario di fine che la pagina non pubblica',
+  );
+
+  const imageUrl = new URL(event.image);
+  assert.equal(imageUrl.origin, SITE_ORIGIN);
+  assert.ok(
+    existsSync(join(SITE, decodeURIComponent(imageUrl.pathname))),
+    `l’immagine dell’Event non esiste nel sito: ${imageUrl.pathname}`,
+  );
+});
+
 test('la pagina dichiara un’icona in un formato che Google rende, un’icona touch e il colore del tema della palette', () => {
   const document = loadSite();
 

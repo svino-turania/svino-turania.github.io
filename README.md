@@ -398,6 +398,44 @@ To propose a change:
 If a change needs a new layout or a new asset, open an issue for the
 maintainer instead of editing it alone.
 
+## Search visibility
+
+The page is written for the searches a small local event can actually win:
+the brand query `svino turania` and local-intent queries such as `festa del
+vino Turania` or `eventi Turania`. It is not written for broad regional
+queries (`eventi Lazio dicembre`): a new, one-page site cannot win those in the
+event's lifetime, and the national *Cantine Aperte a Natale* campaign falls on
+the same Sunday. Local aggregators carry those searches; the page carries the
+local ones.
+
+What `<head>` declares, and what the tests pin:
+
+- the title and description name `sVino`, `II EDIZIONE`, `6 dicembre 2026`,
+  `Turania (RI)`, and add the category words `festa del vino` and the province;
+- the `WebSite` JSON-LD names the site `sVino`, alternate name `sVino Turania`;
+- the `Event` JSON-LD announces the event with `name`, `startDate`
+  (`2026-12-06T12:00:00+01:00`), `location`, `organizer`, `performer`, `image`,
+  `eventStatus`, offline attendance, `url` and `inLanguage`;
+- `sitemap.xml` carries a `lastmod`.
+
+The `Event` location is Piazza Umberto I, Turania, RI, 02020, IT: the declared
+starting point, because the cantine open across the borgo and schema.org's
+Event expects one location. It is structured data, not page prose — do not add
+the piazza to the visible body. The block deliberately has no `endDate` and no
+`offers`: the page does not publish the end time and the Comitato has not
+decided a price or entry policy. Do not add them to make the rich result
+richer.
+
+`docs/seo-submissions.md` holds the off-site packet — blurb, image, URL and
+where to send them. Being listed on the local aggregators matters more than
+any further change to the page. After a deploy, submit `sitemap.xml` in Search
+Console and request indexing of `/`.
+
+Do not add visible SEO copy, a second page or hidden keyword text: the page's
+visible content is a designed cover, and the design is the product. Do not
+change the canonical URL or add a custom domain for this edition (ADR-0001);
+revisit it with the III Edizione.
+
 ## The Programma
 
 The Programma is a chapter of `index.html` — not a new page or route — so the
