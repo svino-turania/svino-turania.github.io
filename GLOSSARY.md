@@ -1,6 +1,6 @@
 # Glossary
 
-The nine terms sVino uses, with the meaning the organisation gives them. Use
+The ten terms sVino uses, with the meaning the organisation gives them. Use
 this vocabulary and these spellings in code, tests, issues and documents; do
 not drift to synonyms.
 
@@ -84,4 +84,12 @@ print PDF; the two must never disagree.
 The town where the event takes place, written exactly `Turania (RI)`. Use the
 full form wherever the place is a printed value (`DOVE`) or a map query; the
 prose may say `Turania` on its own. The same string is what the page passes to
-the map application.
+the map application. The village was formerly called Petescia (see below).
+
+## Petescia
+
+The old name of Turania, and the name that appears inside the archival
+photographs, whose printed lettering reads `PETESCIA SABINA`. It is the same
+village under its earlier name, not a frazione and not a separate place. The
+name is part of what a photograph shows and is never written into the page's
+prose or printed values, which use `Turania (RI)`.

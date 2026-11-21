@@ -104,6 +104,74 @@ const IMAGE_TYPE_BY_EXTENSION = new Map([
 ]);
 
 /*
+ * The eight cartoline d'epoca, in page order: the Turania montage is the
+ * anchor, with the two Turania piazzas beside it; the Petescia row follows —
+ * the Piazza Umberto I card, the montage and the piazza with the beetle — and
+ * the chapter closes on the oldest panorama and the country chapel. Petescia
+ * is the village's earlier name, printed inside the cards, never written into
+ * the page. The alt sentences quote the printed lettering, because the chapter
+ * carries no visible caption and the alt is where a screen reader meets it.
+ */
+const POSTCARDS = Object.freeze([
+  {
+    src: 'assets/img/cartolina-turania-montaggio-800.jpg',
+    webp: 'assets/img/cartolina-turania-montaggio-800.webp',
+    width: 800,
+    height: 534,
+    alt: "Cartolina d'epoca di Turania: in alto la piazza con il campanile e, a destra, l'altare della Madonna del Carmine; in basso la piazza e il panorama verso Monte Cervia. Un nastro stampato porta la scritta «TURANIA (Rieti) alt. m. 700» e una quartina sui castagneti e sulle acque.",
+  },
+  {
+    src: 'assets/img/cartolina-turania-piazza-800.jpg',
+    webp: 'assets/img/cartolina-turania-piazza-800.webp',
+    width: 800,
+    height: 549,
+    alt: "Fotografia d'epoca in bianco e nero: la piazza con il campanile, i balconi di ferro e un gruppo di persone ferme a parlare; una donna è seduta sui gradini con un bambino davanti, e un'automobile è parcheggiata a destra. Sulla parete di destra una targa recita «PIAZZA UMBERTO I».",
+  },
+  {
+    src: 'assets/img/cartolina-turania-piazza-vasca-800.jpg',
+    webp: 'assets/img/cartolina-turania-piazza-vasca-800.webp',
+    width: 800,
+    height: 493,
+    alt: "Fotografia d'epoca in bianco e nero: la piazza del paese con le case a balconi; a sinistra un gruppo di donne e bambini, al centro una fila di bambini e ragazzi e una vasca di pietra, a destra un mulo fermo accanto a un tavolo di legno.",
+  },
+  {
+    src: 'assets/img/cartolina-petescia-piazza-umberto-800.jpg',
+    webp: 'assets/img/cartolina-petescia-piazza-umberto-800.webp',
+    width: 800,
+    height: 483,
+    alt: "Cartolina d'epoca con la scritta stampata «Petescia - Piazza Umberto I»: la piazza con la casa a torre al centro, le scale sulla destra e i balconi delle case; alcune figure attraversano lo spiazzo e due uomini stanno in piedi sulla destra. I bordi della stampa sono consumati.",
+  },
+  {
+    src: 'assets/img/cartolina-petescia-montaggio-800.jpg',
+    webp: 'assets/img/cartolina-petescia-montaggio-800.webp',
+    width: 800,
+    height: 549,
+    alt: "Cartolina d'epoca di Petescia: in alto il paese visto dai campi, sotto la piazza con la torre e il campanile, a destra una via stretta fra le case di pietra. La stampa recita «Saluti da PETESCIA SABINA Alt. m. 703», con le didascalie «PANORAMA PARZIALE», «PIAZZA DELLA LIBERTÀ» e «VIA RINASCIMENTO».",
+  },
+  {
+    src: 'assets/img/cartolina-petescia-piazza-800.jpg',
+    webp: 'assets/img/cartolina-petescia-piazza-800.webp',
+    width: 800,
+    height: 552,
+    alt: "Fotografia d'epoca in bianco e nero: una piazza con una torre ad archi, le case con i balconi e un gruppo di uomini fermi a conversare; a destra due automobili parcheggiate, fra cui una Volkswagen Maggiolino.",
+  },
+  {
+    src: 'assets/img/cartolina-petescia-panorama-800.jpg',
+    webp: 'assets/img/cartolina-petescia-panorama-800.webp',
+    width: 800,
+    height: 621,
+    alt: "Riproduzione a stampa di una fotografia molto antica: il paese arroccato sul crinale, con le case che seguono il profilo della collina. Sotto, la didascalia stampata recita «(Fig. 3) - La più antica foto-panoramica di Petescia».",
+  },
+  {
+    src: 'assets/img/cartolina-turania-cappella-800.jpg',
+    webp: 'assets/img/cartolina-turania-cappella-800.webp',
+    width: 800,
+    height: 521,
+    alt: "Fotografia d'epoca in bianco e nero: una piccola cappella di campagna con il campanile a vela, davanti alla quale stanno due donne e un bambino; dietro la cappella il bosco e la montagna, e in primo piano dei tronchi accatastati.",
+  },
+]);
+
+/*
  * Every image the site ships. The ground adds no image file: its grain is a
  * data URI. This is an exact inventory, like the font allowlist, so a new
  * image fails whatever it is called, not only one named after the grain.
@@ -112,6 +180,22 @@ const SHIPPED_IMAGE_FILES = Object.freeze([
   'assets/download/locandina-svino-ii-edizione.jpg',
   'assets/icons/apple-touch-icon.png',
   'assets/icons/favicon.svg',
+  'assets/img/cartolina-petescia-montaggio-800.jpg',
+  'assets/img/cartolina-petescia-montaggio-800.webp',
+  'assets/img/cartolina-petescia-panorama-800.jpg',
+  'assets/img/cartolina-petescia-panorama-800.webp',
+  'assets/img/cartolina-petescia-piazza-800.jpg',
+  'assets/img/cartolina-petescia-piazza-800.webp',
+  'assets/img/cartolina-petescia-piazza-umberto-800.jpg',
+  'assets/img/cartolina-petescia-piazza-umberto-800.webp',
+  'assets/img/cartolina-turania-cappella-800.jpg',
+  'assets/img/cartolina-turania-cappella-800.webp',
+  'assets/img/cartolina-turania-montaggio-800.jpg',
+  'assets/img/cartolina-turania-montaggio-800.webp',
+  'assets/img/cartolina-turania-piazza-800.jpg',
+  'assets/img/cartolina-turania-piazza-800.webp',
+  'assets/img/cartolina-turania-piazza-vasca-800.jpg',
+  'assets/img/cartolina-turania-piazza-vasca-800.webp',
   'assets/img/svino-botte-896.jpg',
   'assets/img/svino-botte-896.webp',
   'assets/img/svino-cantina-1200.jpg',
@@ -2037,7 +2121,7 @@ test('la pagina si legge dalla firma e chiude sulla banda', () => {
   }
 });
 
-test('la pagina è la carta: nessun pannello, nessuna ombra, nessun foglio', () => {
+test('la pagina è la carta: nessun pannello, una sola ombra, nessun foglio', () => {
   const document = loadSite();
   const css = stripCssComments(servedStylesheet());
 
@@ -2066,10 +2150,26 @@ test('la pagina è la carta: nessun pannello, nessuna ombra, nessun foglio', () 
     /\.page\s*\{[^}]*padding:\s*0/s,
     'la pagina conserva un margine interno: le sezioni non arrivano ai bordi',
   );
+  /*
+   * The page has no panels. The cartoline chapter is the one exception
+   * (ADR-0020): a postcard is a card, and it is allowed its ink shadow. Strip
+   * the card's rule and nothing else may cast one.
+   */
+  assert.equal(
+    (css.match(/box-shadow\s*:/g) ?? []).length,
+    1,
+    'la pagina usa più di un’ombra: un pannello flottante è ancora presente',
+  );
+  const cardRule = css.match(/\.cartolina\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(
+    cardRule,
+    /box-shadow:\s*var\(--card-shadow\)/,
+    'l’unica ombra della pagina non è quella della cartolina',
+  );
   assert.doesNotMatch(
-    css,
-    /box-shadow/i,
-    'la pagina usa un’ombra: un pannello flottante è ancora presente',
+    css.replace(/\.cartolina\s*\{[^}]*\}/gs, ''),
+    /box-shadow\s*:/,
+    'un elemento oltre la cartolina proietta un’ombra',
   );
   assert.match(
     css,
@@ -4136,6 +4236,139 @@ test('la galleria chiude la pagina con quattro fotografie descritte e leggere', 
   );
 });
 
+test('le cartoline d’epoca stanno fra il Mercatino e la galleria, senza didascalie visibili', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.cartoline');
+  const market = document.querySelector('section.mercatino');
+  const gallery = document.querySelector('.gallery');
+  assert.ok(section, 'mancano le cartoline d’epoca');
+  assert.ok(market, 'manca il Mercatino');
+  assert.ok(gallery, 'manca la galleria');
+
+  assert.equal(
+    section.getAttribute('aria-label'),
+    "Cartoline d'epoca di Turania",
+    'la regione delle cartoline non ha il suo nome accessibile',
+  );
+
+  // The chapter sits between the Mercatino and the gallery: the old village,
+  // then today's cellars.
+  const elements = [...document.querySelectorAll('*')];
+  const marketAt = elements.indexOf(market);
+  const sectionAt = elements.indexOf(section);
+  const galleryAt = elements.indexOf(gallery);
+  assert.ok(marketAt < sectionAt, 'le cartoline non seguono il Mercatino');
+  assert.ok(sectionAt < galleryAt, 'le cartoline non precedono la galleria');
+
+  // The postcards carry their own printed lettering; the page adds no word.
+  assert.equal(
+    section.querySelector('h1, h2, h3, figcaption'),
+    null,
+    'le cartoline portano un titolo o una didascalia visibile',
+  );
+  assert.equal(
+    normalize(section.textContent ?? ''),
+    '',
+    'le cartoline portano parole oltre alle immagini',
+  );
+
+  const sheet = section.querySelector('.cartoline__sheet');
+  assert.ok(sheet, 'manca il foglio delle cartoline');
+  const cards = [...sheet.querySelectorAll('figure.cartolina')];
+  assert.equal(cards.length, POSTCARDS.length, 'le cartoline non sono otto');
+  assert.equal(POSTCARDS.length, 8, 'il set delle cartoline cambia senza decisione');
+
+  const images = cards.map((card) => card.querySelector('picture img'));
+  for (const [index, image] of images.entries()) {
+    const card = POSTCARDS[index];
+    assert.ok(image, `manca la cartolina ${card.src}`);
+    assert.equal(
+      normalize(image.getAttribute('alt') ?? ''),
+      card.alt,
+      `la descrizione della cartolina ${card.src} non è quella approvata`,
+    );
+    assert.equal(image.getAttribute('width'), String(card.width));
+    assert.equal(image.getAttribute('height'), String(card.height));
+    assert.equal(image.getAttribute('loading'), 'lazy', 'una cartolina non è caricata sotto la piega');
+    assert.equal(image.getAttribute('decoding'), 'async', 'una cartolina non decodifica in asincrono');
+    assert.equal(image.getAttribute('fetchpriority'), null, 'una cartolina contende la priorità alla copertina');
+
+    const picture = image.closest('picture');
+    const webp = picture.querySelector('source[type="image/webp"][srcset]');
+    assert.ok(webp, `manca la sorgente WebP di ${card.src}`);
+    assert.ok(
+      siteFileFor(webp.getAttribute('srcset')).file === siteFileFor(card.webp).file,
+      `la sorgente WebP di ${card.src} non è quella dichiarata`,
+    );
+
+    const jpeg = siteFileFor(image.getAttribute('src'));
+    const frame = jpegFrame(readFileSync(jpeg.file));
+    assert.deepEqual(
+      { width: frame.width, height: frame.height, components: frame.components },
+      { width: card.width, height: card.height, components: 3 },
+      `il JPEG di ${card.src} non è RGB ${card.width}×${card.height}`,
+    );
+
+    const webpBytes = readFileSync(siteFileFor(card.webp).file);
+    assert.equal(webpBytes.subarray(0, 4).toString('ascii'), 'RIFF');
+    assert.equal(webpBytes.subarray(8, 12).toString('ascii'), 'WEBP');
+  }
+
+  const css = stripCssComments(servedStylesheet());
+  const cardRule = css.match(/\.cartolina\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(cardRule, /background:\s*var\(--card-paper\)/, 'la cartolina non ha la sua carta');
+  assert.match(
+    cardRule,
+    /border:\s*1px solid var\(--card-rule\)/,
+    'la cartolina non ha il suo filetto',
+  );
+  assert.match(cardRule, /padding:/, 'la cartolina non ha il margine intorno alla fotografia');
+  assert.match(
+    cardRule,
+    /transform:\s*rotate\(var\(--card-tilt\)\)/,
+    'la cartolina sta dritta: non è posata',
+  );
+  assert.doesNotMatch(cardRule, /border-radius\s*:/, 'la cartolina ha angoli arrotondati: è un pannello');
+
+  // No crop, ever: the printed captions live at the photograph's edges.
+  const imageRule = css.match(/\.cartolina img\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(imageRule, /block-size:\s*auto/, 'la fotografia della cartolina è ritagliata');
+  assert.doesNotMatch(imageRule, /object-fit/, 'la fotografia della cartolina è ritagliata');
+
+  // The cards are furniture, not controls: no pointer state anywhere.
+  assert.doesNotMatch(
+    css,
+    /\.cartolina[^{}]*:(?:hover|focus|active)/,
+    'la cartolina promette un’interazione che non ha',
+  );
+
+  // On a phone the sheet is one column; the album is the desktop composition.
+  const layout = layerBlock(css, 'layout');
+  const sheetRule =
+    layout.match(/\.cartoline__sheet\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(
+    sheetRule,
+    /grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+    'sul telefono le cartoline non stanno in colonna',
+  );
+  const desktop = desktopComposition(css);
+  assert.match(
+    desktop,
+    /\.cartoline__sheet\s*\{[^}]*grid-template-columns:\s*repeat\(16,/s,
+    'la composizione desktop delle cartoline non è il foglio a sedici colonne',
+  );
+  for (let index = 1; index <= POSTCARDS.length; index += 1) {
+    assert.match(
+      desktop,
+      new RegExp(
+        `\\.cartoline__sheet\\s*>\\s*\\.cartolina:nth-child\\(${index}\\)\\s*\\{[^}]*grid-row:\\s*[123]`,
+        's',
+      ),
+      `la cartolina ${index} non ha un posto nel foglio desktop`,
+    );
+  }
+});
+
 test('il Programma è la seconda superficie forte e la galleria sfalsa il centro solo sul desktop', () => {
   const document = loadSite();
   const programme = document.querySelector('section.programma');
@@ -4857,6 +5090,14 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     '.gallery__row > .gallery__frame:nth-child(1) img',
     '.gallery__row > .gallery__frame:nth-child(2) img',
     '.gallery__row > .gallery__frame:nth-child(3) img',
+    '.cartoline__sheet > .cartolina:nth-child(1)',
+    '.cartoline__sheet > .cartolina:nth-child(2)',
+    '.cartoline__sheet > .cartolina:nth-child(3)',
+    '.cartoline__sheet > .cartolina:nth-child(4)',
+    '.cartoline__sheet > .cartolina:nth-child(5)',
+    '.cartoline__sheet > .cartolina:nth-child(6)',
+    '.cartoline__sheet > .cartolina:nth-child(7)',
+    '.cartoline__sheet > .cartolina:nth-child(8)',
     '.facts > :nth-child(1)',
     '.facts > :nth-child(2)',
     '.band__actions > p:nth-of-type(1) > a::before',
@@ -5032,6 +5273,44 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     [...galleryStarts].sort((a, b) => a - b),
     'la galleria non va dalla guida ai ritratti',
   );
+
+  /*
+   * The cartoline settle in reading order: each card's range starts later than
+   * the one before, and the keyframe is a rotation, never a fade.
+   */
+  const postcardOrder = POSTCARDS.map(
+    (_card, index) => `.cartoline__sheet > .cartolina:nth-child(${index + 1})`,
+  );
+  const postcardStarts = postcardOrder.map((selector) => {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const bodies = [
+      ...rules.matchAll(new RegExp(`${escaped}\\s*\\{([^{}]*)\\}`, 'gs')),
+    ].map((match) => match[1]);    const body = bodies.find((candidate) => /card-settle/.test(candidate)) ?? '';
+    assert.match(
+      body,
+      /animation:\s*card-settle\b/,
+      `la cartolina non si posa: ${selector}`,
+    );
+    assert.doesNotMatch(body, /\bopacity\s*:/, 'la cartolina sfuma invece di posarsi');
+    const start = body.match(/animation-range:\s*entry\s+(\d+)%/)?.[1];
+    assert.ok(start !== undefined, `manca l’intervallo della cartolina: ${selector}`);
+    return Number(start);
+  });
+  assert.deepEqual(
+    postcardStarts,
+    [...postcardStarts].sort((a, b) => a - b),
+    'le cartoline non si posano in ordine di lettura',
+  );
+
+  const settle = atRuleBlocks(css, '@keyframes\\s+card-settle\\s*\\{');
+  assert.equal(settle.length, 1, 'manca la posa della cartolina');
+  const settleBody = css.slice(settle[0].start, settle[0].end);
+  assert.match(
+    settleBody,
+    /rotate\(calc\(var\(--card-tilt\)\s*\+\s*2deg\)\)/,
+    'la cartolina non arriva girata',
+  );
+  assert.doesNotMatch(settleBody, /\bopacity\s*:/, 'la posa della cartolina è una dissolvenza');
 
   /*
    * The facts rise in order and are never hidden; the action rules draw in

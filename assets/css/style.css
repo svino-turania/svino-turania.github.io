@@ -79,8 +79,8 @@
     --bordeaux: #5c1a24;
     --cream: #ede1c6;
     /*
-     * The print's paper tone. It has no consumer on this page, but it is part
-     * of the recorded palette and the tab icon derives from it.
+     * The print's paper tone. It is the cartoline's card paper (through
+     * --card-paper), and the tab icon derives from it.
      */
     --cream-light: #f2e8d5;
     --gold: #a9854f;
@@ -114,6 +114,19 @@
      * passes where the prose crosses the plate and adds this lift on top.
      */
     --text-shadow: 0 1px 1px color-mix(in srgb, var(--bronze) 30%, transparent);
+
+    /*
+     * The postcard's shadow. The page has no panel shadows: this is its one
+     * exception, and it is an ink shadow — warm bronze at low alpha, close to
+     * the paper, not a UI elevation. It belongs to the cartoline chapter alone
+     * (ADR-0020) and reads as the lift of a card dropped on the table.
+     */
+    --card-shadow:
+      0 1px 2px color-mix(in srgb, var(--bronze) 18%, transparent),
+      0 0.5rem 1.25rem color-mix(in srgb, var(--bronze) 22%, transparent);
+    /* The card's paper and its hairline, both mixed from the palette. */
+    --card-paper: var(--cream-light);
+    --card-rule: color-mix(in srgb, var(--rule) 55%, transparent);
 
     /*
      * The ground's grain. A neutral fractal-noise tile drawn inline as SVG,
@@ -541,6 +554,46 @@
 
     .gallery__row > .gallery__frame:last-child {
       grid-column: 1 / -1;
+    }
+  }
+
+  /*
+   * The cartoline are a chapter of the walk: they keep the print measure and
+   * the chapter's gutters. On a phone the sheet is one column of cards, each
+   * on its own tilt; the album's two rows are the desktop composition, in the
+   * components layer, so the page keeps its single 64 rem threshold.
+   */
+  .cartoline {
+    padding-inline: var(--chapter-pad);
+    padding-block: 0 var(--space-7);
+  }
+
+  .cartoline__sheet {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-6);
+  }
+
+  /*
+   * When the chapter's own measure can hold two cards, the stack becomes a
+   * two-up spread — four rows of two, the right-hand card dropped a step. It
+   * is asked of the section's width, as the gallery asks its own, so the page
+   * keeps its single viewport threshold. The desktop album, in the components
+   * layer, overrides it at 64 rem.
+   */
+  .cartoline {
+    container-type: inline-size;
+  }
+
+  @container (min-width: 44rem) {
+    .cartoline__sheet {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-6) var(--space-5);
+    }
+
+    .cartoline__sheet > .cartolina:nth-child(even) {
+      margin-block-start: var(--space-6);
     }
   }
 
@@ -1201,6 +1254,64 @@
     pointer-events: none;
   }
 
+  /* ----------------------------------------------------------- cartoline */
+  /*
+   * The page's one framed object. A postcard is paper around a photograph,
+   * and ADR-0020 grants this chapter — and only this chapter — the frame, the
+   * shadow, the square corners and the tilt that ADR-0012 withholds from every
+   * other photograph. The margin grows around each native format instead of
+   * cropping it, so the printed lettering at the card's edges survives. The
+   * card is furniture, not a panel: no radius, no second edge, no hover.
+   */
+  .cartolina {
+    --card-tilt: -1deg;
+    margin: 0;
+    padding: var(--space-2) var(--space-2) var(--space-3);
+    background: var(--card-paper);
+    border: 1px solid var(--card-rule);
+    box-shadow: var(--card-shadow);
+    transform: rotate(var(--card-tilt));
+  }
+
+  .cartolina:nth-child(2) {
+    --card-tilt: 0.8deg;
+  }
+
+  .cartolina:nth-child(3) {
+    --card-tilt: -0.6deg;
+  }
+
+  .cartolina:nth-child(4) {
+    --card-tilt: 1deg;
+  }
+
+  .cartolina:nth-child(5) {
+    --card-tilt: -0.8deg;
+  }
+
+  .cartolina:nth-child(6) {
+    --card-tilt: 0.7deg;
+  }
+
+  .cartolina:nth-child(7) {
+    --card-tilt: -1deg;
+  }
+
+  .cartolina:nth-child(8) {
+    --card-tilt: 0.9deg;
+  }
+
+  .cartolina picture {
+    display: block;
+    inline-size: 100%;
+  }
+
+  .cartolina img {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+  }
+
   /*
    * One desktop composition, from 64 rem. It sits here, after the base
    * component rules, because the cascade resolves a layer before rule order:
@@ -1345,6 +1456,88 @@
 
     .gallery__row > .gallery__frame:nth-child(2) {
       margin-block-start: var(--space-8);
+    }
+
+    /*
+     * The cartoline are a handful, not a grid: three rows of three, three and
+     * two, the Turania montage the anchor at three-eighths of the measure. A
+     * card tucks a step or two under its neighbour and each row enters at a
+     * different height, so the composition reads as cards laid on the paper.
+     * The tuck stays shallow — it never covers a printed caption or a
+     * photograph's subject. The sheet is the 16-column measure so the spans
+     * fall on the same rhythm as the rest of the walk. The reset releases the
+     * two-up spread's offsets.
+     */
+    .cartoline__sheet {
+      grid-template-columns: repeat(16, minmax(0, 1fr));
+      align-items: start;
+      gap: 0;
+      row-gap: var(--space-6);
+      padding-block: var(--space-6) var(--space-7);
+    }
+
+    .cartoline__sheet > .cartolina {
+      margin-block-start: 0;
+      margin-inline-start: 0;
+    }
+
+    .cartoline__sheet > .cartolina:nth-child(1) {
+      grid-column: 1 / span 6;
+      grid-row: 1;
+      --card-tilt: -1.5deg;
+    }
+
+    .cartoline__sheet > .cartolina:nth-child(2) {
+      grid-column: 7 / span 5;
+      grid-row: 1;
+      margin-block-start: var(--space-6);
+      margin-inline-start: calc(-1 * var(--space-4));
+      --card-tilt: 1.2deg;
+    }
+
+    .cartoline__sheet > .cartolina:nth-child(3) {
+      grid-column: 12 / -1;
+      grid-row: 1;
+      margin-block-start: var(--space-7);
+      margin-inline-start: calc(-1 * var(--space-2));
+      --card-tilt: -0.8deg;
+    }
+
+    .cartoline__sheet > .cartolina:nth-child(4) {
+      grid-column: 1 / span 5;
+      grid-row: 2;
+      --card-tilt: 1.5deg;
+    }
+
+    .cartoline__sheet > .cartolina:nth-child(5) {
+      grid-column: 6 / span 5;
+      grid-row: 2;
+      margin-block-start: var(--space-4);
+      margin-inline-start: calc(-1 * var(--space-4));
+      --card-tilt: -1.2deg;
+    }
+
+    .cartoline__sheet > .cartolina:nth-child(6) {
+      grid-column: 11 / -1;
+      grid-row: 2;
+      margin-block-start: var(--space-6);
+      margin-inline-start: calc(-1 * var(--space-2));
+      --card-tilt: 0.9deg;
+    }
+
+    .cartoline__sheet > .cartolina:nth-child(7) {
+      grid-column: 3 / span 5;
+      grid-row: 3;
+      margin-block-start: var(--space-4);
+      --card-tilt: -1.1deg;
+    }
+
+    .cartoline__sheet > .cartolina:nth-child(8) {
+      grid-column: 8 / span 6;
+      grid-row: 3;
+      margin-block-start: var(--space-6);
+      margin-inline-start: calc(-1 * var(--space-3));
+      --card-tilt: 1.3deg;
     }
 
     .band__inner {
@@ -1622,6 +1815,61 @@
       }
 
       /*
+       * The cartoline settle in reading order: each card arrives turned two
+       * degrees past its resting tilt, a hair low, and comes to rest. It is
+       * the card being laid on the table — a rotation, never a fade — so the
+       * photograph is legible from its first frame. Under reduced motion the
+       * album is already laid out.
+       */
+      .cartoline__sheet > .cartolina:nth-child(1) {
+        animation: card-settle linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 60%;
+      }
+
+      .cartoline__sheet > .cartolina:nth-child(2) {
+        animation: card-settle linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 8% entry 64%;
+      }
+
+      .cartoline__sheet > .cartolina:nth-child(3) {
+        animation: card-settle linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 14% entry 68%;
+      }
+
+      .cartoline__sheet > .cartolina:nth-child(4) {
+        animation: card-settle linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 20% entry 72%;
+      }
+
+      .cartoline__sheet > .cartolina:nth-child(5) {
+        animation: card-settle linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 26% entry 74%;
+      }
+
+      .cartoline__sheet > .cartolina:nth-child(6) {
+        animation: card-settle linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 32% entry 76%;
+      }
+
+      .cartoline__sheet > .cartolina:nth-child(7) {
+        animation: card-settle linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 38% entry 78%;
+      }
+
+      .cartoline__sheet > .cartolina:nth-child(8) {
+        animation: card-settle linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 44% entry 80%;
+      }
+
+      /*
        * The facts rise in sequence: DOVE, then A CURA DI. They are transform
        * only, so the band is legible the moment it is on screen; the facts are
        * content, not a curtain.
@@ -1760,6 +2008,20 @@
     }
     to {
       transform: none;
+    }
+  }
+
+  /*
+   * The postcard is laid down: it arrives turned two degrees past its resting
+   * tilt and a hair low, and settles into the tilt the card keeps. Rotation
+   * and translation only — no opacity, so the card is never a blank space.
+   */
+  @keyframes card-settle {
+    from {
+      transform: rotate(calc(var(--card-tilt) + 2deg)) translateY(0.5rem);
+    }
+    to {
+      transform: rotate(var(--card-tilt));
     }
   }
 }
