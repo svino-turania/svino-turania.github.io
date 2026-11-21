@@ -2,7 +2,7 @@
 
 /*
  * Local preview server. Serves exactly the files the deployment publishes —
- * index.html and assets/ — with no build step and no dependencies. Nothing
+ * index.html, robots.txt, sitemap.xml and assets/ — with no build step and no dependencies. Nothing
  * outside those paths is reachable, so .git and the repository documents stay
  * offline even while the server runs.
  *
@@ -42,6 +42,9 @@ const MIME = new Map([
 function servedFile(pathname) {
   if (pathname === '/' || pathname === '/index.html') {
     return PAGE;
+  }
+  if (pathname === '/robots.txt' || pathname === '/sitemap.xml') {
+    return resolve(ROOT, `.${pathname}`);
   }
 
   const file = resolve(ROOT, `.${pathname}`);
