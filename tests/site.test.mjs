@@ -1772,13 +1772,13 @@ test('la pagina ha titolo, descrizione e indirizzo canonico in italiano', () => 
 
 test('robots.txt e sitemap.xml sono pubblicati e coerenti con l’URL canonico', () => {
   const robots = readFileSync(join(SITE, 'robots.txt'), 'utf8');
-  assert.match(robots, /^User-agent: \\*$/m);
-  assert.match(robots, /^Allow: \\/$/m);
-  assert.match(robots, /^Sitemap: https:\\/\\/svino-turania\\.github\\.io\\/sitemap\\.xml$/m);
+  assert.match(robots, /^User-agent: \*$/m);
+  assert.match(robots, /^Allow: \/$/m);
+  assert.match(robots, /^Sitemap: https:\/\/svino-turania\.github\.io\/sitemap\.xml$/m);
 
   const sitemap = readFileSync(join(SITE, 'sitemap.xml'), 'utf8');
-  assert.match(sitemap, /^<\\?xml version="1\\.0" encoding="UTF-8"\\?>/);
-  assert.match(sitemap, /<loc>https:\\/\\/svino-turania\\.github\\.io\\/<\\/loc>/);
+  assert.match(sitemap, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
+  assert.match(sitemap, /<loc>https:\/\/svino-turania\.github\.io\/<\/loc>/);
   assert.equal((sitemap.match(/<url>/g) ?? []).length, 1);
 });
 
