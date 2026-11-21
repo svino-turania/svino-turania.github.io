@@ -466,7 +466,7 @@ function pngTopLeftPixel(bytes) {
  * directory-walking assertions below.
  */
 function shippedFiles() {
-  const files = ['index.html'];
+  const files = ['index.html', 'robots.txt', 'sitemap.xml'];
   const assets = join(SITE, 'assets');
   if (existsSync(assets)) {
     for (const name of readdirSync(assets, { recursive: true })) {
@@ -1768,6 +1768,18 @@ test('la pagina ha titolo, descrizione e indirizzo canonico in italiano', () => 
   const canonical = document.querySelector('link[rel="canonical"]');
   assert.ok(canonical, 'manca il link canonico');
   assert.equal(canonical.getAttribute('href'), `${SITE_ORIGIN}/`);
+});
+
+test('robots.txt e sitemap.xml sono pubblicati e coerenti con l’URL canonico', () => {
+  const robots = readFileSync(join(SITE, 'robots.txt'), 'utf8');
+  assert.match(robots, /^User-agent: \\*$/m);
+  assert.match(robots, /^Allow: \\/$/m);
+  assert.match(robots, /^Sitemap: https:\\/\\/svino-turania\\.github\\.io\\/sitemap\\.xml$/m);
+
+  const sitemap = readFileSync(join(SITE, 'sitemap.xml'), 'utf8');
+  assert.match(sitemap, /^<\\?xml version="1\\.0" encoding="UTF-8"\\?>/);
+  assert.match(sitemap, /<loc>https:\\/\\/svino-turania\\.github\\.io\\/<\\/loc>/);
+  assert.equal((sitemap.match(/<url>/g) ?? []).length, 1);
 });
 
 test('la pagina fornisce anteprime Open Graph e Twitter con l’immagine quadrata', () => {
