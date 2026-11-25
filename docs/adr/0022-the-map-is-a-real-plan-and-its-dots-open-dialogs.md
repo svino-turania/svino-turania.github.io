@@ -3,6 +3,9 @@
 - **Status:** accepted
 - **Date:** 2026-11-26
 - **Supersedes:** ADR-0021 (the hand-drawn schematic)
+- **Superseded in part by:** ADR-0023 (the dialog is laid down as it opens and
+  settles back as it closes; the panel, its copy, the dots, the fallbacks and
+  the script contract stand)
 - **Amends:** ADR-0014 (the script allowance: one executable script becomes
   two, and the counter stays last); the one-script constraint in ADR-0016 and
   ADR-0017 is amended in the same way

@@ -310,8 +310,10 @@ their rule from the left edge. The two typographic actions also lead their
 arrows by 2 px, as if the label were picked up. Each action settles 1 px while
 pressed. The Mappa's dots are the page's only other controls: a dot re-inks its
 ring on hover and focus, and opens its Cantina's dialog; the panel's `Chiudi`
-is the visible way back, and it does not move. The plates and the photographs
-remain furniture, not controls.
+is the visible way back. The panel is laid on the page as it opens — it comes
+up a few pixels and inks in while the bordeaux scrim darkens — and settles
+back as it fades when it closes; under reduced motion it is simply there. The
+plates and the photographs remain furniture, not controls.
 
 Motion is CSS only. The no-JavaScript guard allows exactly two executable
 scripts — the Mappa's small inline binding and the counter — so no effect may
@@ -319,13 +321,21 @@ depend on either. The rules are:
 
 - **The base style is the finished page.** Animations are added under
   `prefers-reduced-motion: no-preference`; under `reduce` the page is
-  complete and still. Nothing starts invisible and nothing is shrunk.
+  complete and still. Nothing on the page starts invisible and nothing is
+  shrunk; the one thing that enters is the Mappa's dialog, which opens over
+  the page and is simply there under reduced motion.
 - **Nothing repeats.** There are no ambient effects, so no pause control is
   needed and no new UI appears. Sustained movement comes from scroll position,
   never from a clock.
 - **The focus indicator appears at once.** The outline is the indicator and it
   is not animated; the link's colour and rule follow the same transition as
   hover. That is not motion that delays use.
+- **The dialog's motion is CSS too, and screen only.** Its opening frame is
+  `@starting-style` and its close stays drawn by `transition-behavior:
+  allow-discrete` on `display` and `overlay`, so the native panel fades before
+  the browser drops it and the script stays as ADR-0022 records it. On paper
+  the six entries are in the flow and never fade; where the features are
+  missing, the panel opens and closes at once.
 - **Every duration, delay and easing comes from the motion tokens** in `:root`
   (`--motion-recede`, `--motion-press`, `--motion-ink`, `--motion-settle`,
   `--motion-date`, `--motion-numeral`, `--motion-quick`, `--motion-rule`,
@@ -632,9 +642,11 @@ ground, and the comment that says it is generated from the cadastral base and
 must not be edited by hand. It pins the no-script style that flows the six
 dialogs under the plan and hides the dead dots and close controls, the print
 rule that prints the plan and the six entries with the close controls hidden,
-the inline script's dot-to-dialog binding and close handling under a size cap,
-and the counter as the last executable script. The old inline schematic is
-asserted absent.
+the dialog's screen-scoped opening and closing — its motion tokens, the
+discrete `display` and `overlay`, the starting style and the fallback resets
+that keep the entries visible without JavaScript — the inline script's
+dot-to-dialog binding and close handling under a size cap, and the counter as
+the last executable script. The old inline schematic is asserted absent.
 
 The suite is not a browser runner: the native dialog's open, Esc,
 click-outside and focus-return, the no-script render and the print view are

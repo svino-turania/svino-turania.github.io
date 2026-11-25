@@ -6120,6 +6120,105 @@ test('in stampa il piano e i sei dialoghi si seguono, Chiudi si nasconde e i pun
   );
 });
 
+test('il dialogo della Mappa si posa aprendosi e si ritira chiudendosi, e la carta resta ferma', () => {
+  const css = stripCssComments(servedStylesheet());
+  const noPreference = atRuleBlocks(
+    css,
+    '@media\\s*\\(prefers-reduced-motion:\\s*no-preference\\)',
+  );
+  const screen = atRuleBlocks(css, '@media\\s+screen\\s*\\{');
+  assert.equal(screen.length, 1, 'manca il blocco di movimento del dialogo');
+  const { start, end } = screen[0];
+  assert.ok(
+    noPreference.some((outer) => start > outer.start && end < outer.end),
+    'il movimento del dialogo sta fuori da no-preference',
+  );
+
+  /*
+   * The panel is not a card that pops: it is laid down a few pixels high and
+   * inked into the page while the scrim darkens, and it leaves the same way.
+   * `allow-discrete` on `display` and `overlay` is what lets a native dialog
+   * animate its closing at all: without it the browser drops the whole
+   * transition and the panel snaps shut.
+   */
+  const motion = css.slice(start, end + 1);
+  const panel = ruleBodyFor(motion, '.mappa__dialog');
+  assert.match(panel, /transition:/, 'il dialogo compare senza movimento');
+  assert.match(
+    panel,
+    /opacity\s+var\(--motion-[a-z-]+\)/,
+    'l’opacità del dialogo non usa un token',
+  );
+  assert.match(
+    panel,
+    /transform\s+var\(--motion-[a-z-]+\)/,
+    'la posizione del dialogo non usa un token',
+  );
+  assert.match(
+    panel,
+    /display\s+var\(--motion-[a-z-]+\)\s+allow-discrete/,
+    'il dialogo non resta disegnato mentre si chiude',
+  );
+  assert.match(
+    panel,
+    /overlay\s+var\(--motion-[a-z-]+\)\s+allow-discrete/,
+    'il dialogo lascia il livello superiore prima di svanire',
+  );
+
+  const closed = ruleBodyFor(motion, '.mappa__dialog:not([open])');
+  assert.match(closed, /opacity:\s*0/, 'il dialogo chiuso resta opaco');
+  assert.match(
+    closed,
+    /transform:\s*translateY\(/,
+    'il dialogo chiuso non si abbassa',
+  );
+
+  assert.match(
+    motion,
+    /@starting-style\s*\{\s*\.mappa__dialog\[open\]\s*\{[^}]*opacity:\s*0[^}]*transform:\s*translateY\(/s,
+    'manca lo stato di partenza del dialogo che si apre',
+  );
+
+  const backdrop = motion.match(/\.mappa__dialog::backdrop\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(backdrop, /transition:/, 'il velo non ha movimento');
+  assert.match(
+    backdrop,
+    /opacity\s+var\(--motion-[a-z-]+\)/,
+    'il velo non sfuma con un token',
+  );
+  assert.match(
+    motion,
+    /\.mappa__dialog:not\(\[open\]\)::backdrop\s*\{[^}]*opacity:\s*0/s,
+    'il velo resta acceso quando il dialogo si chiude',
+  );
+  assert.match(
+    motion,
+    /@starting-style\s*\{\s*\.mappa__dialog\[open\]::backdrop\s*\{[^}]*opacity:\s*0/s,
+    'il velo compare di colpo all’apertura',
+  );
+
+  /*
+   * The fallback flows the same six closed dialogs into the chapter, so it
+   * must undo the closed state the motion adds; otherwise a reader without
+   * JavaScript gets six invisible entries.
+   */
+  const document = loadSite();
+  const fallback = stripCssComments(
+    document.querySelector('section.mappa noscript style')?.textContent ?? '',
+  );
+  const fallbackPanel = ruleBodyFor(fallback, '.mappa__dialog');
+  assert.match(
+    fallbackPanel,
+    /opacity:\s*1/,
+    'senza JavaScript i sei dialoghi restano trasparenti',
+  );
+  assert.match(
+    fallbackPanel,
+    /transform:\s*none/,
+    'senza JavaScript i sei dialoghi restano abbassati',
+  );
+});
+
 test('la Mappa non conta, non disegna un percorso e non nomina ciò che non è confermato', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');

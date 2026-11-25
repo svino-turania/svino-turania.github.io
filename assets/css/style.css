@@ -1291,10 +1291,11 @@
   /*
    * La cantina si apre in un dialogo nativo: carta di crema, inchiostro
    * bordeaux, filo d'oro. È la pagina, non una scheda: nessuna ombra, nessun
-   * angolo tondo, nessun movimento. Il pannello usa il margine della pagina e
-   * non supera il viewport; a 200% di zoom il testo va a capo e scorre dentro
-   * il pannello invece di spingere la pagina. Il fondale è una velatura
-   * bordeaux, la stessa che chiude la pagina.
+   * angolo tondo. Il pannello usa il margine della pagina e non supera il
+   * viewport; a 200% di zoom il testo va a capo e scorre dentro il pannello
+   * invece di spingere la pagina. Il fondale è una velatura bordeaux, la stessa
+   * che chiude la pagina. Il movimento breve con cui si posa e si ritira sta
+   * nel layer motion, sotto no-preference e solo sullo schermo.
    */
   .mappa__dialog {
     inline-size: min(92vw, 34rem);
@@ -2275,6 +2276,57 @@
         animation-range: entry 50% entry 100%;
       }
     }
+
+    /*
+     * The Mappa's dialog is laid on the page, not popped over it: the bordeaux
+     * scrim inks in while the cream panel comes up a few pixels and settles,
+     * and it leaves by the same road, sliding back as it fades. `allow-discrete`
+     * on `display` and `overlay` keeps the native dialog drawn in the top layer
+     * until its fade is done, which is the only way a `<dialog>` can animate
+     * its closing without scripting. The whole thing is scoped to the screen:
+     * on paper the six entries are already in the flow and must not fade.
+     * Browsers without these features open and close at once, with the panel
+     * complete either way.
+     */
+    @media screen {
+      .mappa__dialog {
+        transition:
+          opacity var(--motion-ink) var(--ease-press),
+          transform var(--motion-ink) var(--ease-press),
+          display var(--motion-ink) allow-discrete,
+          overlay var(--motion-ink) allow-discrete;
+      }
+
+      .mappa__dialog:not([open]) {
+        opacity: 0;
+        transform: translateY(0.5rem);
+      }
+
+      @starting-style {
+        .mappa__dialog[open] {
+          opacity: 0;
+          transform: translateY(0.5rem);
+        }
+      }
+
+      .mappa__dialog::backdrop {
+        opacity: 1;
+        transition:
+          opacity var(--motion-quick) var(--ease-set),
+          display var(--motion-quick) allow-discrete,
+          overlay var(--motion-quick) allow-discrete;
+      }
+
+      .mappa__dialog:not([open])::backdrop {
+        opacity: 0;
+      }
+
+      @starting-style {
+        .mappa__dialog[open]::backdrop {
+          opacity: 0;
+        }
+      }
+    }
   }
 
   @keyframes signature-press {
@@ -2440,6 +2492,8 @@
     background: none;
     overflow: visible;
     break-inside: avoid;
+    opacity: 1;
+    transform: none;
   }
 
   .mappa__dialog::backdrop,

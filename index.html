@@ -353,7 +353,10 @@
         <noscript>
           <style>
             /* The same static-panel reset as the @media print block in
-               assets/css/style.css; keep the two in step. */
+               assets/css/style.css; keep the two in step. The dialog's
+               opening motion leaves a closed panel transparent and a little
+               low, and these six dialogs are closed: undo that so the
+               entries read without JavaScript. */
             .mappa__dialog {
               display: block;
               position: static;
@@ -368,6 +371,8 @@
               border: 0;
               background: none;
               overflow: visible;
+              opacity: 1;
+              transform: none;
             }
             .mappa__dialog + .mappa__dialog {
               border-block-start: 1px solid var(--rule);
