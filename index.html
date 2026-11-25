@@ -281,8 +281,8 @@
         piazza, la chiesa e le due vie verificate come etichette; il comune non
         è etichettato. Le cantine sono punti, senza numero, perché il percorso
         non è deciso. Le posizioni sono segnaposto finché il Comitato non
-        consegna lo schizzo con le posizioni vere; il legame fra un punto e la
-        sua voce è l'id della cantina. Il capitolo pubblica solo le cantine che
+        consegna lo schizzo con le posizioni vere; il legame fra un punto e il
+        suo dialogo è l'id della cantina. Il capitolo pubblica solo le cantine che
         il Comitato ha confermato, senza numero e senza titoli non confermati.
       -->
       <section class="mappa chapter" id="mappa" aria-labelledby="mappa-title">
@@ -300,8 +300,8 @@
 
           COME SI SPOSTA UN PUNTO: --x e --y in percentuale, ripetuti sul
           punto e sull'etichetta. COME SI AGGIUNGE UNA CANTINA: un <button>
-          qui con data-dialog="<id>-dialog", un <dialog> con lo stesso id e
-          una voce nell'elenco con id <id>.
+          qui con data-dialog="<id>-dialog" e un <dialog> con lo stesso id;
+          i dialoghi sono l'unica voce della Mappa.
         -->
         <figure class="mappa__board">
           <div class="mappa__drawing">
@@ -340,53 +340,50 @@
           </div>
         </figure>
 
-        <ul class="mappa__list">
-          <li class="mappa__entry">
-            <details id="cantina-paci">
-              <summary>Andrea Paci</summary>
-              <p>Tobia — gin e amari</p>
-            </details>
-          </li>
-          <li class="mappa__entry">
-            <details id="cantina-clara">
-              <summary>Clara</summary>
-              <p>Marianna (Il Grembiule) — taglieri, dolci e cioccolata</p>
-            </details>
-          </li>
-          <li class="mappa__entry">
-            <details id="cantina-vale">
-              <summary>Vale Leoni</summary>
-              <p>vino</p>
-            </details>
-          </li>
-          <li class="mappa__entry">
-            <details id="cantina-betta">
-              <summary>Betta e Simone</summary>
-              <p>polenta</p>
-            </details>
-          </li>
-          <li class="mappa__entry">
-            <details id="cantina-raffaelli">
-              <summary>Raffaelli (la Foca)</summary>
-              <p>Proloco Civita — polpette al sugo con rosette</p>
-            </details>
-          </li>
-          <li class="mappa__entry">
-            <details id="cantina-li-meroli">
-              <summary>Li Meroli</summary>
-              <p>Proloco Turania — arrosticini, panini con la salsiccia, hot dog</p>
-            </details>
-          </li>
-        </ul>
+        <!--
+          SENZA JAVASCRIPT: i sei dialoghi sono le sole voci della Mappa, ma da
+          chiusi non si vedono. Questo foglio li fa scorrere sotto il piano,
+          uno dopo l'altro, con la spaziatura della pagina e un filo d'oro fra
+          l'uno e l'altro; i punti, che senza script non aprono nulla, e
+          Chiudi restano nascosti. Il piano e le sue etichette restano al loro
+          posto. Il testo non è duplicato: sono gli stessi dialoghi.
+        -->
+        <noscript>
+          <style>
+            .mappa__dialog {
+              display: block;
+              position: static;
+              inset: auto;
+              inline-size: auto;
+              block-size: auto;
+              max-inline-size: none;
+              max-block-size: none;
+              margin: 0;
+              padding-block: var(--space-3);
+              padding-inline: 0;
+              border: 0;
+              background: none;
+              overflow: visible;
+            }
+            .mappa__dialog + .mappa__dialog {
+              border-block-start: 1px solid var(--rule);
+            }
+            .mappa__dot {
+              display: none;
+            }
+            .mappa__dialog-close {
+              display: none;
+            }
+          </style>
+        </noscript>
 
         <!--
           DIALOGHI: una cantina si apre dal suo punto come dialogo nativo. Il
           pannello porta il nome, ciò che si trova dentro, la nota sulla
           posizione indicativa e il controllo Chiudi. Il testo resta nel DOM,
-          così la pagina resta indicizzabile. I dialoghi sono la fonte delle
-          voci; l'elenco qui sopra resta il ripiego senza JavaScript finché
-          #82 non lo sostituisce. Lo script che li apre sta in fondo al corpo,
-          prima del contatore.
+          così la pagina resta indicizzabile. I dialoghi sono l'unica fonte
+          delle voci: non c'è un elenco separato. Lo script che li apre sta in
+          fondo al corpo, prima del contatore.
         -->
         <dialog class="mappa__dialog" id="cantina-paci-dialog" aria-labelledby="cantina-paci-dialog-title">
           <h3 class="mappa__dialog-title" id="cantina-paci-dialog-title">Andrea Paci</h3>

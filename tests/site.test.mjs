@@ -2235,7 +2235,13 @@ test('la pagina è indicizzabile e dichiarata in italiano', () => {
 
 test('la pagina si legge dalla firma e chiude sulla banda', () => {
   const document = loadSite();
-  const text = normalize(document.body.textContent);
+  // The fallback stylesheet inside <noscript> is not prose: its class names
+  // must not stand in for the page's reading order.
+  const body = document.body.cloneNode(true);
+  for (const style of body.querySelectorAll('style')) {
+    style.remove();
+  }
+  const text = normalize(body.textContent);
   // Brand first: the signature, then its subtitle, the date, the prose, and one
   // closing band in the order facts, map, download, colophon. There is one
   // download in the page, so the old desktop-before-phone order cannot hold.
@@ -5335,7 +5341,6 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     '.apertura__prose > p:nth-of-type(2)',
     '.chapter.mappa > h2',
     '.chapter.mappa > .mappa__board',
-    '.chapter.mappa > .mappa__list',
     '.chapter.programma > h2',
     '.chapter.programma > .programma__plate',
     '.chapter.programma > p',
@@ -5743,28 +5748,58 @@ test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le sei canti
   assert.ok(elements.indexOf(prose) < elements.indexOf(section), 'la Mappa precede la prosa');
   assert.ok(elements.indexOf(section) < elements.indexOf(programme), 'la Mappa segue il Programma');
 
-  const entries = [...section.querySelectorAll('.mappa__entry details')];
+  /*
+   * The visible list left the page in #82: the six dialogs are the only
+   * entries, so no list, no <details>, and no second copy of the Cantina text.
+   */
   assert.equal(
-    entries.length,
+    section.querySelectorAll('ul, ol, dl, details, .mappa__list, .mappa__entry').length,
+    0,
+    'la Mappa ha ancora l’elenco delle voci: i dialoghi sono le uniche voci',
+  );
+
+  const dialogs = [...section.querySelectorAll('dialog.mappa__dialog')];
+  assert.equal(
+    dialogs.length,
     MAPPA_ENTRIES.length,
     'la Mappa non ha le sei voci confermate dal Comitato',
   );
   assert.deepEqual(
-    entries.map((node) => node.id),
-    MAPPA_ENTRIES.map((entry) => entry.id),
-    'gli id delle voci non sono quelli attesi, in ordine',
+    dialogs.map((dialog) => dialog.id),
+    MAPPA_ENTRIES.map((entry) => `${entry.id}-dialog`),
+    'gli id dei dialoghi non sono quelli attesi, in ordine',
   );
-  entries.forEach((node, index) => {
+
+  // The visible text excludes the fallback stylesheet's own source: CSS is not
+  // prose, but every Cantina name and inside line must still appear exactly
+  // once, in its dialog.
+  const clone = section.cloneNode(true);
+  for (const style of clone.querySelectorAll('style')) {
+    style.remove();
+  }
+  const text = normalize(clone.textContent);
+  const quote = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  dialogs.forEach((dialog, index) => {
     const expected = MAPPA_ENTRIES[index];
     assert.equal(
-      normalize(node.querySelector('summary')?.textContent),
+      normalize(dialog.querySelector('h3')?.textContent),
       expected.name,
-      `la voce ${expected.id} non porta il nome della cantina`,
+      `il dialogo ${expected.id} non porta il nome della cantina`,
     );
     assert.equal(
-      normalize(node.querySelector('p')?.textContent),
+      normalize(dialog.querySelector('.mappa__dialog-inside')?.textContent),
       expected.inside,
-      `la voce ${expected.id} non porta ciò che si trova dentro, alla lettera`,
+      `il dialogo ${expected.id} non porta ciò che si trova dentro, alla lettera`,
+    );
+    assert.equal(
+      (text.match(new RegExp(quote(expected.name), 'g')) ?? []).length,
+      1,
+      `il nome ${expected.id} compare più di una volta: i dialoghi sono l’unica voce`,
+    );
+    assert.equal(
+      (text.match(new RegExp(quote(expected.inside), 'g')) ?? []).length,
+      1,
+      `il dentro di ${expected.id} compare più di una volta: i dialoghi sono l’unica voce`,
     );
   });
 });
@@ -5832,10 +5867,14 @@ test('ogni punto della Mappa è un pulsante che apre il suo dialogo e nessun pun
     'due punti cadono sullo stesso posto: le posizioni sono segnaposto distinti',
   );
 
-  // The transitional list stays until #82 removes it; a dot, an entry and a
-  // dialog still share the Cantina's id.
+  // The dialogs are the only entries: the old list ids are gone, and each
+  // Cantina keeps one dot bound to its one dialog.
   for (const entry of MAPPA_ENTRIES) {
-    assert.ok(document.getElementById(entry.id), `manca la voce ${entry.id}`);
+    assert.equal(
+      document.getElementById(entry.id),
+      null,
+      `resta una voce separata dal dialogo: ${entry.id}`,
+    );
     assert.equal(
       pins.filter((pin) => pin.getAttribute('data-dialog') === `${entry.id}-dialog`)
         .length,
@@ -5909,10 +5948,162 @@ test('ogni cantina si apre in un dialogo nativo, intitolato col suo nome, col de
   });
 });
 
+test('senza JavaScript i sei dialoghi scorrono sotto il piano, mentre Chiudi e i punti tacciono', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const fallback = section.querySelector('noscript');
+  assert.ok(fallback, 'manca il ripiego senza JavaScript');
+  const style = fallback.querySelector('style');
+  assert.ok(style, 'il ripiego senza JavaScript non porta il suo foglio');
+  const css = stripCssComments(style.textContent ?? '');
+
+  /*
+   * A closed <dialog> is display:none from the browser's own stylesheet; the
+   * fallback resets that and the browser's positioning, so the six entries
+   * flow in the chapter under the plan instead of floating in a modal box.
+   */
+  const panel = ruleBodyFor(css, '.mappa__dialog');
+  assert.match(panel, /display:\s*block/, 'senza JavaScript il dialogo resta chiuso');
+  assert.match(panel, /position:\s*static/, 'il dialogo resta posizionato dall’interfaccia');
+  assert.match(panel, /inset:\s*auto/, 'il dialogo conserva l’inset dell’interfaccia');
+  assert.match(
+    panel,
+    /(?:inline-size|width):\s*auto/,
+    'il dialogo conserva la larghezza dell’interfaccia',
+  );
+  assert.match(
+    panel,
+    /(?:max-inline-size|max-width):\s*none/,
+    'il dialogo conserva il limite di larghezza dell’interfaccia',
+  );
+  assert.match(
+    panel,
+    /(?:max-block-size|max-height):\s*none/,
+    'il dialogo conserva il limite di altezza dell’interfaccia',
+  );
+
+  // The page's spacing, and a gold hairline between the stacked entries.
+  assert.match(
+    css,
+    /\.mappa__dialog\s*\+\s*\.mappa__dialog\s*\{[^}]*(?:border-block-start|border-top):[^;}]*var\(--rule\)/s,
+    'i dialoghi in linea non hanno il filo d’oro che li separa',
+  );
+
+  // The dead controls go: a dot with no script opens nothing, and Chiudi has
+  // no modal to close.
+  assert.match(
+    ruleBodyFor(css, '.mappa__dot'),
+    /display:\s*none/,
+    'senza JavaScript i punti morti restano sul piano',
+  );
+  assert.match(
+    ruleBodyFor(css, '.mappa__dialog-close'),
+    /display:\s*none/,
+    'senza JavaScript Chiudi resta in una voce che non è un dialogo',
+  );
+
+  // The fallback hides controls, not content: the plan and its labels stay.
+  for (const selector of ['.mappa__plan', '.mappa__label', '.mappa__board']) {
+    assert.doesNotMatch(
+      ruleBodyFor(css, selector),
+      /display:\s*none/,
+      `senza JavaScript il piano perde ${selector}`,
+    );
+  }
+
+  // The six dialogs follow the plan, and they are the same six entries: the
+  // fallback reuses their content instead of adding a second list.
+  const order = [
+    ...section.querySelectorAll('figure.mappa__board, dialog.mappa__dialog'),
+  ];
+  assert.equal(
+    order.length,
+    MAPPA_ENTRIES.length + 1,
+    'il ripiego non mostra il piano e i sei dialoghi',
+  );
+  assert.ok(
+    order[0].classList.contains('mappa__board'),
+    'i dialoghi precedono il piano nel ripiego',
+  );
+});
+
+test('in stampa il piano e i sei dialoghi si seguono, Chiudi si nasconde e i punti restano segni', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const css = stripCssComments(servedStylesheet());
+  const blocks = atRuleBlocks(css, '@media\\s+print\\s*\\{');
+  assert.equal(blocks.length, 1, 'manca la regola di stampa della Mappa');
+  const block = css.slice(blocks[0].start, blocks[0].end + 1);
+
+  const panel = ruleBodyFor(block, '.mappa__dialog');
+  assert.match(panel, /display:\s*block/, 'in stampa i dialoghi non si vedono');
+  assert.match(panel, /position:\s*static/, 'in stampa i dialoghi restano posizionati');
+  assert.match(
+    panel,
+    /(?:max-block-size|max-height):\s*none/,
+    'in stampa il dialogo resta limitato all’altezza dello schermo',
+  );
+  assert.match(
+    panel,
+    /break-inside:\s*avoid/,
+    'in stampa una voce può spezzarsi fra due pagine',
+  );
+  assert.match(
+    ruleBodyFor(block, '.mappa__dialog-close'),
+    /display:\s*none/,
+    'in stampa Chiudi resta sulla carta',
+  );
+  assert.match(
+    block,
+    /\.mappa__dot\s*\{[^}]*(?:-webkit-)?print-color-adjust:\s*exact/s,
+    'in stampa i punti perdono il loro riempimento',
+  );
+  assert.doesNotMatch(
+    ruleBodyFor(block, '.mappa__plan'),
+    /display:\s*none/,
+    'in stampa il piano sparisce',
+  );
+  assert.match(
+    ruleBodyFor(block, 'figure.mappa__board'),
+    /break-inside:\s*avoid/,
+    'in stampa il piano può spezzarsi fra due pagine',
+  );
+  assert.match(
+    ruleBodyFor(block, 'figure.mappa__board'),
+    /max-inline-size:\s*38rem/,
+    'in stampa il piano non è dimensionato per stare in una pagina',
+  );
+  assert.match(
+    block,
+    /\.chapter\.mappa > \.mappa__board\s*\{[^}]*animation-name:\s*none/s,
+    'in stampa il piano resta tagliato dall’animazione di rivelazione',
+  );
+
+  // The print view reuses the same six dialogs, after the plan.
+  const order = [
+    ...section.querySelectorAll('figure.mappa__board, dialog.mappa__dialog'),
+  ];
+  assert.equal(
+    order.length,
+    MAPPA_ENTRIES.length + 1,
+    'la stampa non ha il piano e le sei voci',
+  );
+  assert.ok(
+    order[0].classList.contains('mappa__board'),
+    'in stampa le voci precedono il piano',
+  );
+});
+
 test('la Mappa non conta, non disegna un percorso e non nomina ciò che non è confermato', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
-  const text = normalize(section.textContent);
+  // The visible text, not the fallback stylesheet's source: CSS carries
+  // numbers (a pixel hairline), and the guard is about what a reader sees.
+  const clone = section.cloneNode(true);
+  for (const style of clone.querySelectorAll('style')) {
+    style.remove();
+  }
+  const text = normalize(clone.textContent);
 
   // "SP 37" è il nome verificato di una strada, l'unico numero ammesso nel
   // capitolo: tolto quello, non resta alcuna cifra, né una conta né un numero
@@ -6048,13 +6239,13 @@ test('le etichette della Mappa sono testo HTML: la piazza una volta, le vie lung
     0,
     'la Mappa porta una scala, una griglia o una cornice',
   );
-  const outsideList = [...section.querySelectorAll('p')].filter(
-    (node) => !node.closest('.mappa__list, .mappa__dialog'),
+  const outsideDialogs = [...section.querySelectorAll('p')].filter(
+    (node) => !node.closest('.mappa__dialog'),
   );
   assert.equal(
-    outsideList.length,
+    outsideDialogs.length,
     0,
-    'la Mappa porta un testo visibile fuori dal piano, dai dialoghi e dall’elenco',
+    'la Mappa porta un testo visibile fuori dal piano e dai dialoghi',
   );
 });
 
