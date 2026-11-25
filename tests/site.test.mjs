@@ -6447,6 +6447,18 @@ test('il dialogo della Mappa è carta di crema con filo d’oro, senza ombra né
   assert.match(panel, /max-block-size:[^;]*vh/, 'il dialogo non è limitato all’altezza dello schermo');
   assert.match(panel, /overflow:\s*auto/, 'il dialogo non fa scorrere il testo che non ci sta');
 
+  /*
+   * A native dialog can take the focus itself when it opens, and the browser
+   * then draws its own ring around the whole panel — a blue box the page never
+   * asked for. Chiudi and the dots keep the page's indicator; the panel, which
+   * is the page, wears none.
+   */
+  assert.match(
+    css,
+    /\.mappa__dialog:focus\s*\{[^}]*outline:\s*none/s,
+    'il pannello indossa l’indicatore di focus del browser',
+  );
+
   const backdrop = ruleBodyFor(css, '.mappa__dialog::backdrop');
   assert.match(
     backdrop,

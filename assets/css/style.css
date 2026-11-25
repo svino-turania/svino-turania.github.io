@@ -1311,6 +1311,18 @@
     font-family: var(--serif);
   }
 
+  /*
+   * Il pannello non indossa l'indicatore del browser. Aprendo un dialogo
+   * nativo il focus può posarsi sul pannello stesso invece che su Chiudi, e
+   * il browser lo segna con il proprio anello: un rettangolo blu attorno a
+   * tutta la Mappa, che non appartiene alla pagina. Chiudi e i punti tengono
+   * il loro indicatore; il pannello, che è già la pagina intera, non ne ha
+   * bisogno.
+   */
+  .mappa__dialog:focus {
+    outline: none;
+  }
+
   .mappa__dialog::backdrop {
     background: color-mix(in srgb, var(--bordeaux) 78%, transparent);
   }
