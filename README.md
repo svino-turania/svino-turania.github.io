@@ -89,9 +89,10 @@ grapes — runs edge to edge at every width, and the masthead — the signature,
 `II EDIZIONE` lockup and the subtitle — is set at its foot, inside the content
 shell, in cream on a bordeaux scrim. The order is the cover, the date, the
 Cantina photograph, the Cantina prose with its glass opening
-as the first illustrated chapter, the Programma as the second chapter and the
-page's mid-walk bordeaux interlude, the Mercatino as the third chapter on cream,
-the cartoline d'epoca, the gallery of four cellar photographs and one closing
+as the first illustrated chapter, the Mappa del Borgo as the walk's picture,
+the Programma as the second illustrated chapter and the page's mid-walk bordeaux
+interlude, the Mercatino as the third illustrated chapter on cream, the
+cartoline d'epoca, the gallery of four cellar photographs and one closing
 bordeaux band.
 
 The cartoline are eight archival photographs of Turania and Petescia, laid
@@ -191,8 +192,18 @@ short ground rule, and it is as tall as the Programma plate — not as wide: the
 two drawings keep their own ratios. It is decorative (`aria-hidden`); the
 paragraph carries the words.
 
-The Programma follows as the second chapter and as the page's mid-walk strong
-surface: a full-bleed bordeaux interlude with the printed label — sans, the
+The Mappa del Borgo follows the prose as the walk's picture, before the
+Programma: a schematic drawing of the borgo with `Piazza Umberto I`, the
+church and the comune as its anchors and the confirmed Cantine as unlabelled
+dots. It is indicative and not to scale, it claims no route order, and it names
+no Cantina the Comitato has not confirmed. Each dot is an in-page link to one
+entry in a list of `<details>` under the drawing; on the desktop the list sits
+beside it. The drawing is one gold hairline like the other plates, and the dots
+are the page's only filled marks. ADR-0021 records the choice of a hand-drawn
+schematic over a tile map.
+
+The Programma follows as the second illustrated chapter and as the page's
+mid-walk strong surface: a full-bleed bordeaux interlude with the printed label — sans, the
 small step, bold, wide tracking, gold-light — and, beside the paragraph, its
 plate. The plate is a line-art cluster of the four instruments
 the approved paragraph names — organetto, fisarmonica, chitarra, tamburo — in
@@ -267,7 +278,8 @@ the only scroll effect on the hero, transform-only, never a fade or a reveal.
 Below the fold the story continues in reading order. The view steps back out of
 the Cantina arch — a zoom, never a fade, inside the tear the frame cuts, so the
 edge never moves. The prose prints itself: the glass, the first
-paragraph, the second paragraph; then the Programma label, the plate
+paragraph, the second paragraph; then the Mappa's label, its drawing and its
+list; then the Programma label, the plate
 and its bordeaux paragraph; then the Mercatino label, its stall and
 its paragraph; then the cartoline, which settle one by one in reading order;
 then the gallery, which recedes photo by photo,
@@ -279,16 +291,17 @@ the Locandina's; the actions themselves never fade.
 The hero — the signature, its lockup and subtitle on the grapes photograph, and
 the date — is complete on the first screen and never waits for the scroll.
 Scroll-driven reveals are only for the Cantina photograph, the
-prose and its glass, the Programma (its label, plate and paragraph), the
-Mercatino (its label, stall and paragraph), the cartoline, the gallery and the
-facts band; the hero's one scroll effect is the grapes' drift, which never hides
-or fades.
+prose and its glass, the Mappa (its label, drawing and list), the Programma (its
+label, plate and paragraph), the Mercatino (its label, stall and paragraph), the
+cartoline, the gallery and the facts band; the hero's one scroll effect is the
+grapes' drift, which never hides or fades.
 
 The page's four tracked links all respond: they shift their ink and re-ink
 their rule from the left edge. The two typographic actions also lead their
 arrows by 2 px, as if the label were picked up. Each action settles 1 px while
-pressed. Nothing else responds to the pointer, because nothing else on the page
-is interactive: the plates and the photographs are furniture, not controls.
+pressed. The Mappa's dots and the Cantina entries are the page's only other
+controls: a dot re-inks its ring on hover and focus, and a summary opens its
+entry. The plates and the photographs remain furniture, not controls.
 
 Motion is CSS only. The no-JavaScript guard allows exactly one script, the
 counter, so no effect may depend on one. The rules are:
@@ -348,6 +361,7 @@ a short comment beside it in the file:
 | Edition               | `II EDIZIONE`                  | the lockup beside the signature, the colophon and the metadata |
 | Opening image description | the approved Italian sentence | the `alt` attribute of the image in `.hero-photo`          |
 | Photograph description| the approved Italian sentence  | the `alt` attribute of the Cantina photograph                 |
+| Cantine on the map    | six Comitato-confirmed Cantine | one dot in the Mappa's `svg` and one `<details>` in `.mappa__list`, same `id` |
 | Locandina download    | `assets/download/locandina-svino-ii-edizione.jpg` | the single link in the closing band, at every width |
 
 The date is the one value the page states in several forms. Change
@@ -372,7 +386,10 @@ matching the place (`Turania%20(RI)` today); do not repeat the place in the link
 text or the colophon. If the time changes, update only the value under `DALLE ORE` in the
 date lockup. A test counts `12:00`, `Turania (RI)`, `Comitato Feste Turania`,
 `DALLE ORE`, `DOVE` and `A CURA DI` in the visible body text and fails if any
-appears more than once.
+appears more than once. The piazza's name appears once as visible text, as the
+Mappa del Borgo's anchor; the Petescia card's `alt` quotes the lettering printed
+inside that photograph, and the structured `Event` location repeats the name in
+data only.
 
 The Locandina download is one anchor, in the closing bordeaux band. It is
 present at every width, with no second copy and no rule that hides it, so
@@ -385,6 +402,12 @@ Comitato approves it, the maintainer edits it, and a test pins it verbatim.
 The second paragraph promises that this page will carry the event's news, so
 add no categories to that promise — no entry, price or duration — until the
 Comitato decides them.
+
+The Mappa's Cantine are edited the same way: one `<details>` in `.mappa__list`
+per Comitato-confirmed Cantina, and its dot in the drawing's `svg`, linked by
+the same `id`. A test requires the dots and the entries to name the same set,
+and fails if the chapter carries a number, a connecting route line, an
+unconfirmed Cantina or an unconfirmed *Quissi de …* title.
 
 To propose a change:
 
@@ -420,8 +443,9 @@ What `<head>` declares, and what the tests pin:
 
 The `Event` location is Piazza Umberto I, Turania, RI, 02020, IT: the declared
 starting point, because the cantine open across the borgo and schema.org's
-Event expects one location. It is structured data, not page prose — do not add
-the piazza to the visible body. The block deliberately has no `endDate` and no
+Event expects one location. It is structured data, not page prose, with one
+deliberate exception: the piazza enters the visible body once, as the Mappa del
+Borgo's anchor, and is not repeated in prose. The block deliberately has no `endDate` and no
 `offers`: the page does not publish the end time and the Comitato has not
 decided a price or entry policy. Do not add them to make the rich result
 richer.
@@ -561,8 +585,8 @@ requests, so preview a pull request locally before merging.
 The test seam is the repository root, as a static server serves it. `npm test`
 runs `node --test tests/*.test.mjs`; there is no build to run first. The tests
 read `index.html`, its assets and its metadata as a visitor or link checker
-would: the printed facts, the Cantina prose, the Programma paragraph and the
-Mercatino paragraph verbatim, the date literals
+would: the printed facts, the Cantina prose, the Programma paragraph, the
+Mercatino paragraph and the Mappa's six entries verbatim, the date literals
 against `datetime`, the map destination, the declared language, headings and
 link names, the three narrow guards — one `<script>`, the counter's, pinned to
 GoatCounter's CDN, with no inline handler or shipped `.js`; no host on the
@@ -572,6 +596,13 @@ content policy. The visit counter is GoatCounter's script at the end of
 pixel stays in the colophon inside `<noscript>` for readers without JavaScript,
 with no Referer, an empty `alt`, and a cookie-free notice linking the
 processor's privacy page. The pixel is the page's only external image request.
+
+The Mappa has its own guards. It pins the six Comitato-confirmed entries and
+their copy; it requires every dot and every entry to carry the same `id` set;
+it fails on a digit in the chapter (no count), on a `<text>` inside a dot (no
+number), on a connecting route line, and on the unconfirmed rows and the
+*Quissi de …* titles. It also requires the drawing to be a labelled `svg` with
+a `title` and a `desc`, so a reader who cannot see it is told it is indicative.
 
 The suite also asserts the page's contracts. The date is one `<time>` lockup
 with `datetime="2026-12-06"`, its printed parts in DOM order (day, weekday,

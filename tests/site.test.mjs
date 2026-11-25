@@ -823,15 +823,15 @@ test('il Programma confermato segue la prosa e non porta un orario', () => {
   );
   assert.equal(
     document.querySelectorAll('h2').length,
-    2,
-    'la pagina non ha esattamente i due titoli dei capitoli illustrati',
+    3,
+    'la pagina non ha esattamente i tre titoli dei capitoli',
   );
   assert.deepEqual(
     [...document.querySelectorAll('h2')].map((node) =>
       normalize(node.textContent),
     ),
-    ['PROGRAMMA', 'MERCATINO'],
-    'i titoli di secondo livello non sono le due etichette dei capitoli',
+    ['LA MAPPA DEL BORGO', 'PROGRAMMA', 'MERCATINO'],
+    'i titoli di secondo livello non sono le tre etichette dei capitoli',
   );
 
   const paragraphs = [...programme.querySelectorAll('p')].map((node) =>
@@ -5264,14 +5264,17 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
 
   /*
    * The reveal subjects are an explicit list, not a pattern: the opening
-   * glass, the two prose paragraphs, the Programma and Mercatino chapters,
-   * the photographs, the fact rows and the action rules. A selector outside
-   * the list must be a deliberate decision, not a regex accident.
+   * glass, the two prose paragraphs, the Mappa, Programma and Mercatino
+   * chapters, the photographs, the fact rows and the action rules. A selector
+   * outside the list must be a deliberate decision, not a regex accident.
    */
   const REVEAL_SUBJECTS = new Set([
     '.apertura > .cantina__plate',
     '.apertura__prose > p:nth-of-type(1)',
     '.apertura__prose > p:nth-of-type(2)',
+    '.chapter.mappa > h2',
+    '.chapter.mappa > .mappa__board',
+    '.chapter.mappa > .mappa__list',
     '.chapter.programma > h2',
     '.chapter.programma > .programma__plate',
     '.chapter.programma > p',
@@ -5619,5 +5622,219 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
     css.slice(reduce[0].start, reduce[0].end),
     /transition\s*:\s*none/,
     'il blocco reduce non spegne le transizioni',
+  );
+});
+
+/*
+ * La Mappa del Borgo: the walk's picture, between the Cantina prose and the
+ * Programma. Only the six Comitato-confirmed rows; no count, no numbered
+ * pins, no route line, no unconfirmed title or provider; every dot and every
+ * entry share one id set; the drawing is a labelled svg with a title and a
+ * description. ADR-0021.
+ */
+const MAPPA_ENTRIES = Object.freeze([
+  {
+    id: 'cantina-paci',
+    name: 'Andrea Paci',
+    inside: 'Tobia — gin e amari',
+  },
+  {
+    id: 'cantina-clara',
+    name: 'Clara',
+    inside: 'Marianna (Il Grembiule) — taglieri, dolci e cioccolata',
+  },
+  {
+    id: 'cantina-vale',
+    name: 'Vale Leoni',
+    inside: 'vino',
+  },
+  {
+    id: 'cantina-betta',
+    name: 'Betta e Simone',
+    inside: 'polenta',
+  },
+  {
+    id: 'cantina-raffaelli',
+    name: 'Raffaelli (la Foca)',
+    inside: 'Proloco Civita — polpette al sugo con rosette',
+  },
+  {
+    id: 'cantina-li-meroli',
+    name: 'Li Meroli',
+    inside: 'Proloco Turania — arrosticini, panini con la salsiccia, hot dog',
+  },
+]);
+
+test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le sei cantine confermate', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  assert.ok(section, 'manca la Mappa del Borgo');
+  assert.equal(
+    normalize(section.querySelector('h2')?.textContent),
+    'LA MAPPA DEL BORGO',
+    'la Mappa non ha la sua etichetta stampata',
+  );
+
+  const elements = [...document.querySelectorAll('*')];
+  const prose = document.querySelector('#cantine');
+  const programme = document.querySelector('#programma');
+  assert.ok(elements.indexOf(prose) < elements.indexOf(section), 'la Mappa precede la prosa');
+  assert.ok(elements.indexOf(section) < elements.indexOf(programme), 'la Mappa segue il Programma');
+
+  const entries = [...section.querySelectorAll('.mappa__entry details')];
+  assert.equal(
+    entries.length,
+    MAPPA_ENTRIES.length,
+    'la Mappa non ha le sei voci confermate dal Comitato',
+  );
+  assert.deepEqual(
+    entries.map((node) => node.id),
+    MAPPA_ENTRIES.map((entry) => entry.id),
+    'gli id delle voci non sono quelli attesi, in ordine',
+  );
+  entries.forEach((node, index) => {
+    const expected = MAPPA_ENTRIES[index];
+    assert.equal(
+      normalize(node.querySelector('summary')?.textContent),
+      expected.name,
+      `la voce ${expected.id} non porta il nome della cantina`,
+    );
+    assert.equal(
+      normalize(node.querySelector('p')?.textContent),
+      expected.inside,
+      `la voce ${expected.id} non porta ciò che si trova dentro, alla lettera`,
+    );
+  });
+});
+
+test('ogni punto della Mappa porta alla sua voce e nessun punto porta un numero', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const pins = [...section.querySelectorAll('svg a.mappa__pin-link')];
+  assert.equal(pins.length, MAPPA_ENTRIES.length, 'la Mappa non ha un punto per cantina');
+  assert.deepEqual(
+    pins.map((pin) => pin.getAttribute('href')),
+    MAPPA_ENTRIES.map((entry) => `#${entry.id}`),
+    'i punti non portano alle voci confermate, in ordine',
+  );
+  for (const pin of pins) {
+    assert.ok(
+      (pin.getAttribute('aria-label') ?? '').trim(),
+      'un punto non ha un nome accessibile',
+    );
+    assert.equal(
+      pin.querySelectorAll('text').length,
+      0,
+      'un punto porta un numero o un testo: il percorso non è deciso',
+    );
+  }
+  for (const entry of MAPPA_ENTRIES) {
+    assert.ok(document.getElementById(entry.id), `manca la voce ${entry.id}`);
+    assert.equal(
+      pins.filter((pin) => pin.getAttribute('href') === `#${entry.id}`).length,
+      1,
+      `la voce ${entry.id} non ha un solo punto`,
+    );
+  }
+});
+
+test('la Mappa non conta, non disegna un percorso e non nomina ciò che non è confermato', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const text = normalize(section.textContent);
+
+  assert.doesNotMatch(text, /\d/, 'la Mappa porta un numero: una conta o un numero di punto');
+  assert.doesNotMatch(text, /Quissi/i, 'la Mappa nomina un titolo non confermato');
+  for (const absent of [
+    'Nonna Lisa',
+    'Elio',
+    'Pereto',
+    'Marino',
+    'Fajolella',
+    'La Cueva',
+    'Cantina Enzo',
+    'Roscio',
+  ]) {
+    assert.ok(
+      !text.includes(absent),
+      `la Mappa nomina una cantina o un fornitore non confermato: ${absent}`,
+    );
+  }
+  assert.equal(
+    section.querySelectorAll('.mappa__route').length,
+    0,
+    'la Mappa disegna un percorso: il registro lo lascia indeciso',
+  );
+  assert.equal(
+    (text.match(/Piazza Umberto I/g) ?? []).length,
+    1,
+    'la piazza non compare una sola volta nel corpo visibile',
+  );
+});
+
+test('il disegno della Mappa è descritto, non decorativo, e non ha una didascalia visibile', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const svg = section.querySelector('figure.mappa__board > svg');
+  assert.ok(svg, 'manca il disegno della Mappa');
+  assert.equal(
+    svg.getAttribute('role'),
+    'group',
+    'il disegno non è un gruppo descritto: i punti sparirebbero dall’albero accessibile',
+  );
+  assert.ok(!svg.hasAttribute('aria-hidden'), 'il disegno è nascosto a chi non lo vede');
+
+  const titleId = svg.getAttribute('aria-labelledby');
+  const descId = svg.getAttribute('aria-describedby');
+  assert.ok(titleId, 'il disegno non ha un titolo accessibile');
+  assert.ok(descId, 'il disegno non ha una descrizione accessibile');
+  assert.ok(document.getElementById(titleId), 'manca il titolo del disegno');
+  assert.ok(document.getElementById(descId), 'manca la descrizione del disegno');
+  assert.match(
+    normalize(document.getElementById(descId)?.textContent),
+    /non in scala/,
+    'la descrizione non dice che il disegno è indicativo',
+  );
+  assert.ok(
+    [...svg.querySelectorAll('text')].some(
+      (node) => normalize(node.textContent) === 'Piazza Umberto I',
+    ),
+    'il disegno non nomina la piazza',
+  );
+
+  assert.equal(
+    section.querySelectorAll('figcaption').length,
+    0,
+    'la Mappa ha una didascalia visibile',
+  );
+  const outsideList = [...section.querySelectorAll('p')].filter(
+    (node) => !node.closest('.mappa__list'),
+  );
+  assert.equal(
+    outsideList.length,
+    0,
+    'la Mappa porta un testo visibile fuori dall’elenco',
+  );
+});
+
+test('il disegno della Mappa usa l’inchiostro dei fregi e i punti sono gli unici riempimenti', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  const ink = css.match(/\.mappa__ink\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(ink, 'manca la regola del disegno della Mappa');
+  assert.match(ink, /color:\s*var\(--ornament\)/, 'il disegno non usa l’oro tinto');
+  assert.match(ink, /fill:\s*none/, 'il disegno è riempito');
+  assert.match(ink, /stroke-width:\s*1\.6/, 'il disegno non ha il tratto unico');
+  assert.match(ink, /pointer-events:\s*none/, 'il disegno intercetta il puntatore dei punti');
+
+  const hit = css.match(/\.mappa__pin-hit\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(hit, /pointer-events:\s*all/, 'il bersaglio del punto non prende il puntatore');
+  const dot = css.match(/\.mappa__pin-dot\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(dot, /fill:\s*var\(--ink\)/, 'il punto non è in bordeaux');
+
+  assert.doesNotMatch(
+    css,
+    /\.mappa[^{]*\{[^}]*(?:box-shadow|border-radius)/s,
+    'la Mappa proietta un’ombra o arrotonda: il capitolo non è una scheda',
   );
 });

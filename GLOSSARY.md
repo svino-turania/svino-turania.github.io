@@ -1,6 +1,6 @@
 # Glossary
 
-The ten terms sVino uses, with the meaning the organisation gives them. Use
+The eleven terms sVino uses, with the meaning the organisation gives them. Use
 this vocabulary and these spellings in code, tests, issues and documents; do
 not drift to synonyms.
 
@@ -9,8 +9,8 @@ Spelling and capitalisation fixed by the project:
 - `sVino` — lower-case `s`, capital `V`. Never "Svino" or "SVino".
 - `II Edizione` in running prose; the printed lockup is `II EDIZIONE`.
 - `Turania (RI)` — with a space before the province abbreviation, exactly.
-- `Locandina`, `Cantina`, `Borgo`, `Programma`, `Mercatino` and
-  `Comitato Feste Turania` are capitalised when they name the event's own
+- `Locandina`, `Mappa del Borgo`, `Cantina`, `Borgo`, `Programma`, `Mercatino`
+  and `Comitato Feste Turania` are capitalised when they name the event's own
   artefact, venues and body.
 
 ## sVino
@@ -39,9 +39,13 @@ serve food, confirmed by the Comitato in November 2026; the page prose says
 only that the walk stops to eat, naming no vendor and no number of Cantine.
 Capitalise when
 naming the event's venues as a set (`le Cantine del Borgo`); the page prose
-uses the lower-case form (`nelle cantine del borgo`). Do not infer a number of
-Cantine, a menu, a vendor, a duration or a price from the term; none of those
-is decided.
+uses the lower-case form (`nelle cantine del borgo`).
+
+The Mappa del Borgo names a Cantina only when the Comitato has confirmed it,
+and prints what visitors find inside, naming the provider only where it is
+confirmed. It states no count of Cantine, no route order, no title the
+Comitato has not confirmed and no price. Do not infer a number, a menu, a
+vendor, a duration or a price from the term: none of those is decided.
 
 ## Borgo
 
@@ -78,6 +82,16 @@ story social formats. It is the reference for the page's facts and identity;
 the Cantina prose is the page's own and is not printed on the Locandina. The
 downloadable copy is a web-optimised RGB derivative of the Locandina, not the
 print PDF; the two must never disagree.
+
+## Mappa del Borgo
+
+The page's picture of the walk: a schematic drawing of the Borgo, with the
+Piazza, the church and the comune as its anchors and the confirmed Cantine as
+unlabelled dots. It is indicative and not to scale, and it is not the route:
+it marks places and claims no order between them. The Cantine are listed
+beside or beneath the drawing, and a dot only jumps to its entry. It names no
+count and no Cantina the Comitato has not confirmed. Capitalise when naming
+the chapter (`la Mappa del Borgo`); the page prose does not use the term.
 
 ## Turania (RI)
 

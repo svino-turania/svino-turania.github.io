@@ -1113,6 +1113,175 @@
       var(--text-shadow);
   }
 
+  /*
+   * La Mappa del Borgo is the walk's picture, between the Cantina prose and
+   * the Programma. Unlike the three illustrated chapters its drawing is
+   * content, not furniture: it names the piazza and two landmarks, and its
+   * dots are links to the list below. The chapter keeps the chapters' label
+   * register, their cream ground and their measure; the drawing is the same
+   * one gold hairline, and the dots are the page's only filled marks. No
+   * number and no route line: the register leaves the route undecided, so the
+   * drawing claims places, not an order. ADR-0021.
+   */
+  .mappa {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "label"
+      "stage"
+      "list";
+    margin-block-start: 0;
+    padding-inline: var(--chapter-pad);
+    /* The chapter follows the Cantina prose on the same cream, so it joins
+     * the prose one step closer than the chapters that follow a band. */
+    padding-block: var(--space-6) var(--space-7);
+  }
+
+  /* The printed-label register of the Programma, repeated verbatim. */
+  .mappa h2 {
+    grid-area: label;
+    color: var(--ink-muted);
+    font-family: var(--sans);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
+    margin-block-end: var(--space-3);
+  }
+
+  .mappa__board {
+    grid-area: stage;
+    margin: 0;
+    max-inline-size: 40rem;
+  }
+
+  .mappa__board svg {
+    inline-size: 100%;
+    block-size: auto;
+  }
+
+  /*
+   * The drawing shares the plates' one gold hairline. It is not decorative,
+   * so it keeps its accessible title and description, and its labels are the
+   * one place a plate carries text: the piazza's name and the two landmarks.
+   */
+  .mappa__ink {
+    color: var(--ornament);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+
+  .mappa__ink * {
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* The borgo's edge is the lighter line; the lanes and the buildings carry
+   * the one stroke, so the drawing keeps a hierarchy without a second ink. */
+  .mappa__edge {
+    stroke-width: 1;
+  }
+
+  .mappa__label {
+    fill: var(--ink-muted);
+    stroke: none;
+    font-family: var(--sans);
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    text-anchor: middle;
+  }
+
+  .mappa__label--place {
+    fill: var(--ink);
+    font-weight: 700;
+  }
+
+  /*
+   * The pins are the page's only filled marks and its first in-page links.
+   * The hit circle is transparent and generous, so the dot stays small on the
+   * drawing while the target stays usable on a phone; the ring and the dot
+   * never take the pointer themselves.
+   */
+  .mappa__pin-link {
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .mappa__pin-hit {
+    fill: transparent;
+    pointer-events: all;
+  }
+
+  .mappa__pin-ring {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.6;
+    pointer-events: none;
+  }
+
+  .mappa__pin-dot {
+    fill: var(--ink);
+    pointer-events: none;
+  }
+
+  .mappa__pin-link:hover .mappa__pin-ring,
+  .mappa__pin-link:focus-visible .mappa__pin-ring {
+    stroke: var(--link-hover);
+    stroke-width: 2.6;
+  }
+
+  /*
+   * The list is the drawing's legend and its readable form: the Cantina's
+   * name on the summary, what visitors find inside on the open entry. The
+   * page's prose serif carries both; the rule between entries is the page's
+   * gold hairline.
+   */
+  .mappa__list {
+    grid-area: list;
+    list-style: none;
+    margin: 0;
+    margin-block-start: var(--space-6);
+    padding: 0;
+    max-inline-size: var(--measure);
+  }
+
+  .mappa__entry + .mappa__entry {
+    border-block-start: 1px solid var(--rule);
+  }
+
+  .mappa__entry summary {
+    padding-block: var(--space-3);
+    color: var(--ink);
+    cursor: pointer;
+    font-family: var(--serif);
+    font-size: var(--step-1);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .mappa__entry summary::marker {
+    color: var(--ink-muted);
+  }
+
+  /* The summary is the page's other in-page control; it takes the links'
+   * indicator, never a custom shape. */
+  .mappa__entry summary:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  .mappa__entry p {
+    margin: 0;
+    padding-block-end: var(--space-3);
+    color: var(--ink-muted);
+    font-family: var(--serif);
+    font-size: var(--step-0);
+    line-height: 1.5;
+  }
+
   /* --------------------------------------------------------- banda finale */
   /*
    * One bordeaux band closes the page. Cream carries the text and gold-light
@@ -1524,6 +1693,27 @@
     }
 
     /*
+     * La Mappa opens as the walk's plate: the drawing on the left and its
+     * list on the right, so a dot can be named without scrolling past the
+     * drawing. On the phone the list follows the drawing.
+     */
+    .mappa {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+      grid-template-areas:
+        "label label"
+        "stage list";
+      align-items: start;
+    }
+
+    .mappa__board {
+      max-inline-size: none;
+    }
+
+    .mappa__list {
+      margin-block-start: 0;
+    }
+
+    /*
      * The gallery's three portraits are staggered: the middle one drops one
      * spacing step, so the photo essay has a moving baseline instead of a
      * ruler. The phone composition is the 37 rem container query and never sees
@@ -1849,6 +2039,29 @@
       }
 
       .chapter.mercatino > p {
+        animation: section-rise linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 30% entry 65%;
+      }
+
+      /*
+       * La Mappa prints after the Cantina prose and before the Programma: the
+       * label inks, the drawing is inked across, the list rises. It reuses
+       * ink-in and section-rise, so the motion vocabulary gains no word.
+       */
+      .chapter.mappa > h2 {
+        animation: ink-in linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 30%;
+      }
+
+      .chapter.mappa > .mappa__board {
+        animation: ink-in linear var(--motion-scroll) both;
+        animation-timeline: view();
+        animation-range: entry 10% cover 40%;
+      }
+
+      .chapter.mappa > .mappa__list {
         animation: section-rise linear var(--motion-scroll) both;
         animation-timeline: view();
         animation-range: entry 30% entry 65%;
