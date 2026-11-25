@@ -310,7 +310,9 @@ their rule from the left edge. The two typographic actions also lead their
 arrows by 2 px, as if the label were picked up. Each action settles 1 px while
 pressed. The Mappa's dots are the page's only other controls: a dot re-inks its
 ring on hover and focus, and opens its Cantina's dialog; the panel's `Chiudi`
-is the visible way back. The panel is laid on the page as it opens — it comes
+is the visible way back. On a phone the browser's own blue tap flash is turned
+off and the panel wears no browser ring, so a touch answers in the page's ink.
+The panel is laid on the page as it opens — it comes
 up a few pixels and inks in while the bordeaux scrim darkens — and settles
 back as it fades when it closes; under reduced motion it is simply there. The
 plates and the photographs remain furniture, not controls.

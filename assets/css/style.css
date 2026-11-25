@@ -302,7 +302,14 @@
     box-sizing: border-box;
   }
 
+  /*
+   * A touch paints the phone's own flash over whatever it lands on — on
+   * Android a blue square borrowed from the system theme. The page has no
+   * such blue: a control answers with its own mark, and the Mappa with the
+   * dialog itself.
+   */
   html {
+    -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
   }
 

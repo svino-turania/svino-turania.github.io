@@ -6459,6 +6459,17 @@ test('il dialogo della Mappa è carta di crema con filo d’oro, senza ombra né
     'il pannello indossa l’indicatore di focus del browser',
   );
 
+  /*
+   * A tap paints the phone's own flash over the control it lands on — on
+   * Android a blue square. The page has no blue: a touch answers with the
+   * control's mark and with the dialog.
+   */
+  assert.match(
+    css,
+    /(?:html|:root)\s*\{[^}]*-webkit-tap-highlight-color:\s*transparent/s,
+    'il tocco accende il lampo blu del browser',
+  );
+
   const backdrop = ruleBodyFor(css, '.mappa__dialog::backdrop');
   assert.match(
     backdrop,
