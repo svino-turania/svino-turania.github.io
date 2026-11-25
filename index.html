@@ -277,93 +277,66 @@
 
       <!--
         MAPPA DEL BORGO: la forma visiva della passeggiata, fra la prosa delle
-        Cantine e il Programma. Il disegno è indicativo e non in scala: la
-        piazza, la chiesa e il comune sono gli ancoraggi; le cantine sono
-        punti, senza numero, perché il percorso non è deciso. Le posizioni
-        sono segnaposto finché il Comitato non consegna lo schizzo con le
-        posizioni vere; il legame fra un punto e la sua voce è l'id della
-        cantina. Il capitolo pubblica solo le cantine che il Comitato ha
-        confermato, senza numero e senza titoli non confermati. Vedi ADR-0021.
+        Cantine e il Programma. Il piano è quello reale del borgo, con la
+        piazza, la chiesa e le due vie verificate come etichette; il comune non
+        è etichettato. Le cantine sono punti, senza numero, perché il percorso
+        non è deciso. Le posizioni sono segnaposto finché il Comitato non
+        consegna lo schizzo con le posizioni vere; il legame fra un punto e la
+        sua voce è l'id della cantina. Il capitolo pubblica solo le cantine che
+        il Comitato ha confermato, senza numero e senza titoli non confermati.
       -->
       <section class="mappa chapter" id="mappa" aria-labelledby="mappa-title">
         <h2 id="mappa-title">LA MAPPA DEL BORGO</h2>
 
         <!--
-          DISEGNO: indicativo, non in scala. Un solo tratto in --ornament per
-          il borgo, le vie e i tre ancoraggi; i punti delle cantine sono gli
-          unici riempimenti, in bordeaux. Nessun numero e nessuna linea di
-          percorso: il registro delle cantine lascia il percorso indeciso. Il
-          <desc> dice a chi non vede il disegno che è indicativo.
+          DISEGNO: il piano reale del borgo, generato dalla base catastale e
+          servito come immagine: i fabbricati, le strade e la piazza sono nel
+          file, non nel markup. Le etichette sono testo HTML posato sul piano,
+          così usano i caratteri e la crema della pagina e si modificano con il
+          contenuto. Niente scala, griglia, cornice o didascalia: solo una N
+          discreta in alto a destra. I punti delle cantine sono gli unici
+          riempimenti bordeaux e restano segnaposto finché il Comitato non
+          consegna lo schizzo con le posizioni vere.
 
-          COME SI SPOSTA UN PUNTO: cx e cy, ripetuti su hit, ring e dot dello
-          stesso punto. COME SI AGGIUNGE UNA CANTINA: un <a> qui e una voce
-          nell'elenco, con lo stesso id.
+          COME SI SPOSTA UN PUNTO: --x e --y in percentuale, ripetuti sul
+          punto e sull'etichetta. COME SI AGGIUNGE UNA CANTINA: un <a> qui e
+          una voce nell'elenco, con lo stesso id.
         -->
         <figure class="mappa__board">
-          <svg
-            viewBox="36 38 400 300"
-            role="group"
-            aria-labelledby="mappa-drawing-title"
-            aria-describedby="mappa-drawing-desc"
-          >
-            <title id="mappa-drawing-title">LA MAPPA DEL BORGO di Turania</title>
-            <desc id="mappa-drawing-desc">Disegno indicativo e non in scala del borgo: la piazza, la chiesa e il comune; le cantine sono segnate con un punto.</desc>
-            <g class="mappa__ink">
-              <path class="mappa__edge" d="M 96 286 C 58 250 44 194 62 148 C 80 102 120 70 170 58 C 222 46 278 50 324 70 C 370 90 406 126 416 174 C 426 222 406 266 368 290 C 324 318 262 324 208 312 C 158 301 120 300 96 286 Z" />
-              <path class="mappa__lane" d="M 104 168 C 148 150 190 138 236 142 C 282 146 326 152 372 166" />
-              <path class="mappa__lane" d="M 150 268 C 176 242 196 218 214 190" />
-              <path class="mappa__lane" d="M 302 262 C 298 238 288 210 272 186" />
-              <path class="mappa__lane" d="M 232 96 C 240 118 248 136 250 152" />
-              <path class="mappa__lane" d="M 356 214 C 372 214 388 210 404 202" />
-              <rect class="mappa__building" x="96" y="150" width="22" height="16" />
-              <rect class="mappa__building" x="104" y="200" width="18" height="14" />
-              <rect class="mappa__building" x="250" y="54" width="22" height="14" />
-              <rect class="mappa__building" x="362" y="112" width="18" height="14" />
-              <rect class="mappa__building" x="270" y="286" width="20" height="14" />
-              <rect class="mappa__building" x="140" y="296" width="18" height="14" />
-              <rect class="mappa__piazza" x="206" y="150" width="78" height="42" />
-              <rect class="mappa__piazza-inner" x="213" y="157" width="64" height="28" />
-              <rect class="mappa__building" x="146" y="98" width="38" height="26" />
-              <path class="mappa__cross" d="M 165 88 L 165 76 M 159 82 L 171 82" />
-              <rect class="mappa__building" x="330" y="212" width="42" height="28" />
-              <path class="mappa__flag" d="M 372 212 L 372 194 L 386 194 L 386 203 L 372 203" />
-              <text class="mappa__label mappa__label--place" x="245" y="212">Piazza Umberto I</text>
-              <text class="mappa__label" x="165" y="68">la chiesa</text>
-              <text class="mappa__label" x="351" y="264">il comune</text>
-            </g>
-            <g class="mappa__pins">
-              <a class="mappa__pin-link" href="#cantina-paci" aria-label="Andrea Paci">
-                <circle class="mappa__pin-hit" cx="120" cy="250" r="26" />
-                <circle class="mappa__pin-ring" cx="120" cy="250" r="13" />
-                <circle class="mappa__pin-dot" cx="120" cy="250" r="7.5" />
-              </a>
-              <a class="mappa__pin-link" href="#cantina-clara" aria-label="Clara">
-                <circle class="mappa__pin-hit" cx="322" cy="78" r="26" />
-                <circle class="mappa__pin-ring" cx="322" cy="78" r="13" />
-                <circle class="mappa__pin-dot" cx="322" cy="78" r="7.5" />
-              </a>
-              <a class="mappa__pin-link" href="#cantina-vale" aria-label="Vale Leoni">
-                <circle class="mappa__pin-hit" cx="392" cy="210" r="26" />
-                <circle class="mappa__pin-ring" cx="392" cy="210" r="13" />
-                <circle class="mappa__pin-dot" cx="392" cy="210" r="7.5" />
-              </a>
-              <a class="mappa__pin-link" href="#cantina-betta" aria-label="Betta e Simone">
-                <circle class="mappa__pin-hit" cx="196" cy="292" r="26" />
-                <circle class="mappa__pin-ring" cx="196" cy="292" r="13" />
-                <circle class="mappa__pin-dot" cx="196" cy="292" r="7.5" />
-              </a>
-              <a class="mappa__pin-link" href="#cantina-raffaelli" aria-label="Raffaelli (la Foca)">
-                <circle class="mappa__pin-hit" cx="272" cy="116" r="26" />
-                <circle class="mappa__pin-ring" cx="272" cy="116" r="13" />
-                <circle class="mappa__pin-dot" cx="272" cy="116" r="7.5" />
-              </a>
-              <a class="mappa__pin-link" href="#cantina-li-meroli" aria-label="Li Meroli">
-                <circle class="mappa__pin-hit" cx="338" cy="300" r="26" />
-                <circle class="mappa__pin-ring" cx="338" cy="300" r="13" />
-                <circle class="mappa__pin-dot" cx="338" cy="300" r="7.5" />
-              </a>
-            </g>
-          </svg>
+          <div class="mappa__drawing">
+            <img
+              class="mappa__plan"
+              src="assets/img/mappa-del-borgo.svg"
+              width="546"
+              height="792"
+              loading="lazy"
+              decoding="async"
+              alt="Pianta del borgo di Turania: i fabbricati, le strade e la piazza. Le posizioni delle cantine confermate sono indicative."
+            >
+            <span class="mappa__label mappa__label--place" style="--x: 43.2%; --y: 43.7%">Piazza Umberto I</span>
+            <span class="mappa__label" style="--x: 50.2%; --y: 51.8%">la chiesa</span>
+            <span class="mappa__label mappa__label--street" style="--x: 45.1%; --y: 32.8%">SP 37</span>
+            <span class="mappa__label mappa__label--street" style="--x: 38.1%; --y: 13.6%">Via Turano</span>
+            <span class="mappa__north" aria-hidden="true">N</span>
+            <a class="mappa__dot" href="#cantina-paci" aria-label="Andrea Paci" style="--x: 26%; --y: 62%">
+              <span class="mappa__dot-mark" aria-hidden="true"></span>
+            </a>
+            <a class="mappa__dot" href="#cantina-clara" aria-label="Clara" style="--x: 72%; --y: 20%">
+              <span class="mappa__dot-mark" aria-hidden="true"></span>
+            </a>
+            <a class="mappa__dot" href="#cantina-vale" aria-label="Vale Leoni" style="--x: 84%; --y: 56%">
+              <span class="mappa__dot-mark" aria-hidden="true"></span>
+            </a>
+            <a class="mappa__dot" href="#cantina-betta" aria-label="Betta e Simone" style="--x: 34%; --y: 82%">
+              <span class="mappa__dot-mark" aria-hidden="true"></span>
+            </a>
+            <a class="mappa__dot" href="#cantina-raffaelli" aria-label="Raffaelli (la Foca)" style="--x: 62%; --y: 30%">
+              <span class="mappa__dot-mark" aria-hidden="true"></span>
+            </a>
+            <a class="mappa__dot" href="#cantina-li-meroli" aria-label="Li Meroli" style="--x: 70%; --y: 74%">
+              <span class="mappa__dot-mark" aria-hidden="true"></span>
+            </a>
+          </div>
         </figure>
 
         <ul class="mappa__list">

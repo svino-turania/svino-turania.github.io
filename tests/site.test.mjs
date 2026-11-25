@@ -5628,10 +5628,11 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
 
 /*
  * La Mappa del Borgo: the walk's picture, between the Cantina prose and the
- * Programma. Only the six Comitato-confirmed rows; no count, no numbered
- * pins, no route line, no unconfirmed title or provider; every dot and every
- * entry share one id set; the drawing is a labelled svg with a title and a
- * description. ADR-0021.
+ * Programma. The drawing is the real plan, served as an image, with the four
+ * place labels and the dots as HTML over it. Only the six Comitato-confirmed
+ * rows; no count, no numbered pins, no route line, no unconfirmed title or
+ * provider; every dot and every entry share one id set. "SP 37" is a verified
+ * street name and the chapter's only permitted digit.
  */
 const MAPPA_ENTRIES = Object.freeze([
   {
@@ -5708,27 +5709,49 @@ test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le sei canti
   });
 });
 
-test('ogni punto della Mappa porta alla sua voce e nessun punto porta un numero', () => {
+test('ogni punto della Mappa è un link posizionato alla sua voce e nessun punto porta un numero', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
-  const pins = [...section.querySelectorAll('svg a.mappa__pin-link')];
+  const drawing = section.querySelector('.mappa__drawing');
+  assert.ok(drawing, 'manca il riquadro posizionato del disegno');
+  const pins = [...drawing.querySelectorAll('a.mappa__dot')];
   assert.equal(pins.length, MAPPA_ENTRIES.length, 'la Mappa non ha un punto per cantina');
   assert.deepEqual(
     pins.map((pin) => pin.getAttribute('href')),
     MAPPA_ENTRIES.map((entry) => `#${entry.id}`),
     'i punti non portano alle voci confermate, in ordine',
   );
-  for (const pin of pins) {
-    assert.ok(
-      (pin.getAttribute('aria-label') ?? '').trim(),
-      'un punto non ha un nome accessibile',
+
+  const spots = [];
+  pins.forEach((pin, index) => {
+    assert.equal(
+      normalize(accessibleName(document, pin)),
+      MAPPA_ENTRIES[index].name,
+      `il punto ${MAPPA_ENTRIES[index].id} non ha il nome accessibile della cantina`,
     );
     assert.equal(
-      pin.querySelectorAll('text').length,
-      0,
+      normalize(pin.textContent),
+      '',
       'un punto porta un numero o un testo: il percorso non è deciso',
     );
-  }
+    const style = pin.getAttribute('style') ?? '';
+    const x = style.match(/--x:\s*([\d.]+%)/)?.[1];
+    const y = style.match(/--y:\s*([\d.]+%)/)?.[1];
+    assert.ok(x && y, `il punto ${MAPPA_ENTRIES[index].id} non è posizionato in percentuale`);
+    const px = Number.parseFloat(x);
+    const py = Number.parseFloat(y);
+    assert.ok(
+      px > 0 && px < 100 && py > 0 && py < 100,
+      `il punto ${MAPPA_ENTRIES[index].id} cade fuori dal piano`,
+    );
+    spots.push(`${x}/${y}`);
+  });
+  assert.equal(
+    new Set(spots).size,
+    MAPPA_ENTRIES.length,
+    'due punti cadono sullo stesso posto: le posizioni sono segnaposto distinti',
+  );
+
   for (const entry of MAPPA_ENTRIES) {
     assert.ok(document.getElementById(entry.id), `manca la voce ${entry.id}`);
     assert.equal(
@@ -5744,7 +5767,19 @@ test('la Mappa non conta, non disegna un percorso e non nomina ciò che non è c
   const section = document.querySelector('section.mappa');
   const text = normalize(section.textContent);
 
-  assert.doesNotMatch(text, /\d/, 'la Mappa porta un numero: una conta o un numero di punto');
+  // "SP 37" è il nome verificato di una strada, l'unico numero ammesso nel
+  // capitolo: tolto quello, non resta alcuna cifra, né una conta né un numero
+  // di punto.
+  assert.equal(
+    (text.match(/SP\s*37/g) ?? []).length,
+    1,
+    'SP 37 non compare una sola volta come nome della strada',
+  );
+  assert.doesNotMatch(
+    text.replace(/SP\s*37/g, ''),
+    /\d/,
+    'la Mappa porta un numero: una conta o un numero di punto',
+  );
   assert.doesNotMatch(text, /Quissi/i, 'la Mappa nomina un titolo non confermato');
   for (const absent of [
     'Nonna Lisa',
@@ -5773,40 +5808,98 @@ test('la Mappa non conta, non disegna un percorso e non nomina ciò che non è c
   );
 });
 
-test('il disegno della Mappa è descritto, non decorativo, e non ha una didascalia visibile', () => {
+test('il piano della Mappa è un’immagine dichiarata, caricata con calma e descritta senza conta', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
-  const svg = section.querySelector('figure.mappa__board > svg');
-  assert.ok(svg, 'manca il disegno della Mappa');
+  const board = section.querySelector('figure.mappa__board');
+  assert.ok(board, 'manca il riquadro del disegno');
+  const drawing = board.querySelector('.mappa__drawing');
+  assert.ok(drawing, 'manca il riquadro posizionato del piano');
+  const image = drawing.querySelector('img');
+  assert.ok(image, 'manca l’immagine del piano');
   assert.equal(
-    svg.getAttribute('role'),
-    'group',
-    'il disegno non è un gruppo descritto: i punti sparirebbero dall’albero accessibile',
+    image.getAttribute('src'),
+    'assets/img/mappa-del-borgo.svg',
+    'l’immagine non punta al piano spedito',
   );
-  assert.ok(!svg.hasAttribute('aria-hidden'), 'il disegno è nascosto a chi non lo vede');
+  assert.equal(image.getAttribute('width'), '546', 'manca la larghezza intrinseca del piano');
+  assert.equal(image.getAttribute('height'), '792', 'manca l’altezza intrinseca del piano');
+  assert.equal(image.getAttribute('loading'), 'lazy', 'il piano non carica con calma');
+  assert.equal(image.getAttribute('decoding'), 'async', 'il piano non decodifica in modo asincrono');
 
-  const titleId = svg.getAttribute('aria-labelledby');
-  const descId = svg.getAttribute('aria-describedby');
-  assert.ok(titleId, 'il disegno non ha un titolo accessibile');
-  assert.ok(descId, 'il disegno non ha una descrizione accessibile');
-  assert.ok(document.getElementById(titleId), 'manca il titolo del disegno');
-  assert.ok(document.getElementById(descId), 'manca la descrizione del disegno');
+  const alt = normalize(image.getAttribute('alt') ?? '');
+  assert.ok(alt.length > 0, 'il piano non ha una descrizione');
+  assert.doesNotMatch(alt, /\d/, 'l’alt del piano porta un numero');
+  assert.doesNotMatch(alt, /Piazza Umberto I/i, 'l’alt nomina la piazza');
+  assert.match(alt, /\bpiazza\b/i, 'l’alt non descrive la piazza');
   assert.match(
-    normalize(document.getElementById(descId)?.textContent),
-    /non in scala/,
-    'la descrizione non dice che il disegno è indicativo',
+    alt,
+    /indicativ|segnapost/i,
+    'l’alt non dice che le posizioni delle cantine sono indicative',
+  );
+
+  assert.equal(
+    section.querySelectorAll('figure.mappa__board > svg, .mappa__drawing > svg').length,
+    0,
+    'il vecchio disegno schematico è ancora nella Mappa',
+  );
+});
+
+test('le etichette della Mappa sono testo HTML: la piazza una volta, le vie lungo le vie, il comune muto', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const drawing = section.querySelector('.mappa__drawing');
+  assert.ok(drawing, 'manca il riquadro posizionato del piano');
+
+  const labels = [...drawing.querySelectorAll('.mappa__label')];
+  assert.deepEqual(
+    labels.map((label) => normalize(label.textContent)),
+    ['Piazza Umberto I', 'la chiesa', 'SP 37', 'Via Turano'],
+    'le etichette visibili non sono quelle del piano',
   );
   assert.ok(
-    [...svg.querySelectorAll('text')].some(
-      (node) => normalize(node.textContent) === 'Piazza Umberto I',
-    ),
-    'il disegno non nomina la piazza',
+    labels.every((label) => label.querySelector('svg, img, text') === null),
+    'un’etichetta è disegnata invece di essere testo HTML',
   );
+  assert.equal(
+    (normalize(section.textContent).match(/Piazza Umberto I/g) ?? []).length,
+    1,
+    'la piazza non compare una sola volta nel corpo visibile',
+  );
+
+  // Le due vie portano il registro di strada e corrono lungo la loro via; la
+  // piazza e la chiesa restano dritte.
+  const streets = labels.filter((label) =>
+    label.classList.contains('mappa__label--street'),
+  );
+  assert.deepEqual(
+    streets.map((label) => normalize(label.textContent)),
+    ['SP 37', 'Via Turano'],
+    'le due vie non portano il registro di strada',
+  );
+  assert.ok(
+    !normalize(section.textContent).includes('il comune'),
+    'la Mappa etichetta il comune',
+  );
+
+  const north = drawing.querySelector('.mappa__north');
+  assert.ok(north, 'manca il segno del nord');
+  assert.equal(
+    north.getAttribute('aria-hidden'),
+    'true',
+    'il nord non è nascosto a chi non lo vede',
+  );
+  assert.equal(normalize(north.textContent), 'N', 'il segno del nord non è una N');
 
   assert.equal(
     section.querySelectorAll('figcaption').length,
     0,
     'la Mappa ha una didascalia visibile',
+  );
+  assert.equal(
+    section.querySelectorAll('.mappa__scale, .mappa__grid, .mappa__frame').length,
+    0,
+    'la Mappa porta una scala, una griglia o una cornice',
   );
   const outsideList = [...section.querySelectorAll('p')].filter(
     (node) => !node.closest('.mappa__list'),
@@ -5814,29 +5907,119 @@ test('il disegno della Mappa è descritto, non decorativo, e non ha una didascal
   assert.equal(
     outsideList.length,
     0,
-    'la Mappa porta un testo visibile fuori dall’elenco',
+    'la Mappa porta un testo visibile fuori dal piano e dall’elenco',
   );
 });
 
-test('il disegno della Mappa usa l’inchiostro dei fregi e i punti sono gli unici riempimenti', () => {
+test('il riquadro della Mappa ha il rapporto del piano, etichette con alone e punti da 44 px', () => {
   const css = stripCssComments(servedStylesheet());
 
-  const ink = css.match(/\.mappa__ink\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.ok(ink, 'manca la regola del disegno della Mappa');
-  assert.match(ink, /color:\s*var\(--ornament\)/, 'il disegno non usa l’oro tinto');
-  assert.match(ink, /fill:\s*none/, 'il disegno è riempito');
-  assert.match(ink, /stroke-width:\s*1\.6/, 'il disegno non ha il tratto unico');
-  assert.match(ink, /pointer-events:\s*none/, 'il disegno intercetta il puntatore dei punti');
+  const drawing = ruleBodyFor(css, '.mappa__drawing');
+  assert.match(drawing, /position:\s*relative/, 'il riquadro non àncora le etichette e i punti');
+  assert.match(
+    drawing,
+    /aspect-ratio:\s*273\s*\/\s*396/,
+    'il riquadro non ha il rapporto del piano (273:396)',
+  );
 
-  const hit = css.match(/\.mappa__pin-hit\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.match(hit, /pointer-events:\s*all/, 'il bersaglio del punto non prende il puntatore');
-  const dot = css.match(/\.mappa__pin-dot\s*\{([^}]*)\}/s)?.[1] ?? '';
-  assert.match(dot, /fill:\s*var\(--ink\)/, 'il punto non è in bordeaux');
+  const plan = ruleBodyFor(css, '.mappa__plan');
+  assert.match(plan, /(?:inline-size|width):\s*100%/, 'il piano non riempie il riquadro');
+  assert.match(plan, /(?:block-size|height):\s*auto/, 'il piano non conserva il rapporto');
+  assert.match(
+    plan,
+    /(?:max-inline-size|max-width):\s*100%/,
+    'il piano può traboccare dal riquadro',
+  );
 
-  assert.doesNotMatch(
+  const label = ruleBodyFor(css, '.mappa__label');
+  assert.match(label, /position:\s*absolute/, 'le etichette non sono posate sul piano');
+  assert.match(
+    label,
+    /text-shadow:[^;]*var\(--surface\)/s,
+    'le etichette non hanno l’alone di crema',
+  );
+  assert.match(label, /pointer-events:\s*none/, 'le etichette intercettano i punti');
+
+  const street = ruleBodyFor(css, '.mappa__label--street');
+  assert.match(street, /rotate\(\s*-?90deg\s*\)/, 'le vie non corrono lungo la loro via');
+
+  const dot = ruleBodyFor(css, '.mappa__dot');
+  assert.match(dot, /position:\s*absolute/, 'i punti non sono posati sul piano');
+  assert.match(dot, /inline-size:\s*44px/, 'il bersaglio del punto non è largo 44 px');
+  assert.match(dot, /block-size:\s*44px/, 'il bersaglio del punto non è alto 44 px');
+  assert.match(dot, /border-radius:\s*50%/, 'il bersaglio del punto non è tondo');
+
+  const mark = ruleBodyFor(css, '.mappa__dot-mark');
+  assert.match(mark, /border-radius:\s*50%/, 'l’anello del punto non è tondo');
+  assert.match(
+    mark,
+    /(?:border[^;]*var\(--ink\)|color:\s*var\(--ink\))/,
+    'l’anello del punto non è in bordeaux',
+  );
+
+  const inner = css.match(/\.mappa__dot-mark::after\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(inner, /background:\s*var\(--ink\)/, 'il punto non è un riempimento bordeaux');
+  assert.match(inner, /border-radius:\s*50%/, 'il punto non è tondo');
+
+  assert.match(
     css,
-    /\.mappa[^{]*\{[^}]*(?:box-shadow|border-radius)/s,
-    'la Mappa proietta un’ombra o arrotonda: il capitolo non è una scheda',
+    /\.mappa__dot:hover\s+\.mappa__dot-mark[^{]*\{[^}]*border-color:\s*var\(--link-hover\)/s,
+    'il punto non risponde al passaggio del puntatore',
+  );
+  assert.match(
+    css,
+    /\.mappa__dot:focus-visible\s*\{[^}]*outline/s,
+    'il punto non prende l’indicatore di focus della pagina',
+  );
+
+  for (const selector of ['.mappa', '.mappa__board', '.mappa__drawing']) {
+    assert.doesNotMatch(
+      ruleBodyFor(css, selector),
+      /box-shadow|border-radius/,
+      `la Mappa proietta un’ombra o arrotonda: ${selector} non è una scheda`,
+    );
+  }
+});
+
+test('la Mappa usa tutta la misura sul telefono ed è centrata e limitata a 40 rem da tablet in su', () => {
+  const css = stripCssComments(servedStylesheet());
+  const board = ruleBodyFor(css, '.mappa__board');
+  assert.doesNotMatch(
+    board,
+    /max-inline-size:\s*\d/,
+    'la Mappa è già limitata sul telefono',
+  );
+  assert.match(
+    board,
+    /(?:inline-size|width):\s*100%|max-inline-size:\s*none/,
+    'la Mappa non usa la misura del capitolo sul telefono',
+  );
+
+  const desktop = atRuleBlocks(css, '@media\\s*\\(min-width:\\s*64rem\\)\\s*\\{');
+  assert.equal(desktop.length, 1, 'manca il blocco desktop');
+  const block = css.slice(desktop[0].start, desktop[0].end);
+  const wide = block.match(/\.mappa__board\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.match(
+    wide,
+    /max-inline-size:\s*40rem/,
+    'il disegno non è limitato a 40 rem da tablet in su',
+  );
+  assert.match(
+    wide,
+    /margin-inline:\s*auto/,
+    'il disegno non è centrato da tablet in su',
+  );
+  const mappa = block.match(/\.mappa\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.doesNotMatch(
+    mappa,
+    /minmax\(0,\s*1fr\)\s+minmax/,
+    'la Mappa tiene ancora la colonna dell’elenco',
+  );
+
+  const reveals = viewTimelines(css);
+  assert.ok(
+    reveals.includes('.chapter.mappa > .mappa__board'),
+    'il riquadro del disegno non si rivela',
   );
 });
 

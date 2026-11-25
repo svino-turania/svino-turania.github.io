@@ -1115,13 +1115,14 @@
 
   /*
    * La Mappa del Borgo is the walk's picture, between the Cantina prose and
-   * the Programma. Unlike the three illustrated chapters its drawing is
-   * content, not furniture: it names the piazza and two landmarks, and its
-   * dots are links to the list below. The chapter keeps the chapters' label
-   * register, their cream ground and their measure; the drawing is the same
-   * one gold hairline, and the dots are the page's only filled marks. No
-   * number and no route line: the register leaves the route undecided, so the
-   * drawing claims places, not an order. ADR-0021.
+   * the Programma. Its drawing is the real plan, served as an image exported
+   * from the cadastral base; the labels, the north mark and the dots are HTML
+   * over it, so they take the page's type and ink. The chapter keeps the
+   * chapters' label register and its cream ground. On the phone the drawing
+   * takes the chapter's full measure; from 64 rem it is capped and centred.
+   * No number and no route line: the register leaves the route undecided, so
+   * the drawing claims places, not an order. The dots stay placeholder links
+   * until the Comitato supplies the sketch.
    */
   .mappa {
     display: grid;
@@ -1149,88 +1150,137 @@
     margin-block-end: var(--space-3);
   }
 
+  /*
+   * The drawing box carries the plan's ratio, so the chapter reserves the
+   * plan's height before the image arrives. The phone uses the chapter's full
+   * measure; the 40 rem cap and the centring live in the 64 rem block.
+   */
   .mappa__board {
     grid-area: stage;
+    inline-size: 100%;
+    max-inline-size: none;
     margin: 0;
-    max-inline-size: 40rem;
   }
 
-  .mappa__board svg {
+  .mappa__drawing {
+    position: relative;
+    aspect-ratio: 273 / 396;
+    /* The labels and dots are placed by percentage against this box; clipping
+     * keeps a long label from pushing the page sideways at 200% text zoom. */
+    overflow: clip;
+  }
+
+  .mappa__plan {
+    display: block;
     inline-size: 100%;
     block-size: auto;
+    max-inline-size: 100%;
   }
 
   /*
-   * The drawing shares the plates' one gold hairline. It is not decorative,
-   * so it keeps its accessible title and description, and its labels are the
-   * one place a plate carries text: the piazza's name and the two landmarks.
+   * The labels are the page's text over the drawing: the piazza in the serif
+   * register, the church and the two streets in the sans register. A cream
+   * halo keeps them legible over the plan without a plate of their own. The
+   * two street names run along their streets, bottom to top.
    */
-  .mappa__ink {
-    color: var(--ornament);
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.6;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    pointer-events: none;
-  }
-
-  .mappa__ink * {
-    vector-effect: non-scaling-stroke;
-  }
-
-  /* The borgo's edge is the lighter line; the lanes and the buildings carry
-   * the one stroke, so the drawing keeps a hierarchy without a second ink. */
-  .mappa__edge {
-    stroke-width: 1;
-  }
-
   .mappa__label {
-    fill: var(--ink-muted);
-    stroke: none;
+    position: absolute;
+    inset-block-start: var(--y);
+    inset-inline-start: var(--x);
+    transform: translate(-50%, -50%);
+    color: var(--ink-muted);
     font-family: var(--sans);
-    font-size: 15px;
-    letter-spacing: 0.02em;
-    text-anchor: middle;
+    font-size: var(--step--1);
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+    text-shadow:
+      0 0 3px var(--surface),
+      0 0 6px var(--surface),
+      0 0 10px var(--surface);
   }
 
   .mappa__label--place {
-    fill: var(--ink);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: var(--step-1);
     font-weight: 700;
   }
 
+  .mappa__label--street {
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    transform: translate(-50%, -50%) rotate(-90deg);
+  }
+
+  /* The north mark is a quiet note in the top-right: no scale, no grid. */
+  .mappa__north {
+    position: absolute;
+    inset-block-start: 2%;
+    inset-inline-end: 3%;
+    color: var(--ink-muted);
+    font-family: var(--sans);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    pointer-events: none;
+    text-shadow:
+      0 0 3px var(--surface),
+      0 0 6px var(--surface);
+  }
+
   /*
-   * The pins are the page's only filled marks and its first in-page links.
-   * The hit circle is transparent and generous, so the dot stays small on the
-   * drawing while the target stays usable on a phone; the ring and the dot
-   * never take the pointer themselves.
+   * The dots are the page's only filled marks and its in-page links to the
+   * entries. The 44 px link is transparent and generous, so the target stays
+   * usable on a phone while the ring and the dot stay small on the plan. The
+   * ring and the dot never take the pointer themselves.
    */
-  .mappa__pin-link {
+  .mappa__dot {
+    position: absolute;
+    inset-block-start: var(--y);
+    inset-inline-start: var(--x);
+    display: block;
+    inline-size: 44px;
+    block-size: 44px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
     color: var(--ink);
     cursor: pointer;
   }
 
-  .mappa__pin-hit {
-    fill: transparent;
-    pointer-events: all;
+  .mappa__dot:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: -3px;
   }
 
-  .mappa__pin-ring {
-    fill: none;
-    stroke: var(--ink);
-    stroke-width: 1.6;
+  .mappa__dot-mark {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    display: block;
+    inline-size: 13px;
+    block-size: 13px;
+    transform: translate(-50%, -50%);
+    border: 1.6px solid var(--ink);
+    border-radius: 50%;
     pointer-events: none;
   }
 
-  .mappa__pin-dot {
-    fill: var(--ink);
-    pointer-events: none;
+  .mappa__dot-mark::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    inline-size: 7.5px;
+    block-size: 7.5px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: var(--ink);
   }
 
-  .mappa__pin-link:hover .mappa__pin-ring,
-  .mappa__pin-link:focus-visible .mappa__pin-ring {
-    stroke: var(--link-hover);
-    stroke-width: 2.6;
+  .mappa__dot:hover .mappa__dot-mark,
+  .mappa__dot:focus-visible .mappa__dot-mark {
+    border-color: var(--link-hover);
   }
 
   /*
@@ -1693,24 +1743,13 @@
     }
 
     /*
-     * La Mappa opens as the walk's plate: the drawing on the left and its
-     * list on the right, so a dot can be named without scrolling past the
-     * drawing. On the phone the list follows the drawing.
+     * From the tablet and desktop compositions the drawing is capped at about
+     * 40 rem and centred, so the plan reads as one object. The entries follow
+     * it in the chapter measure; there is no list column.
      */
-    .mappa {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
-      grid-template-areas:
-        "label label"
-        "stage list";
-      align-items: start;
-    }
-
     .mappa__board {
-      max-inline-size: none;
-    }
-
-    .mappa__list {
-      margin-block-start: 0;
+      max-inline-size: 40rem;
+      margin-inline: auto;
     }
 
     /*
