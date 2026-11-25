@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
 import { inflateSync } from 'node:zlib';
-import { parseHTML } from 'linkedom';
+import { DOMParser, parseHTML } from 'linkedom';
 
 const ROOT = resolve(import.meta.dirname, '..');
 
@@ -197,6 +197,7 @@ const SHIPPED_IMAGE_FILES = Object.freeze([
   'assets/img/cartolina-turania-piazza-800.webp',
   'assets/img/cartolina-turania-piazza-vasca-800.jpg',
   'assets/img/cartolina-turania-piazza-vasca-800.webp',
+  'assets/img/mappa-del-borgo.svg',
   'assets/img/svino-botte-896.jpg',
   'assets/img/svino-botte-896.webp',
   'assets/img/svino-cantina-1200.jpg',
@@ -5836,5 +5837,106 @@ test('il disegno della Mappa usa l’inchiostro dei fregi e i punti sono gli uni
     css,
     /\.mappa[^{]*\{[^}]*(?:box-shadow|border-radius)/s,
     'la Mappa proietta un’ombra o arrotonda: il capitolo non è una scheda',
+  );
+});
+
+/*
+ * La Mappa del Borgo, l'asset. Il piano e' un SVG separato, generato dalla
+ * base catastale e cotto nella palette della pagina: e' un'immagine, non
+ * codice. Il test lo legge come immagine e non come pagina, cosi' il disegno
+ * resta un file che il browser non esegue. ADR-0022.
+ */
+test('il piano della Mappa è un’immagine sicura, cotta nella palette e senza testo', () => {
+  const path = join(SITE, 'assets/img/mappa-del-borgo.svg');
+  assert.ok(existsSync(path), 'manca l’asset del piano');
+  const source = readFileSync(path, 'utf8');
+  const document = new DOMParser().parseFromString(source, 'image/svg+xml');
+  const root = document.documentElement;
+
+  assert.equal(root.nodeName.toLowerCase(), 'svg', 'l’asset non è un SVG');
+  assert.equal(
+    root.getAttribute('viewBox'),
+    '0 0 273 396',
+    'il viewBox non è il riquadro OSP in metri (273 × 396)',
+  );
+  const width = Number(root.getAttribute('width'));
+  const height = Number(root.getAttribute('height'));
+  assert.ok(
+    Math.abs(width / height - 273 / 396) < 0.001,
+    `la dimensione intrinseca non ha il rapporto 273:396: ${width}×${height}`,
+  );
+
+  // Un'immagine che il browser non esegue e che non chiama nulla.
+  for (const banned of ['text', 'script', 'image', 'foreignObject', 'use']) {
+    assert.equal(
+      root.querySelectorAll(banned).length,
+      0,
+      `l’asset contiene <${banned}>: un’immagine non porta codice né testo`,
+    );
+  }
+  for (const element of [root, ...root.querySelectorAll('*')]) {
+    for (const attribute of element.getAttributeNames()) {
+      assert.doesNotMatch(
+        attribute,
+        /^(?:href|xlink:href)$/i,
+        `l’asset ha un riferimento: ${attribute}`,
+      );
+    }
+  }
+  // The SVG namespace is a declaration, not a request: strip it before
+  // looking for a URL the asset would fetch.
+  const withoutNamespaces = source.replace(/\sxmlns(?::[\w-]+)?="[^"]*"/g, '');
+  assert.doesNotMatch(
+    withoutNamespaces,
+    /\bhttps?:\/\//i,
+    'l’asset chiama una risorsa esterna',
+  );
+  assert.doesNotMatch(source, /url\((?!#)/i, 'l’asset richiede una risorsa fuori da sé');
+
+  // Titolo e descrizione, perché l’asset si regga da solo se aperto.
+  assert.ok(root.querySelector('title'), 'manca il titolo dell’asset');
+  assert.ok(root.querySelector('desc'), 'manca la descrizione dell’asset');
+
+  // I tre livelli del piano, e solo quelli.
+  for (const id of ['strade', 'piazza', 'fabbricati']) {
+    assert.ok(root.querySelector(`#${id}`), `manca il livello ${id}`);
+  }
+  for (const id of ['particelle', 'griglia', 'cornice', 'curve', 'acqua', 'simboli', 'confini']) {
+    assert.equal(
+      root.querySelector(`#${id}`),
+      null,
+      `l’asset porta un livello fuori dal piano: ${id}`,
+    );
+  }
+
+  // Il fondo è trasparente: nessun rettangolo che riempia il riquadro, e
+  // nessun colore bordeaux, che resta ai punti HTML.
+  assert.equal(
+    root.querySelectorAll('rect').length,
+    0,
+    'l’asset posa un fondo o una cornice: il piano sta sulla carta della pagina',
+  );
+  const fills = [...root.querySelectorAll('[fill]')].map((node) =>
+    node.getAttribute('fill').toLowerCase(),
+  );
+  assert.ok(
+    fills.every((fill) => ['#f2e8d5', '#c0a579', '#e5d6b8', '#a9854f'].includes(fill)),
+    `l’asset usa colori fuori dalla palette cotta: ${[...new Set(fills)].join(', ')}`,
+  );
+  assert.ok(
+    !fills.includes('#5c1a24'),
+    'l’asset riempie di bordeaux: i punti sono HTML, non disegno',
+  );
+
+  // Generato, non scritto a mano.
+  assert.match(
+    source,
+    /generat[oa][\s\S]*catastale/i,
+    'l’asset non dice di essere generato dalla base catastale',
+  );
+  assert.match(
+    source,
+    /non modificare a mano|non.*hand-edit/i,
+    'l’asset non avverte di non modificarlo a mano',
   );
 });
