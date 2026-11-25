@@ -2296,8 +2296,16 @@ test('la pagina è la carta: nessun pannello, una sola ombra, nessun foglio', ()
    * (ADR-0020): a postcard is a card, and it is allowed its ink shadow. Strip
    * the card's rule and nothing else may cast one.
    */
+  /*
+   * `box-shadow: none` is a reset, not a shadow: the dialog and the dot cancel
+   * the browser's own face. Count only the shadows that are actually cast.
+   */
+  const castShadows = (source) =>
+    [...source.matchAll(/box-shadow\s*:\s*([^;}]+)/g)].filter(
+      (match) => normalize(match[1]) !== 'none',
+    );
   assert.equal(
-    (css.match(/box-shadow\s*:/g) ?? []).length,
+    castShadows(css).length,
     1,
     'la pagina usa più di un’ombra: un pannello flottante è ancora presente',
   );
@@ -2307,9 +2315,9 @@ test('la pagina è la carta: nessun pannello, una sola ombra, nessun foglio', ()
     /box-shadow:\s*var\(--card-shadow\)/,
     'l’unica ombra della pagina non è quella della cartolina',
   );
-  assert.doesNotMatch(
-    css.replace(/\.cartolina\s*\{[^}]*\}/gs, ''),
-    /box-shadow\s*:/,
+  assert.equal(
+    castShadows(css.replace(/\.cartolina\s*\{[^}]*\}/gs, '')).length,
+    0,
     'un elemento oltre la cartolina proietta un’ombra',
   );
   assert.match(
@@ -3359,31 +3367,78 @@ function executableScripts(document) {
 /*
  * First of the three narrow guards. It states the script allowance on its own
  * so that the blanket third-party assertion can be removed without silently
- * dropping the guarantee: exactly one executable script, the counter's, with
- * no inline handler and no shipped .js.
+ * dropping the guarantee: exactly two executable scripts — the Mappa's small
+ * inline binding and the counter's — with no inline handler and no shipped
+ * .js. The inline script is pinned by behaviour and by a size cap so it
+ * cannot grow into an application, and the counter stays the last element of
+ * the body. ADR-0022 amends the old one-script allowance.
  */
-test('la pagina carica un solo script eseguibile, il contatore, e nessun gestore inline o file .js', () => {
+test('la pagina carica due script eseguibili, la mappa e il contatore ultimo, e nessun gestore inline o file .js', () => {
   const document = loadSite();
   const scripts = executableScripts(document);
   assert.equal(
     scripts.length,
-    1,
-    'la pagina contiene più di uno script eseguibile, o nessuno',
+    2,
+    'la pagina non ha esattamente i due script eseguibili previsti',
   );
 
-  const script = scripts[0];
+  const [map, counter] = scripts;
+
   assert.equal(
-    script.getAttribute('src'),
+    map.getAttribute('src'),
+    null,
+    'il primo script non è quello in linea della mappa',
+  );
+  const code = map.textContent;
+  assert.ok(code.trim().length > 0, 'lo script della mappa è vuoto');
+  assert.ok(
+    code.length <= 2000,
+    `lo script della mappa è cresciuto oltre il contratto: ${code.length} caratteri`,
+  );
+
+  /*
+   * The binding and the close handling, and nothing else: Esc, the focus
+   * return and the backdrop are the browser's. The script finds each dialog
+   * through the dot's data-dialog and binds the control marked data-close.
+   */
+  assert.match(code, /\.mappa__dot\b/, 'lo script non cerca i punti della mappa');
+  assert.match(code, /dataset\.dialog/, 'lo script non legge il collegamento al dialogo');
+  assert.match(code, /showModal\s*\(/, 'lo script non apre il dialogo in modale');
+  assert.match(code, /data-close/, 'lo script non lega il controllo Chiudi');
+  assert.match(code, /\.close\s*\(/, 'lo script non chiude il dialogo');
+  assert.match(
+    code,
+    /clientX[\s\S]*clientY/,
+    'lo script non chiude al clic fuori dal pannello',
+  );
+  assert.doesNotMatch(
+    code,
+    /Escape|keydown|keyup|keypress/,
+    'lo script gestisce Esc da sé: la chiusura è nativa',
+  );
+  assert.doesNotMatch(
+    code,
+    /\.focus\s*\(/,
+    'lo script sposta il focus da sé: il ritorno al punto è nativo',
+  );
+
+  assert.equal(
+    counter.getAttribute('src'),
     'https://gc.zgo.at/count.js',
-    'lo script non è quello del contatore',
+    'il secondo script non è quello del contatore',
   );
   assert.equal(
-    script.getAttribute('data-goatcounter'),
+    counter.getAttribute('data-goatcounter'),
     'https://svino.goatcounter.com/count',
     'lo script non punta al contatore',
   );
-  assert.ok(script.hasAttribute('async'), 'lo script del contatore non è async');
-  assert.equal(script.textContent.trim(), '', 'lo script contiene codice inline');
+  assert.ok(counter.hasAttribute('async'), 'lo script del contatore non è async');
+  assert.equal(counter.textContent.trim(), '', 'lo script del contatore contiene codice inline');
+  assert.equal(
+    document.body.lastElementChild,
+    counter,
+    'il contatore non è l’ultimo elemento del corpo',
+  );
 
   for (const element of document.querySelectorAll('*')) {
     for (const attribute of element.getAttributeNames()) {
@@ -3498,8 +3553,13 @@ test('c’è un solo contatore: uno script esterno e un pixel di riserva senza J
   const document = loadSite();
 
   const scripts = executableScripts(document);
-  assert.equal(scripts.length, 1, 'la pagina non ha un solo script eseguibile');
-  const script = scripts[0];
+  const external = scripts.filter((node) => node.hasAttribute('src'));
+  assert.equal(
+    external.length,
+    1,
+    'la pagina carica più di uno script esterno, o nessuno',
+  );
+  const script = external[0];
   const rawSrc = script.getAttribute('src') ?? '';
   assert.ok(rawSrc, 'lo script del contatore non ha src');
   const src = new URL(rawSrc);
@@ -5709,25 +5769,41 @@ test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le sei canti
   });
 });
 
-test('ogni punto della Mappa è un link posizionato alla sua voce e nessun punto porta un numero', () => {
+test('ogni punto della Mappa è un pulsante che apre il suo dialogo e nessun punto porta un numero', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
   const drawing = section.querySelector('.mappa__drawing');
   assert.ok(drawing, 'manca il riquadro posizionato del disegno');
-  const pins = [...drawing.querySelectorAll('a.mappa__dot')];
+  const pins = [...drawing.querySelectorAll('button.mappa__dot')];
   assert.equal(pins.length, MAPPA_ENTRIES.length, 'la Mappa non ha un punto per cantina');
+  assert.equal(
+    drawing.querySelectorAll('a.mappa__dot').length,
+    0,
+    'un punto è ancora un link invece di un pulsante',
+  );
   assert.deepEqual(
-    pins.map((pin) => pin.getAttribute('href')),
-    MAPPA_ENTRIES.map((entry) => `#${entry.id}`),
-    'i punti non portano alle voci confermate, in ordine',
+    pins.map((pin) => pin.getAttribute('data-dialog')),
+    MAPPA_ENTRIES.map((entry) => `${entry.id}-dialog`),
+    'i punti non aprono i dialoghi delle cantine confermate, in ordine',
   );
 
   const spots = [];
   pins.forEach((pin, index) => {
+    const expected = MAPPA_ENTRIES[index];
+    assert.equal(
+      pin.getAttribute('type'),
+      'button',
+      `il punto ${expected.id} non è un pulsante esplicito`,
+    );
+    assert.equal(
+      pin.getAttribute('aria-controls'),
+      `${expected.id}-dialog`,
+      `il punto ${expected.id} non dichiara il dialogo che apre`,
+    );
     assert.equal(
       normalize(accessibleName(document, pin)),
-      MAPPA_ENTRIES[index].name,
-      `il punto ${MAPPA_ENTRIES[index].id} non ha il nome accessibile della cantina`,
+      expected.name,
+      `il punto ${expected.id} non ha il nome accessibile della cantina`,
     );
     assert.equal(
       normalize(pin.textContent),
@@ -5737,14 +5813,18 @@ test('ogni punto della Mappa è un link posizionato alla sua voce e nessun punto
     const style = pin.getAttribute('style') ?? '';
     const x = style.match(/--x:\s*([\d.]+%)/)?.[1];
     const y = style.match(/--y:\s*([\d.]+%)/)?.[1];
-    assert.ok(x && y, `il punto ${MAPPA_ENTRIES[index].id} non è posizionato in percentuale`);
+    assert.ok(x && y, `il punto ${expected.id} non è posizionato in percentuale`);
     const px = Number.parseFloat(x);
     const py = Number.parseFloat(y);
     assert.ok(
       px > 0 && px < 100 && py > 0 && py < 100,
-      `il punto ${MAPPA_ENTRIES[index].id} cade fuori dal piano`,
+      `il punto ${expected.id} cade fuori dal piano`,
     );
     spots.push(`${x}/${y}`);
+    assert.ok(
+      document.getElementById(`${expected.id}-dialog`),
+      `manca il dialogo ${expected.id}-dialog`,
+    );
   });
   assert.equal(
     new Set(spots).size,
@@ -5752,14 +5832,81 @@ test('ogni punto della Mappa è un link posizionato alla sua voce e nessun punto
     'due punti cadono sullo stesso posto: le posizioni sono segnaposto distinti',
   );
 
+  // The transitional list stays until #82 removes it; a dot, an entry and a
+  // dialog still share the Cantina's id.
   for (const entry of MAPPA_ENTRIES) {
     assert.ok(document.getElementById(entry.id), `manca la voce ${entry.id}`);
     assert.equal(
-      pins.filter((pin) => pin.getAttribute('href') === `#${entry.id}`).length,
+      pins.filter((pin) => pin.getAttribute('data-dialog') === `${entry.id}-dialog`)
+        .length,
       1,
-      `la voce ${entry.id} non ha un solo punto`,
+      `la cantina ${entry.id} non ha un solo punto`,
     );
   }
+});
+
+test('ogni cantina si apre in un dialogo nativo, intitolato col suo nome, col dentro e la posizione indicativa', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const dialogs = [...section.querySelectorAll('dialog.mappa__dialog')];
+  assert.equal(
+    dialogs.length,
+    MAPPA_ENTRIES.length,
+    'la Mappa non ha un dialogo per cantina',
+  );
+  assert.deepEqual(
+    dialogs.map((dialog) => dialog.id),
+    MAPPA_ENTRIES.map((entry) => `${entry.id}-dialog`),
+    'gli id dei dialoghi non sono quelli attesi, in ordine',
+  );
+
+  dialogs.forEach((dialog, index) => {
+    const expected = MAPPA_ENTRIES[index];
+    assert.ok(
+      !dialog.hasAttribute('open'),
+      `il dialogo ${expected.id} si apre da solo`,
+    );
+
+    const heading = dialog.querySelector('h3');
+    assert.ok(heading, `il dialogo ${expected.id} non ha il titolo`);
+    assert.equal(
+      dialog.getAttribute('aria-labelledby'),
+      heading.id,
+      `il dialogo ${expected.id} non è intitolato dal suo titolo`,
+    );
+    assert.equal(
+      normalize(heading.textContent),
+      expected.name,
+      `il titolo del dialogo ${expected.id} non è il nome della cantina`,
+    );
+    assert.equal(
+      normalize(accessibleName(document, dialog)),
+      expected.name,
+      `il dialogo ${expected.id} non è annunciato col nome della cantina`,
+    );
+    assert.equal(
+      normalize(dialog.querySelector('.mappa__dialog-inside')?.textContent),
+      expected.inside,
+      `il dialogo ${expected.id} non porta ciò che si trova dentro, alla lettera`,
+    );
+    assert.equal(
+      normalize(dialog.querySelector('.mappa__dialog-note')?.textContent),
+      'Posizione indicativa',
+      `il dialogo ${expected.id} non dice che la posizione è indicativa`,
+    );
+    const close = dialog.querySelector('button[data-close]');
+    assert.ok(close, `il dialogo ${expected.id} non ha il controllo Chiudi`);
+    assert.equal(
+      close.getAttribute('type'),
+      'button',
+      'Chiudi non è un pulsante esplicito',
+    );
+    assert.equal(
+      normalize(close.textContent),
+      'Chiudi',
+      'il controllo di chiusura non dice Chiudi',
+    );
+  });
 });
 
 test('la Mappa non conta, non disegna un percorso e non nomina ciò che non è confermato', () => {
@@ -5902,12 +6049,12 @@ test('le etichette della Mappa sono testo HTML: la piazza una volta, le vie lung
     'la Mappa porta una scala, una griglia o una cornice',
   );
   const outsideList = [...section.querySelectorAll('p')].filter(
-    (node) => !node.closest('.mappa__list'),
+    (node) => !node.closest('.mappa__list, .mappa__dialog'),
   );
   assert.equal(
     outsideList.length,
     0,
-    'la Mappa porta un testo visibile fuori dal piano e dall’elenco',
+    'la Mappa porta un testo visibile fuori dal piano, dai dialoghi e dall’elenco',
   );
 });
 
@@ -5979,6 +6126,56 @@ test('il riquadro della Mappa ha il rapporto del piano, etichette con alone e pu
       `la Mappa proietta un’ombra o arrotonda: ${selector} non è una scheda`,
     );
   }
+});
+
+test('il dialogo della Mappa è carta di crema con filo d’oro, senza ombra né angoli tondi, e il fondale è bordeaux', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  const panel = ruleBodyFor(css, '.mappa__dialog');
+  assert.match(panel, /background:\s*var\(--surface\)/, 'il dialogo non è carta di crema');
+  assert.match(panel, /color:\s*var\(--ink\)/, 'il dialogo non scrive in inchiostro');
+  assert.match(panel, /border:[^;]*var\(--rule\)/, 'il dialogo non ha il filo d’oro');
+  assert.match(panel, /border-radius:\s*0/, 'il dialogo arrotonda gli angoli');
+  assert.match(panel, /box-shadow:\s*none/, 'il dialogo proietta un’ombra');
+  assert.doesNotMatch(
+    panel,
+    /\b(?:transition|animation)\s*:/,
+    'il dialogo aggiunge movimento',
+  );
+  // The panel must fit the viewport at 200% text zoom instead of pushing the
+  // page sideways: a bounded height and its own scroll.
+  assert.match(panel, /max-block-size:[^;]*vh/, 'il dialogo non è limitato all’altezza dello schermo');
+  assert.match(panel, /overflow:\s*auto/, 'il dialogo non fa scorrere il testo che non ci sta');
+
+  const backdrop = ruleBodyFor(css, '.mappa__dialog::backdrop');
+  assert.match(
+    backdrop,
+    /background:[^;]*var\(--bordeaux\)/,
+    'il fondale del dialogo non è una velatura bordeaux',
+  );
+  assert.doesNotMatch(
+    backdrop,
+    /\b(?:transition|animation)\s*:/,
+    'il fondale del dialogo aggiunge movimento',
+  );
+
+  /*
+   * A button carries the browser's own face and border unless they are reset:
+   * the dot must show only its ring and its mark.
+   */
+  const dot = ruleBodyFor(css, '.mappa__dot');
+  assert.match(dot, /background:\s*none/, 'il pulsante del punto conserva il fondo del browser');
+  assert.match(dot, /border:\s*0/, 'il pulsante del punto conserva il bordo del browser');
+  assert.match(dot, /padding:\s*0/, 'il pulsante del punto conserva il cuscinetto del browser');
+
+  const close = ruleBodyFor(css, '.mappa__dialog-close');
+  assert.match(close, /cursor:\s*pointer/, 'Chiudi non si annuncia come controllo');
+  assert.match(close, /min-block-size:\s*44px/, 'Chiudi non ha un bersaglio da 44 px');
+  assert.match(
+    css,
+    /\.mappa__dialog-close:focus-visible\s*\{[^}]*outline/s,
+    'Chiudi non prende l’indicatore di focus della pagina',
+  );
 });
 
 test('la Mappa usa tutta la misura sul telefono ed è centrata e limitata a 40 rem da tablet in su', () => {

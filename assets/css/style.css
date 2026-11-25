@@ -1121,8 +1121,9 @@
    * chapters' label register and its cream ground. On the phone the drawing
    * takes the chapter's full measure; from 64 rem it is capped and centred.
    * No number and no route line: the register leaves the route undecided, so
-   * the drawing claims places, not an order. The dots stay placeholder links
-   * until the Comitato supplies the sketch.
+   * the drawing claims places, not an order. The dots are placeholder buttons
+   * that open the Cantina's native dialog until the Comitato supplies the
+   * sketch.
    */
   .mappa {
     display: grid;
@@ -1230,10 +1231,11 @@
   }
 
   /*
-   * The dots are the page's only filled marks and its in-page links to the
-   * entries. The 44 px link is transparent and generous, so the target stays
-   * usable on a phone while the ring and the dot stay small on the plan. The
-   * ring and the dot never take the pointer themselves.
+   * The dots are the page's only filled marks and its controls that open the
+   * Cantina's dialog. The button's browser face is reset, so only the ring
+   * and the dot show. The 44 px target is transparent and generous, so it
+   * stays usable on a phone while the ring and the dot stay small on the
+   * plan. The ring and the dot never take the pointer themselves.
    */
   .mappa__dot {
     position: absolute;
@@ -1242,8 +1244,12 @@
     display: block;
     inline-size: 44px;
     block-size: 44px;
-    transform: translate(-50%, -50%);
+    padding: 0;
+    border: 0;
     border-radius: 50%;
+    background: none;
+    appearance: none;
+    transform: translate(-50%, -50%);
     color: var(--ink);
     cursor: pointer;
   }
@@ -1330,6 +1336,84 @@
     font-family: var(--serif);
     font-size: var(--step-0);
     line-height: 1.5;
+  }
+
+  /*
+   * La cantina si apre in un dialogo nativo: carta di crema, inchiostro
+   * bordeaux, filo d'oro. È la pagina, non una scheda: nessuna ombra, nessun
+   * angolo tondo, nessun movimento. Il pannello usa il margine della pagina e
+   * non supera il viewport; a 200% di zoom il testo va a capo e scorre dentro
+   * il pannello invece di spingere la pagina. Il fondale è una velatura
+   * bordeaux, la stessa che chiude la pagina.
+   */
+  .mappa__dialog {
+    inline-size: min(92vw, 34rem);
+    max-block-size: 85vh;
+    margin: auto;
+    padding: var(--space-4) var(--space-5);
+    overflow: auto;
+    border: 1px solid var(--rule);
+    border-radius: 0;
+    background: var(--surface);
+    box-shadow: none;
+    color: var(--ink);
+    font-family: var(--serif);
+  }
+
+  .mappa__dialog::backdrop {
+    background: color-mix(in srgb, var(--bordeaux) 78%, transparent);
+  }
+
+  .mappa__dialog-title {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: var(--step-1);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .mappa__dialog-inside {
+    margin: var(--space-3) 0 0;
+    color: var(--ink);
+    font-size: var(--step-0);
+    line-height: 1.5;
+  }
+
+  .mappa__dialog-note {
+    margin: var(--space-2) 0 0;
+    color: var(--ink-muted);
+    font-family: var(--sans);
+    font-size: var(--step--1);
+    letter-spacing: 0.08em;
+  }
+
+  /* The visible way out: a control in the page's type, with a gold hairline
+   * and a 44 px target, taking the page's focus indicator. */
+  .mappa__dialog-close {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    margin-block-start: var(--space-4);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--rule);
+    border-radius: 0;
+    background: none;
+    color: var(--ink);
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .mappa__dialog-close:hover {
+    border-color: var(--link-hover);
+  }
+
+  .mappa__dialog-close:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
   }
 
   /* --------------------------------------------------------- banda finale */
