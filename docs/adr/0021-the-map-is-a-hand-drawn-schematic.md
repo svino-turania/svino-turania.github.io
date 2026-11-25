@@ -1,7 +1,9 @@
 # The map is a hand-drawn schematic
 
-- **Status:** accepted
+- **Status:** superseded by ADR-0022
 - **Date:** 2026-11-25
+- **Superseded by:** ADR-0022 (the map is a real plan, its dots open native
+  dialogs, and the page runs two executable scripts)
 - **Related:** ADR-0003, ADR-0010, ADR-0014, ADR-0019, ADR-0020, README
   (*Composition*, *Motion*, *Content policy*, *Search visibility*, *Tests*),
   `GLOSSARY.md`, `index.html`, `assets/css/style.css`,

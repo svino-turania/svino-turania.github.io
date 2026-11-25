@@ -43,9 +43,11 @@ uses the lower-case form (`nelle cantine del borgo`).
 
 The Mappa del Borgo names a Cantina only when the Comitato has confirmed it,
 and prints what visitors find inside, naming the provider only where it is
-confirmed. It states no count of Cantine, no route order, no title the
-Comitato has not confirmed and no price. Do not infer a number, a menu, a
-vendor, a duration or a price from the term: none of those is decided.
+confirmed. Each confirmed Cantina is one dot on the plan and one panel opened
+from it; there is no separate list. The Mappa states no count of Cantine, no
+route order, no title the Comitato has not confirmed and no price. Do not infer
+a number, a menu, a vendor, a duration or a price from the term: none of those
+is decided.
 
 ## Borgo
 
@@ -85,13 +87,16 @@ print PDF; the two must never disagree.
 
 ## Mappa del Borgo
 
-The page's picture of the walk: a schematic drawing of the Borgo, with the
-Piazza, the church and the comune as its anchors and the confirmed Cantine as
-unlabelled dots. It is indicative and not to scale, and it is not the route:
-it marks places and claims no order between them. The Cantine are listed
-beside or beneath the drawing, and a dot only jumps to its entry. It names no
-count and no Cantina the Comitato has not confirmed. Capitalise when naming
-the chapter (`la Mappa del Borgo`); the page prose does not use the term.
+The page's picture of the walk: a real plan of the Borgo, exported from the
+cadastral base, north-up and in scale, with the piazza, the church and the two
+verified streets `SP 37` and `Via Turano` as labels. The Comitato-confirmed
+Cantine are dots — the page's only bordeaux marks — and each dot is a button
+that opens the Cantina's panel, carrying its name and what visitors find inside.
+The dots are the map's entries: there is no list beside or beneath the drawing.
+It claims places, not an order, and names no count, no route and no Cantina the
+Comitato has not confirmed. The positions are placeholders and each panel says
+`Posizione indicativa` until the Comitato supplies its sketch. Capitalise when
+naming the chapter (`la Mappa del Borgo`); the page prose does not use the term.
 
 ## Turania (RI)
 
