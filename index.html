@@ -114,10 +114,12 @@
         il banco decorativo; non nomina espositori, numero, luogo o orario, e
         non elenca le merci.
       - Mappa del Borgo: la sezione fra la prosa e il Programma. Pubblica
-        solo le cantine che il Comitato ha confermato: una voce nell'elenco e
-        un punto sul disegno, legati dallo stesso id. Non porta numero, titoli
-        non confermati né linea di percorso; la posizione del punto si cambia
-        con cx e cy. Il disegno è indicativo e non in scala.
+        solo le cantine che il Comitato ha confermato: un pulsante sul piano e
+        un dialogo con lo stesso id; il nome sta nell'intestazione del dialogo.
+        Non porta numero, titoli non confermati né linea di percorso; la
+        posizione del punto si cambia con --x e --y in percentuale. Il disegno
+        è il piano reale, esportato dalla base catastale; le posizioni dei
+        punti sono segnaposto marcati «Posizione indicativa».
       - Calice della prosa: il disegno decorativo davanti al primo paragrafo
         delle Cantine; non porta testo e nomina il vino che il paragrafo
         assaggia. È un segno della pagina, non della Locandina.
@@ -314,27 +316,27 @@
               decoding="async"
               alt="Pianta del borgo di Turania: i fabbricati, le strade e la piazza. Le posizioni delle cantine confermate sono indicative."
             >
-            <span class="mappa__label mappa__label--place" style="--x: 43.2%; --y: 43.7%">Piazza Umberto I</span>
+            <span class="mappa__label mappa__label--place" style="--x: 41.0%; --y: 44.9%">Piazza Umberto I</span>
             <span class="mappa__label" style="--x: 50.2%; --y: 51.8%">la chiesa</span>
             <span class="mappa__label mappa__label--street" style="--x: 45.1%; --y: 32.8%">SP 37</span>
             <span class="mappa__label mappa__label--street" style="--x: 38.1%; --y: 13.6%">Via Turano</span>
             <span class="mappa__north" aria-hidden="true">N</span>
-            <button type="button" class="mappa__dot" data-dialog="cantina-paci-dialog" aria-controls="cantina-paci-dialog" aria-label="Andrea Paci" style="--x: 26%; --y: 62%">
+            <button type="button" class="mappa__dot" data-dialog="cantina-paci-dialog" aria-controls="cantina-paci-dialog" aria-labelledby="cantina-paci-dialog-title" style="--x: 26%; --y: 62%">
               <span class="mappa__dot-mark" aria-hidden="true"></span>
             </button>
-            <button type="button" class="mappa__dot" data-dialog="cantina-clara-dialog" aria-controls="cantina-clara-dialog" aria-label="Clara" style="--x: 72%; --y: 20%">
+            <button type="button" class="mappa__dot" data-dialog="cantina-clara-dialog" aria-controls="cantina-clara-dialog" aria-labelledby="cantina-clara-dialog-title" style="--x: 72%; --y: 20%">
               <span class="mappa__dot-mark" aria-hidden="true"></span>
             </button>
-            <button type="button" class="mappa__dot" data-dialog="cantina-vale-dialog" aria-controls="cantina-vale-dialog" aria-label="Vale Leoni" style="--x: 84%; --y: 56%">
+            <button type="button" class="mappa__dot" data-dialog="cantina-vale-dialog" aria-controls="cantina-vale-dialog" aria-labelledby="cantina-vale-dialog-title" style="--x: 84%; --y: 56%">
               <span class="mappa__dot-mark" aria-hidden="true"></span>
             </button>
-            <button type="button" class="mappa__dot" data-dialog="cantina-betta-dialog" aria-controls="cantina-betta-dialog" aria-label="Betta e Simone" style="--x: 34%; --y: 82%">
+            <button type="button" class="mappa__dot" data-dialog="cantina-betta-dialog" aria-controls="cantina-betta-dialog" aria-labelledby="cantina-betta-dialog-title" style="--x: 34%; --y: 82%">
               <span class="mappa__dot-mark" aria-hidden="true"></span>
             </button>
-            <button type="button" class="mappa__dot" data-dialog="cantina-raffaelli-dialog" aria-controls="cantina-raffaelli-dialog" aria-label="Raffaelli (la Foca)" style="--x: 62%; --y: 30%">
+            <button type="button" class="mappa__dot" data-dialog="cantina-raffaelli-dialog" aria-controls="cantina-raffaelli-dialog" aria-labelledby="cantina-raffaelli-dialog-title" style="--x: 62%; --y: 30%">
               <span class="mappa__dot-mark" aria-hidden="true"></span>
             </button>
-            <button type="button" class="mappa__dot" data-dialog="cantina-li-meroli-dialog" aria-controls="cantina-li-meroli-dialog" aria-label="Li Meroli" style="--x: 70%; --y: 74%">
+            <button type="button" class="mappa__dot" data-dialog="cantina-li-meroli-dialog" aria-controls="cantina-li-meroli-dialog" aria-labelledby="cantina-li-meroli-dialog-title" style="--x: 70%; --y: 74%">
               <span class="mappa__dot-mark" aria-hidden="true"></span>
             </button>
           </div>
@@ -350,6 +352,8 @@
         -->
         <noscript>
           <style>
+            /* The same static-panel reset as the @media print block in
+               assets/css/style.css; keep the two in step. */
             .mappa__dialog {
               display: block;
               position: static;

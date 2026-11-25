@@ -2422,6 +2422,8 @@
     break-inside: avoid;
   }
 
+  /* The same static-panel reset as the <noscript> stylesheet in index.html
+   * (the no-script view); keep the two in step. */
   .mappa__dialog {
     display: block;
     position: static;

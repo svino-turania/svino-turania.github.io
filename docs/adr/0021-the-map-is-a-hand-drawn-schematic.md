@@ -69,9 +69,9 @@ and not an OSM trace.
   desktop the list sits beside the drawing; on the phone it follows it.
 - **Only confirmed Cantine, and no count.** The chapter carries the six
   Comitato-confirmed rows and their confirmed lines. It names no count, no
-  *Quissi de …* title and no provider the register marks unconfirmed — *La
-  Cueva* is held while its name is to confirm. Empty is allowed; a placeholder
-  is not.
+  unconfirmed title and no provider the register marks unconfirmed; a row held
+  while its name is to confirm stays out of the page. Empty is allowed; a
+  placeholder is not.
 - **Positions are a scaffold.** Until the Comitato supplies the handwritten
   sketch with the Cantine's places, the dots sit at invented positions. The
   sketch is the source of truth and stays in the private comitato repository;

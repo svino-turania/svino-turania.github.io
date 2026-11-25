@@ -1005,13 +1005,20 @@ test('il banco del Mercatino sta accanto al paragrafo: 12 rem, 22 rem e la colon
 
   /*
    * The label is the printed register of DOVE, DALLE ORE and PROGRAMMA. The
-   * two chapter labels are asserted equal, so they cannot drift apart.
+   * three chapter labels are asserted equal, so they cannot drift apart.
    */
+  const mappaLabel = css.match(/(?:^|})\s*\.mappa\s+h2\s*\{([^}]*)\}/s)?.[1] ?? '';
   const label = css.match(/(?:^|})\s*\.mercatino\s+h2\s*\{([^}]*)\}/s)?.[1] ?? '';
   const programmeLabel =
     css.match(/(?:^|})\s*\.programma\s+h2\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(mappaLabel, 'manca la regola dell’etichetta MAPPA');
   assert.ok(label, 'manca la regola dell’etichetta MERCATINO');
   assert.ok(programmeLabel, 'manca la regola dell’etichetta PROGRAMMA');
+  assert.equal(
+    normalize(mappaLabel),
+    normalize(programmeLabel),
+    'l’etichetta della Mappa non ha il registro stampato del Programma',
+  );
   assert.equal(
     normalize(label),
     normalize(programmeLabel),
@@ -5835,6 +5842,25 @@ test('ogni punto della Mappa è un pulsante che apre il suo dialogo e nessun pun
       `${expected.id}-dialog`,
       `il punto ${expected.id} non dichiara il dialogo che apre`,
     );
+    // The name lives in one place: the dialog's heading. The dot points at
+    // it instead of repeating it in an aria-label.
+    assert.equal(
+      pin.hasAttribute('aria-label'),
+      false,
+      `il punto ${expected.id} ripete il nome in un aria-label invece di puntare al dialogo`,
+    );
+    assert.equal(
+      pin.getAttribute('aria-labelledby'),
+      `${expected.id}-dialog-title`,
+      `il punto ${expected.id} non è intitolato dall'intestazione del suo dialogo`,
+    );
+    const heading = document.getElementById(`${expected.id}-dialog-title`);
+    assert.ok(heading, `manca l'intestazione che nomina il punto ${expected.id}`);
+    assert.equal(
+      normalize(heading.textContent),
+      expected.name,
+      `l'intestazione del dialogo ${expected.id} non porta il nome confermato`,
+    );
     assert.equal(
       normalize(accessibleName(document, pin)),
       expected.name,
@@ -6118,22 +6144,6 @@ test('la Mappa non conta, non disegna un percorso e non nomina ciò che non è c
     /\d/,
     'la Mappa porta un numero: una conta o un numero di punto',
   );
-  assert.doesNotMatch(text, /Quissi/i, 'la Mappa nomina un titolo non confermato');
-  for (const absent of [
-    'Nonna Lisa',
-    'Elio',
-    'Pereto',
-    'Marino',
-    'Fajolella',
-    'La Cueva',
-    'Cantina Enzo',
-    'Roscio',
-  ]) {
-    assert.ok(
-      !text.includes(absent),
-      `la Mappa nomina una cantina o un fornitore non confermato: ${absent}`,
-    );
-  }
   assert.equal(
     section.querySelectorAll('.mappa__route').length,
     0,

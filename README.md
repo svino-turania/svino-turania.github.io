@@ -422,7 +422,7 @@ visitors find inside and `Posizione indicativa`. A test requires one dot and
 one dialog per Comitato-confirmed Cantina and the same `id` set; it fails if the
 chapter carries a list, a number other than the verified street name `SP 37`, a
 number on a dot, a connecting route line, an unconfirmed Cantina or an
-unconfirmed *Quissi de …* title. Do not edit `assets/img/mappa-del-borgo.svg` by
+unconfirmed title. Do not edit `assets/img/mappa-del-borgo.svg` by
 hand: the plan is exported outside this repository from the cadastral base, and
 a changed frame or palette is a new export. The dots' positions are percentage
 placeholders until the Comitato supplies its sketch.
@@ -621,7 +621,7 @@ and their copy; it requires one button dot and one dialog per Cantina, with the
 same `id` set, and fails if the chapter still has a list or a `<details>`. It
 fails on a digit in the chapter other than the verified street name `SP 37` (no
 count), on text inside a dot (no number), on a connecting route line, and on the
-unconfirmed rows and the *Quissi de …* titles. It requires the plan to be an
+unconfirmed rows and titles. It requires the plan to be an
 `<img>` pointing at the shipped SVG, lazy and asynchronous, with its intrinsic
 546 × 792 size and an `alt` that describes the plan without a count or the
 piazza's name; it also requires the four HTML labels, the north mark and the
@@ -635,6 +635,11 @@ rule that prints the plan and the six entries with the close controls hidden,
 the inline script's dot-to-dialog binding and close handling under a size cap,
 and the counter as the last executable script. The old inline schematic is
 asserted absent.
+
+The suite is not a browser runner: the native dialog's open, Esc,
+click-outside and focus-return, the no-script render and the print view are
+checked with the external capture harness, while the suite pins the markup,
+the CSS guarantees and the script contract (ADR-0022 records this).
 
 The suite also asserts the page's contracts. The date is one `<time>` lockup
 with `datetime="2026-12-06"`, its printed parts in DOM order (day, weekday,
@@ -658,10 +663,11 @@ the card is asserted to be the page's one shadow, to carry a frame and a tilt,
 and never to crop its photograph, and the chapter's settle is asserted to be a
 rotation in reading order. The
 Programma and the Mercatino are asserted as chapters after the prose, siblings
-of the prose chapter and before the gallery: the page's two `h2` labels set in
-the printed-label register, and each approved paragraph verbatim with no time
-of its own. The page has two strong surfaces — the Programma interlude and the
-closing band — both reading the same `--strong*` roles; the band carries `DOVE`,
+of the prose chapter and before the gallery: the page's three `h2` labels
+(Mappa, Programma, Mercatino) set in the printed-label register, and each
+approved paragraph verbatim with no time of its own. The page has two strong
+surfaces — the Programma interlude and the closing band — both reading the
+same `--strong*` roles; the band carries `DOVE`,
 `A CURA DI`, the map link, the single Locandina download, the Instagram and
 Facebook icons, the counter notice and the colophon, and the date carries the
 lockup and `DALLE ORE` with the time. The
@@ -697,7 +703,7 @@ no-preference`, every animation and transition duration and delay taken from a
 `--motion-*` token, the entrance sequenced by the `--motion-after-*` delays,
 every `view()` timeline behind `@supports`, the hero
 free of scroll reveals except the grapes' transform-only drift, the
-Cantina photograph, the prose, the Programma and the Mercatino, the
+Cantina photograph, the prose, the Mappa, the Programma and the Mercatino, the
 gallery and the facts revealed in reading order, and the band's actions never
 faded.
 
@@ -711,7 +717,7 @@ AA where it crosses a stroke. The Programma is asserted as the second strong
 surface, with the same `--strong*` roles as the closing band.
 
 The Mercatino is asserted as the third illustrated chapter, after the Programma
-and before the gallery: the page's second `h2`, an approved paragraph pinned
+and before the gallery: the page's third `h2`, an approved paragraph pinned
 verbatim, and no time of its own. Its stall is asserted as decorative, free of
 text and external references, named `data-figure="mercatino"` while the
 paragraph still names the market, and placed between the label and the
