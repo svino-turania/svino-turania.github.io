@@ -6468,6 +6468,14 @@ test('il riquadro della Mappa ha il rapporto del piano, etichette con alone e pu
   const street = ruleBodyFor(css, '.mappa__label--street');
   assert.doesNotMatch(street, /rotate\(/, 'le vie sono ruotate invece di restare dritte');
 
+  // La piazza sta un gradino sopra le altre etichette, non al corpo dei titoli.
+  const place = ruleBodyFor(css, '.mappa__label--place');
+  assert.match(
+    place,
+    /font-size:\s*var\(--step-0\)/,
+    'la piazza non sta un gradino sopra le altre etichette',
+  );
+
   const dot = ruleBodyFor(css, '.mappa__dot');
   assert.match(dot, /position:\s*absolute/, 'i punti non sono posati sul piano');
   assert.match(dot, /inline-size:\s*44px/, 'il bersaglio del punto non è largo 44 px');
