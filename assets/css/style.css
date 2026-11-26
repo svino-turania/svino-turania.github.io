@@ -1339,6 +1339,11 @@
    * and the dot show. The 44 px target is transparent and generous, so it
    * stays usable on a phone while the ring and the dot stay small on the
    * plan. The ring and the dot never take the pointer themselves.
+   *
+   * --x and --y are the true point on the plan. --nudge-x and --nudge-y, in
+   * pixels and written in the markup, step the whole 44 px target aside where
+   * two targets would overlap at the narrowest width; the leader inside the
+   * dot keeps the true point on the paper. The script never reads them.
    */
   .mappa__dot {
     position: absolute;
@@ -1352,9 +1357,33 @@
     border-radius: 50%;
     background: none;
     appearance: none;
-    transform: translate(-50%, -50%);
+    transform: translate(
+      calc(-50% + var(--nudge-x, 0) * 1px),
+      calc(-50% + var(--nudge-y, 0) * 1px)
+    );
     color: var(--ink);
     cursor: pointer;
+  }
+
+  /*
+   * Il filo d'oro: quando un bersaglio da 44 px si scosta perché due anelli si
+   * toccherebbero, questo span di un pixel unisce l'anello al punto vero del
+   * piano. Parte dal punto vero (il centro del pulsante meno lo scostamento),
+   * è lungo quanto lo scostamento e ne prende la direzione. Non è una linea di
+   * percorso: non porta punta né tappo, non prende il tocco e non si muove.
+   * La geometria viene dalle stesse variabili scritte nel markup, mai dallo
+   * script; dentro il layer, cresce con il disegno.
+   */
+  .mappa__leader {
+    position: absolute;
+    inset-block-start: calc(50% - var(--nudge-y) * 1px);
+    inset-inline-start: calc(50% - var(--nudge-x) * 1px);
+    inline-size: calc(hypot(var(--nudge-x), var(--nudge-y)) * 1px);
+    block-size: 1px;
+    transform-origin: 0 50%;
+    transform: translateY(-50%) rotate(atan2(var(--nudge-y), var(--nudge-x)));
+    background: var(--gold);
+    pointer-events: none;
   }
 
   .mappa__dot:focus-visible {
@@ -1445,14 +1474,6 @@
     color: var(--ink);
     font-size: var(--step-0);
     line-height: 1.5;
-  }
-
-  .mappa__dialog-note {
-    margin: var(--space-2) 0 0;
-    color: var(--ink-muted);
-    font-family: var(--sans);
-    font-size: var(--step--1);
-    letter-spacing: 0.08em;
   }
 
   /* The visible way out: a control in the page's type, with a gold hairline
