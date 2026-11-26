@@ -6630,6 +6630,337 @@ test('la Mappa usa tutta la misura sul telefono ed è centrata e limitata a 40 r
 });
 
 /*
+ * #86: the chapter gains one quiet control that opens the plan in a view of
+ * its own. It is a visible-text button after the drawing, inside the figure —
+ * not a digit, not a paragraph, not a list, not a disclosure. The map dialog
+ * is a separate native surface with its own class, and opening it *moves* the
+ * chapter's one drawing instead of copying it.
+ */
+test('il capitolo della Mappa ha un solo comando Ingrandisci la Mappa, dopo il disegno dentro la figura', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const figure = section.querySelector('figure.mappa__board');
+  const drawing = figure.querySelector('.mappa__drawing');
+  assert.ok(figure && drawing, 'manca il riquadro del disegno');
+
+  const expands = [...section.querySelectorAll('.mappa__expand')];
+  assert.equal(expands.length, 1, 'la Mappa non ha un solo comando per ingrandirla');
+  const expand = expands[0];
+  assert.equal(
+    expand.tagName.toLowerCase(),
+    'button',
+    'Ingrandisci la Mappa non è un pulsante',
+  );
+  assert.equal(
+    expand.getAttribute('type'),
+    'button',
+    'Ingrandisci la Mappa non è un pulsante esplicito',
+  );
+  assert.equal(
+    normalize(expand.textContent),
+    'Ingrandisci la Mappa',
+    'il comando non porta il testo visibile «Ingrandisci la Mappa»',
+  );
+  assert.doesNotMatch(
+    normalize(expand.textContent),
+    /\d/,
+    'il comando porta una cifra: la Mappa non conta',
+  );
+
+  // It lives after the drawing, inside the figure, and nowhere else.
+  assert.equal(expand.parentElement, figure, 'il comando non sta dentro la figura');
+  assert.equal(
+    drawing.nextElementSibling,
+    expand,
+    'il comando non sta subito dopo il disegno',
+  );
+  assert.equal(
+    figure.lastElementChild,
+    expand,
+    'il comando non è l’ultimo elemento della figura',
+  );
+  assert.equal(
+    section.querySelectorAll('.mappa__expand').length,
+    1,
+    'il comando compare più di una volta nel capitolo',
+  );
+
+  // Not a paragraph, a list or a disclosure: the chapter keeps no such prose.
+  assert.equal(expand.closest('details')?.nodeName ?? null, null, 'il comando è un disclosure');
+  assert.equal(
+    figure.querySelectorAll('p, ul, ol, dl, details').length,
+    0,
+    'il comando prende la forma di un paragrafo, di un elenco o di un disclosure',
+  );
+
+  // The script is what makes the button open the map dialog.
+  const code = executableScripts(document)[0].textContent;
+  assert.match(code, /\.mappa__expand\b/, 'lo script non lega Ingrandisci la Mappa');
+  assert.match(code, /showModal\s*\(/, 'Ingrandisci la Mappa non apre un dialogo');
+});
+
+test('senza JavaScript e in stampa Ingrandisci la Mappa tace, mentre il capitolo resta quello di sempre', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const expand = section.querySelector('.mappa__expand');
+  assert.ok(expand, 'manca il comando Ingrandisci la Mappa');
+
+  const fallback = stripCssComments(
+    section.querySelector('noscript style')?.textContent ?? '',
+  );
+  assert.match(
+    ruleBodyFor(fallback, '.mappa__expand'),
+    /display:\s*none/,
+    'senza JavaScript il comando resta vivo e non apre nulla',
+  );
+
+  const css = stripCssComments(servedStylesheet());
+  const print = atRuleBlocks(css, '@media\\s+print\\s*\\{');
+  assert.equal(print.length, 1, 'manca la regola di stampa della Mappa');
+  const block = css.slice(print[0].start, print[0].end + 1);
+  assert.match(
+    ruleBodyFor(block, '.mappa__expand'),
+    /display:\s*none/,
+    'in stampa il comando finisce sulla carta',
+  );
+
+  // The base control is shown when the script exists.
+  assert.doesNotMatch(
+    ruleBodyFor(css, '.mappa__expand'),
+    /display:\s*none/,
+    'il comando è nascosto anche con JavaScript',
+  );
+
+  // Without JavaScript the chapter is today's: plan in the figure, six entries.
+  assert.equal(
+    section.querySelectorAll('figure.mappa__board .mappa__plan').length,
+    1,
+    'il piano non resta nella figura senza JavaScript',
+  );
+  assert.equal(
+    section.querySelectorAll('dialog.mappa__dialog').length,
+    MAPPA_ENTRIES.length,
+    'senza JavaScript le sei voci non sono più sei',
+  );
+});
+
+test('la Mappa si apre in un dialogo proprio, intitolato La Mappa del Borgo e chiuso da Chiudi', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const map = document.querySelector('dialog.mappa__map');
+  assert.ok(map, 'manca il dialogo della Mappa');
+  assert.equal(
+    document.querySelectorAll('dialog.mappa__map').length,
+    1,
+    'il dialogo della Mappa compare più di una volta',
+  );
+  assert.equal(
+    map.classList.contains('mappa__dialog'),
+    false,
+    'il dialogo della Mappa usa la classe dei pannelli delle Cantine',
+  );
+  assert.equal(map.closest('section.mappa'), null, 'il dialogo della Mappa sta nel capitolo');
+  assert.equal(
+    map.hasAttribute('open'),
+    false,
+    'il dialogo della Mappa si apre da solo',
+  );
+
+  // The six Cantina panels keep their count, ids, order and class.
+  const panels = [...section.querySelectorAll('dialog.mappa__dialog')];
+  assert.equal(panels.length, MAPPA_ENTRIES.length, 'i sei pannelli non sono più sei');
+  assert.deepEqual(
+    panels.map((panel) => panel.id),
+    MAPPA_ENTRIES.map((entry) => `${entry.id}-dialog`),
+    'i pannelli hanno cambiato id o ordine per fare posto al dialogo della Mappa',
+  );
+
+  // It names itself with a visible heading, and is named by it.
+  const heading = map.querySelector('h3');
+  assert.ok(heading, 'il dialogo della Mappa non ha un titolo visibile');
+  assert.equal(
+    normalize(heading.textContent),
+    'La Mappa del Borgo',
+    'il titolo del dialogo non è «La Mappa del Borgo»',
+  );
+  assert.equal(
+    map.getAttribute('aria-labelledby'),
+    heading.id,
+    'il dialogo della Mappa non è intitolato dal suo titolo',
+  );
+  assert.equal(
+    normalize(accessibleName(document, map)),
+    'La Mappa del Borgo',
+    'il dialogo della Mappa non è annunciato col suo nome',
+  );
+
+  const close = map.querySelector('button[data-close]');
+  assert.ok(close, 'il dialogo della Mappa non ha il controllo Chiudi');
+  assert.equal(close.getAttribute('type'), 'button', 'Chiudi non è un pulsante esplicito');
+  assert.equal(normalize(close.textContent), 'Chiudi', 'il controllo di chiusura non dice Chiudi');
+
+  // Empty of the drawing in the served markup.
+  assert.equal(
+    map.querySelector('.mappa__drawing'),
+    null,
+    'il dialogo della Mappa contiene già un disegno nel markup servito',
+  );
+  assert.equal(
+    map.querySelectorAll('img, .mappa__label, .mappa__dot, .mappa__north').length,
+    0,
+    'il dialogo della Mappa copia pezzi del piano nel markup servito',
+  );
+});
+
+test('la Mappa servita tiene un solo disegno, e lo script lo sposta invece di copiarlo', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  assert.equal(
+    document.querySelectorAll('.mappa__drawing').length,
+    1,
+    'la pagina ha più di un disegno della Mappa',
+  );
+  assert.equal(
+    document.querySelectorAll('img.mappa__plan').length,
+    1,
+    'la pagina serve più di un piano',
+  );
+  assert.equal(
+    document.querySelectorAll('.mappa__label').length,
+    4,
+    'la pagina serve più di quattro etichette',
+  );
+  assert.equal(
+    document.querySelectorAll('.mappa__dot').length,
+    MAPPA_ENTRIES.length,
+    'la pagina serve più di sei punti',
+  );
+  assert.equal(
+    (normalize(document.body.textContent).match(/Piazza Umberto I/g) ?? []).length,
+    1,
+    'la piazza compare più di una volta nel markup servito',
+  );
+  assert.equal(
+    section.querySelectorAll('.mappa__drawing').length,
+    1,
+    'il capitolo non tiene il suo unico disegno',
+  );
+
+  // Opening moves the drawing; closing returns it. No clone, no copy.
+  const code = executableScripts(document)[0].textContent;
+  assert.match(code, /\.mappa__drawing\b/, 'lo script non conosce il disegno da spostare');
+  assert.match(code, /\.mappa__map\b/, 'lo script non conosce il dialogo della Mappa');
+  assert.match(code, /insertBefore\s*\(/, 'lo script non sposta il disegno nel dialogo');
+  assert.doesNotMatch(code, /cloneNode/, 'lo script clona il disegno invece di spostarlo');
+  // The chapter loads the plan lazily; opening the view must ask for it even
+  // when the reader never scrolled the chapter's plan into sight.
+  assert.match(
+    code,
+    /\.loading\s*=\s*['"]eager['"]/,
+    'lo script non chiede il piano quando la Mappa si apre: il disegno può restare vuoto',
+  );
+  assert.match(code, /tabIndex/, 'lo script non rende il disegno raggiungibile con la tastiera');
+  assert.match(
+    code,
+    /removeAttribute\(\s*['"]tabindex['"]\s*\)/,
+    'lo script non toglie il tabindex quando il disegno torna nella figura',
+  );
+  assert.match(
+    code,
+    /addEventListener\(\s*['"]close['"]/,
+    'lo script non riporta il disegno nella figura alla chiusura',
+  );
+});
+
+test('dentro il dialogo il disegno è il riquadro che scorre, con barre sottili d’inchiostro', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  // The surface: paper and ink, near-full-viewport from viewport units, gold
+  // hairline, no shadow, no rounding, no motion.
+  const map = ruleBodyFor(css, '.mappa__map');
+  assert.ok(map, 'manca la regola del dialogo della Mappa');
+  assert.match(map, /inline-size:[^;]*vw/, 'il dialogo non è largo quanto lo schermo');
+  assert.match(map, /block-size:[^;]*dvh/, 'il dialogo non è alto quanto lo schermo');
+  assert.match(map, /max-inline-size:\s*none/, 'il dialogo conserva un limite di larghezza');
+  assert.match(map, /max-block-size:\s*none/, 'il dialogo conserva un limite di altezza');
+  assert.match(map, /background:\s*var\(--surface\)/, 'il dialogo non è carta di crema');
+  assert.match(map, /color:\s*var\(--ink\)/, 'il dialogo non scrive in inchiostro');
+  assert.match(map, /border:[^;]*var\(--rule\)/, 'il dialogo non ha il filo d’oro');
+  assert.match(map, /border-radius:\s*0/, 'il dialogo arrotonda gli angoli');
+  assert.match(map, /box-shadow:\s*none/, 'il dialogo proietta un’ombra');
+  assert.doesNotMatch(
+    map,
+    /\b(?:transition|animation)\s*:/,
+    'il dialogo della Mappa aggiunge movimento',
+  );
+
+  // The open dialog is a grid whose middle row is the scroll frame.
+  const open = ruleBodyFor(css, '.mappa__map[open]');
+  assert.match(open, /display:\s*grid/, 'il dialogo aperto non impagina titolo, piano e Chiudi');
+  assert.match(
+    open,
+    /grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)\s+auto/,
+    'il dialogo aperto non dà al piano la riga che resta',
+  );
+
+  // Inside, the drawing itself is the viewport the browser scrolls.
+  const viewport =
+    css.match(/\.mappa__map\s+\.mappa__drawing\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(viewport, 'dentro il dialogo il disegno non ha una regola propria');
+  assert.match(viewport, /overflow:\s*auto/, 'dentro il dialogo il disegno non scorre');
+  assert.match(
+    viewport,
+    /overscroll-behavior:\s*contain/,
+    'il trascinamento del piano fa rimbalzare la pagina',
+  );
+  assert.match(viewport, /scrollbar-width:\s*thin/, 'le barre del piano non sono sottili');
+  assert.match(
+    viewport,
+    /scrollbar-color:\s*var\(--ink-muted\)\s+transparent/,
+    'le barre del piano non sono d’inchiostro',
+  );
+  assert.match(
+    viewport,
+    /min-block-size:\s*0/,
+    'il disegno non può restringersi nella riga che gli resta',
+  );
+
+  // A focused scroll frame keeps the page's visible focus indicator.
+  assert.match(
+    css,
+    /\.mappa__map\s+\.mappa__drawing:focus-visible\s*\{[^}]*outline/s,
+    'il disegno che scorre non prende l’indicatore di focus della pagina',
+  );
+});
+
+test('lo script della Mappa resta uno, corto e senza gestori di tasti o focus', () => {
+  const document = loadSite();
+  const scripts = executableScripts(document);
+  assert.equal(scripts.length, 2, 'la pagina non ha esattamente i due script previsti');
+  const code = scripts[0].textContent;
+  assert.ok(
+    code.length <= 2000,
+    `lo script della mappa è cresciuto oltre il contratto: ${code.length} caratteri`,
+  );
+  assert.doesNotMatch(
+    code,
+    /Escape|keydown|keyup|keypress/,
+    'lo script gestisce la tastiera: lo scorrimento è del browser',
+  );
+  assert.doesNotMatch(
+    code,
+    /\.focus\s*\(/,
+    'lo script sposta il focus da sé: il ritorno è del browser',
+  );
+
+  // The Cantina binding survives the new map surface.
+  assert.match(code, /\.mappa__dot\b/, 'lo script non cerca più i punti della mappa');
+  assert.match(code, /dataset\.dialog/, 'lo script non legge il collegamento al dialogo');
+  assert.match(code, /data-close/, 'lo script non lega il controllo Chiudi');
+  assert.match(code, /clientX[\s\S]*clientY/, 'lo script non chiude al clic fuori dal pannello');
+});
+
+/*
  * La Mappa del Borgo, l'asset. Il piano e' un SVG separato, generato dalla
  * base catastale e cotto nella palette della pagina: e' un'immagine, non
  * codice. Il test lo legge come immagine e non come pagina, cosi' il disegno

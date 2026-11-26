@@ -340,6 +340,10 @@
               <span class="mappa__dot-mark" aria-hidden="true"></span>
             </button>
           </div>
+          <!-- IL COMANDO: uno solo, sotto il disegno. Apre la Mappa in un
+               dialogo nativo dove il piano diventa il riquadro che scorre. Lo
+               script lo nasconde senza JavaScript; in stampa non si stampa. -->
+          <button type="button" class="mappa__expand">Ingrandisci la Mappa</button>
         </figure>
 
         <!--
@@ -381,6 +385,9 @@
               display: none;
             }
             .mappa__dialog-close {
+              display: none;
+            }
+            .mappa__expand {
               display: none;
             }
           </style>
@@ -992,12 +999,22 @@
         </div>
       </div>
     </footer>
-    <!-- MAPPA: ogni punto apre il suo dialogo in modale, Chiudi lo chiude e un clic fuori dal pannello lo chiude; Esc e il ritorno del focus al punto sono del browser. Vedi ADR-0022. -->
+    <!--
+      LA MAPPA IN GRANDE: il dialogo della Mappa vive fuori dal capitolo, qui
+      accanto allo script. Nel markup servito è vuoto del disegno: aprendolo, lo
+      script vi sposta l'unico disegno del capitolo e lo riporta alla chiusura.
+      Il titolo è visibile e nomina il dialogo; Chiudi e Esc lo chiudono, e un
+      clic fuori dal riquadro lo chiude; il focus torna al comando che l'ha
+      aperto. La carta, l'inchiostro e il filo d'oro sono quelli della pagina;
+      dentro, il disegno è il riquadro che scorre, e il movimento è del browser.
+    -->
+    <dialog class="mappa__map" id="mappa-map" aria-labelledby="mappa-map-title">
+      <h3 class="mappa__map-title" id="mappa-map-title">La Mappa del Borgo</h3>
+      <button type="button" class="mappa__map-close" data-close>Chiudi</button>
+    </dialog>
+    <!-- MAPPA: ogni punto apre il suo dialogo in modale, Chiudi lo chiude e un clic fuori dal pannello lo chiude; Esc e il ritorno del focus al punto sono del browser. Il comando Ingrandisci la Mappa apre il dialogo della Mappa e vi sposta il disegno; Chiudi, Esc, il clic fuori e il ritorno del focus sono del browser. Vedi ADR-0022. -->
     <script>
-      for (const dot of document.querySelectorAll('.mappa__dot')) {
-        const dialog = document.getElementById(dot.dataset.dialog);
-        dot.addEventListener('click', () => dialog.showModal());
-        dialog.querySelector('[data-close]').addEventListener('click', () => dialog.close());
+      const outside = (dialog) =>
         dialog.addEventListener('click', (event) => {
           const box = dialog.getBoundingClientRect();
           if (
@@ -1007,7 +1024,31 @@
             dialog.close();
           }
         });
+
+      for (const dot of document.querySelectorAll('.mappa__dot')) {
+        const dialog = document.getElementById(dot.dataset.dialog);
+        dot.addEventListener('click', () => dialog.showModal());
+        dialog.querySelector('[data-close]').addEventListener('click', () => dialog.close());
+        outside(dialog);
       }
+
+      const map = document.querySelector('.mappa__map');
+      const figure = document.querySelector('figure.mappa__board');
+      const drawing = document.querySelector('.mappa__drawing');
+      const expand = document.querySelector('.mappa__expand');
+      const mapClose = map.querySelector('[data-close]');
+      expand.addEventListener('click', () => {
+        map.insertBefore(drawing, mapClose);
+        drawing.tabIndex = 0;
+        drawing.querySelector('img').loading = 'eager';
+        map.showModal();
+      });
+      mapClose.addEventListener('click', () => map.close());
+      map.addEventListener('close', () => {
+        drawing.removeAttribute('tabindex');
+        figure.insertBefore(drawing, expand);
+      });
+      outside(map);
     </script>
     <!-- CONTATORE: GoatCounter legge la sorgente, la regione e i quattro clic; il pixel nel colophon copre chi non ha JavaScript. Vedi ADR-0014. -->
     <script

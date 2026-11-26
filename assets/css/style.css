@@ -1194,6 +1194,38 @@
   }
 
   /*
+   * The chapter's one control: a visible-text button under the plan, in the
+   * page's sans register, with a gold hairline and a 44 px target. It opens the
+   * Mappa in its own view; without JavaScript the fallback hides it, and on
+   * paper it is not printed.
+   */
+  .mappa__expand {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    margin-block-start: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--rule);
+    border-radius: 0;
+    background: none;
+    color: var(--ink);
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .mappa__expand:hover {
+    border-color: var(--link-hover);
+  }
+
+  .mappa__expand:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  /*
    * The labels are the page's text over the drawing: the piazza in the serif
    * register, the church and the two streets in the sans register. A cream
    * halo keeps them legible over the plan without a plate of their own. All
@@ -1392,6 +1424,117 @@
   }
 
   .mappa__dialog-close:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  /*
+   * La Mappa in grande: un dialogo nativo quasi quanto lo schermo, misurato in
+   * unità di viewport e non da una nuova soglia. È la pagina, non una scheda:
+   * carta di crema, inchiostro, filo d'oro, senza ombra, angoli tondi o
+   * movimento. Il dialogo aperto è una griglia di tre righe — titolo, piano,
+   * Chiudi — e la riga centrale è quella che resta e scorre. Nel markup servito
+   * il disegno non c'è: lo script lo sposta qui all'apertura e lo riporta alla
+   * chiusura.
+   */
+  .mappa__map {
+    inline-size: 96vw;
+    block-size: 92dvh;
+    max-inline-size: none;
+    max-block-size: none;
+    margin: auto;
+    padding: var(--space-3);
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    border-radius: 0;
+    background: var(--surface);
+    box-shadow: none;
+    color: var(--ink);
+    font-family: var(--serif);
+  }
+
+  .mappa__map[open] {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: var(--space-3);
+  }
+
+  .mappa__map:focus {
+    outline: none;
+  }
+
+  .mappa__map::backdrop {
+    background: color-mix(in srgb, var(--ink) 55%, transparent);
+  }
+
+  .mappa__map-title {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: var(--step-1);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  /*
+   * Dentro il dialogo il disegno è il riquadro che scorre: il dito, le frecce
+   * quando ha il focus, la rotella e la barra muovono il piano con il browser.
+   * `overscroll-behavior` tiene il rimbalzo fuori dalla pagina, e la barra resta
+   * sottile e d'inchiostro. Il rapporto del piano non governa più il riquadro:
+   * l'altezza è la riga che il dialogo gli lascia.
+   */
+  .mappa__map .mappa__drawing {
+    position: relative;
+    min-block-size: 0;
+    aspect-ratio: auto;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ink-muted) transparent;
+  }
+
+  .mappa__map .mappa__drawing:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: -3px;
+  }
+
+  .mappa__map .mappa__drawing::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .mappa__map .mappa__drawing::-webkit-scrollbar-thumb {
+    background: var(--ink-muted);
+  }
+
+  .mappa__map .mappa__drawing::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Chiudi: the page's control in the page's type, with a gold hairline and a
+   * 44 px target, taking the page's focus indicator. */
+  .mappa__map-close {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    min-block-size: 44px;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--rule);
+    border-radius: 0;
+    background: none;
+    color: var(--ink);
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .mappa__map-close:hover {
+    border-color: var(--link-hover);
+  }
+
+  .mappa__map-close:focus-visible {
     outline: 3px solid currentColor;
     outline-offset: 3px;
   }
@@ -2595,6 +2738,12 @@
 
   .mappa__dialog::backdrop,
   .mappa__dialog-close {
+    display: none;
+  }
+
+  /* Ingrandisci la Mappa is a screen control: the plan and the six entries
+   * already print, so the button stays off the paper. */
+  .mappa__expand {
     display: none;
   }
 
