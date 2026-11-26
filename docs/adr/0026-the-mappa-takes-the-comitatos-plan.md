@@ -43,8 +43,8 @@ number, no count and no route.**
   where the Comitato has confirmed one. The host family and the provider are
   different things: the family is never named, the provider is, on the inside
   line.
-- **The plan’s spellings stand.** `Casianu`, `Callaru` and `L’ammazzatora` are
-  written as the Comitato confirmed them. `7 capocce` is written `Settecapocce`,
+- **The plan’s spellings stand.** `Casianu`, `Callaru`, `Macellaru` and
+  `L’ammazzatora` are written as the Comitato confirmed them. `7 capocce` is written `Settecapocce`,
   the same name in words, because the chapter carries no digit.
 - **One row leaves.** `Li Meroli` — Proloco Turania — is not on the plan and is
   removed; the removal is deliberate, not an omission.
