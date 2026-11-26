@@ -36,7 +36,7 @@ const PROGRAMMA_PARAGRAPH =
  * glossary's `produttori locali` describe the producers, not the wine.
  */
 const MERCATINO_PARAGRAPH =
-  "Come nella prima edizione, anche quest'anno c'è un mercatino: produttori locali espongono i loro prodotti. Si gira tra le bancarelle senza fretta, si guarda, si chiede, e ci si porta a casa qualcosa. La cosa migliore, qui come nelle cantine, è fermarsi a parlare.";
+  "Come nella prima edizione, anche quest'anno c'è un mercatino: produttori locali espongono i loro prodotti. Si gira tra le bancarelle con curiosità, si guarda, si chiede, e ci si porta a casa qualcosa. La cosa migliore, qui come nelle cantine, è fermarsi a parlare.";
 
 /*
  * La promessa della lista dei vini: l'unica eccezione deliberata alla regola
