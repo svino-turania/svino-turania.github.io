@@ -114,7 +114,8 @@
         il banco decorativo; non nomina espositori, numero, luogo o orario, e
         non elenca le merci.
       - Mappa del Borgo: la sezione fra la prosa e il Programma. Pubblica
-        solo le cantine che il Comitato ha confermato: un pulsante sul piano e
+        solo le voci che il Comitato ha confermato — le cantine e il piazzale
+        della chiesa: un pulsante sul piano e
         un dialogo con lo stesso id; il nome sta nell'intestazione del dialogo.
         Non porta numero, titoli non confermati né linea di percorso; la
         posizione del punto si cambia con --x e --y in percentuale. Il disegno
@@ -281,14 +282,14 @@
       <!--
         MAPPA DEL BORGO: la forma visiva della passeggiata, fra la prosa delle
         Cantine e il Programma. Il piano è quello reale del borgo, con la
-        piazza, la chiesa e le due vie verificate come etichette; il comune non
-        è etichettato. Le cantine sono punti, senza numero, perché il percorso
+        piazza, la chiesa e la strada verificata come etichette; il comune non
+        è etichettato. Le voci sono punti, senza numero, perché il percorso
         non è deciso: le posizioni sono quelle del piano. Dove due bersagli da
         44 px si toccherebbero, l'anello si scosta di pochi pixel scritti nel
         markup e un filo d'oro lo riporta al punto vero. Il legame fra un punto
-        e il suo dialogo è l'id della cantina. Il capitolo pubblica solo le
-        cantine che il Comitato ha confermato, senza numero e senza titoli non
-        confermati.
+        e il suo dialogo è l'id della voce. Il capitolo pubblica solo le voci
+        che il Comitato ha confermato — le cantine e il piazzale — senza numero
+        e senza titoli non confermati.
       -->
       <section class="mappa chapter" id="mappa" aria-labelledby="mappa-title">
         <h2 id="mappa-title">LA MAPPA DEL BORGO</h2>
@@ -299,17 +300,18 @@
           file, non nel markup. Le etichette sono testo HTML posato sul piano,
           così usano i caratteri e la crema della pagina e si modificano con il
           contenuto. Niente scala, griglia, cornice o didascalia: solo una N
-          discreta in alto a destra. I punti delle cantine sono gli unici
-          riempimenti bordeaux e stanno alle posizioni del piano.
+          discreta in alto a destra. I punti delle voci della Mappa sono gli
+          unici riempimenti bordeaux e stanno alle posizioni del piano.
 
           COME SI SPOSTA UN PUNTO: --x e --y in percentuale sono il punto vero
           sul piano; --nudge-x e --nudge-y, in pixel, sono lo scostamento del
           bersaglio da 44 px quando due anelli si toccherebbero, e il filo
           d'oro dentro il punto unisce l'anello al punto vero. --bloom è il
           passo della fioritura: il posto del punto nell'ordine del piano, da 0.
-          COME SI AGGIUNGE UNA CANTINA: un <button> qui con
+          COME SI AGGIUNGE UNA VOCE: un <button> qui con
           data-dialog="<id>-dialog", il proprio --bloom e un <dialog> con lo
-          stesso id; i dialoghi sono l'unica voce della Mappa.
+          stesso id; i dialoghi sono l'unica voce della Mappa, e una voce è una
+          cantina o un altro posto del percorso, come il piazzale della chiesa.
         -->
         <figure class="mappa__board">
           <div class="mappa__drawing">
@@ -325,26 +327,31 @@
                 height="792"
                 loading="lazy"
                 decoding="async"
-                alt="Pianta del borgo di Turania: i fabbricati, le strade e la piazza, con le cantine segnate in bordeaux e le due casse in oro."
+                alt="Pianta del borgo di Turania: i fabbricati, le strade e la piazza, con le cantine e il piazzale della chiesa segnati in bordeaux e le due casse in oro."
               >
               <span class="mappa__label mappa__label--place" style="--x: 40.7%; --y: 37.9%">Piazza Umberto I</span>
-              <span class="mappa__label" style="--x: 50.2%; --y: 51.8%">la chiesa</span>
+              <span class="mappa__label" style="--x: 50.2%; --y: 48.4%">la chiesa</span>
               <span class="mappa__label mappa__label--street" style="--x: 15.0%; --y: 21.5%">Corso Trieste</span>
               <span class="mappa__north" aria-hidden="true">N</span>
               <!--
                 I PUNTI E LO SCOSTAMENTO: --x/--y sono il punto vero sul piano;
                 --nudge-x/--nudge-y, in pixel, scostano il bersaglio da 44 px
                 dove due anelli si toccherebbero. A 320 px di viewport il piano
-                è largo 280 px: i centri dei sette anelli stretti distano almeno
-                41,4 px, e a 350, 640 e 728 px il divario cresce. La catena del
-                sud alterna gli scostamenti laterali (santu -16, ammazzatora
-                +3, brunetto +11, macellaru -5), così gli anelli non si
-                coprono; il filo d'oro di ogni anello scostato torna al punto
-                vero. Il tetto è 18 px per anello: a 280 px la piazza (Casianu,
-                Enzo, Callaru, quasi allineati) non può dare 44 px esatti fra
-                due centri — 7,32 + 36 = 43,32 al massimo — ed è per questo che
-                i divari stretti si fermano poco sopra 41. Nessun punto si
-                muove più di 18 px.
+                è largo 280 px: il piazzale della chiesa cade fra gli anelli
+                della piazza e la catena del sud, e i suoi centri distano
+                almeno 28,3 px dai più vicini (Enzo a 28,3, l'ammazzatora a
+                28,7); il suo anello si scosta in alto a sinistra di 17,8 px e
+                il filo torna al piazzale. Altrove i centri stretti stanno poco
+                sopra 41,4 px, e a 350, 640 e 728 px ogni divario cresce. Gli
+                anelli da 13 px restano separati: almeno 15 px bordo a bordo.
+                La catena del sud alterna gli scostamenti laterali (santu -16,
+                ammazzatora +3, brunetto +11, macellaru -5), così gli anelli
+                non si coprono; il filo d'oro di ogni anello scostato torna al
+                punto vero. Il tetto è 18 px per anello: a 280 px la piazza
+                (Casianu, Enzo, Callaru, quasi allineati) non può dare 44 px
+                esatti fra due centri — 7,32 + 36 = 43,32 al massimo — ed è per
+                questo che i divari stretti si fermano poco sopra 41. Nessun
+                punto si muove più di 18 px.
               -->
               <button type="button" class="mappa__dot" data-dialog="cantina-medecu-dialog" aria-controls="cantina-medecu-dialog" aria-labelledby="cantina-medecu-dialog-title" style="--x: 35.41%; --y: 29.05%; --bloom: 0">
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
@@ -384,6 +391,10 @@
                 <span class="mappa__leader" aria-hidden="true"></span>
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
+              <button type="button" class="mappa__dot" data-dialog="piazzale-della-chiesa-dialog" aria-controls="piazzale-della-chiesa-dialog" aria-labelledby="piazzale-della-chiesa-dialog-title" style="--x: 49.40%; --y: 53.50%; --nudge-x: -11; --nudge-y: -14; --bloom: 10">
+                <span class="mappa__leader" aria-hidden="true"></span>
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
               <!-- LE DUE CASSE: segni d'oro, non voci della Mappa. Un anello
                    cavo con il nome accanto; non si aprono, non si contano e
                    non entrano nell'ordine di Tab. -->
@@ -404,7 +415,7 @@
         </figure>
 
         <!--
-          SENZA JAVASCRIPT: i dieci dialoghi sono le sole voci della Mappa, ma da
+          SENZA JAVASCRIPT: gli undici dialoghi sono le sole voci della Mappa, ma da
           chiusi non si vedono. Questo foglio li fa scorrere sotto il piano,
           uno dopo l'altro, con la spaziatura della pagina e un filo d'oro fra
           l'uno e l'altro; i punti, che senza script non aprono nulla, e
@@ -416,7 +427,7 @@
             /* The same static-panel reset as the @media print block in
                assets/css/style.css; keep the two in step. The dialog's
                opening motion leaves a closed panel transparent and a little
-               low, and these ten dialogs are closed: undo that so the
+               low, and these dialogs are closed: undo that so the
                entries read without JavaScript. */
             .mappa__dialog {
               display: block;
@@ -456,7 +467,7 @@
         </noscript>
 
         <!--
-          DIALOGHI: una cantina si apre dal suo punto come dialogo nativo. Il
+          DIALOGHI: una voce si apre dal suo punto come dialogo nativo. Il
           pannello porta il nome, ciò che si trova dentro e il controllo
           Chiudi: nessuna cautela sulla posizione, che il piano ora colloca.
           Il testo resta nel DOM, così la pagina resta indicizzabile. I
@@ -520,6 +531,12 @@
         <dialog class="mappa__dialog" id="cantina-gabriele-dialog" aria-labelledby="cantina-gabriele-dialog-title">
           <h3 class="mappa__dialog-title" id="cantina-gabriele-dialog-title">Quissi de Gabriele</h3>
           <p class="mappa__dialog-inside">vino</p>
+          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
+        </dialog>
+
+        <dialog class="mappa__dialog" id="piazzale-della-chiesa-dialog" aria-labelledby="piazzale-della-chiesa-dialog-title">
+          <h3 class="mappa__dialog-title" id="piazzale-della-chiesa-dialog-title">Piazzale della chiesa</h3>
+          <p class="mappa__dialog-inside">Pro Loco Turania — arrosticini, panini con salsiccia, hot dog</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
       </section>

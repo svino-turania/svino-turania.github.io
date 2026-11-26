@@ -101,16 +101,18 @@ print PDF; the two must never disagree.
 
 The page's picture of the walk: a real plan of the Borgo, exported from the
 cadastral base, north-up and in scale, with the piazza, the church and the
-verified street `Corso Trieste` as labels. The ten
-Comitato-confirmed Cantine are bordeaux dots — the page's only bordeaux marks —
-and each dot is a button that opens the Cantina's panel, carrying its house
-title and what visitors find inside. Two Casse are gold marks that name
+verified street `Corso Trieste` as labels. The ten Comitato-confirmed Cantine
+and the `Piazzale della chiesa` — the little square at the church's foot, where
+the Pro Loco serves arrosticini, panini con salsiccia and hot dog — are bordeaux
+dots, the page's only bordeaux marks, and each dot is a button that opens the
+place's panel, carrying its name (a Cantina's house title, or the piazzale's)
+and what visitors find inside. Two Casse are gold marks that name
 themselves and open nothing. The dots are the map's entries: there is no list
 beside or beneath the drawing. The marks stand at the plan's real positions,
 and where a dot must step aside for a thumb a gold hairline joins it to its
 true position; the hairline is not a route and carries no arrow. The Mappa
 claims places, not an order, and names no count, no number, no route and no
-Cantina the Comitato has not confirmed. Capitalise when naming the chapter
+entry the Comitato has not confirmed. Capitalise when naming the chapter
 (`la Mappa del Borgo`); the page prose does not use the term.
 
 ## Turania (RI)

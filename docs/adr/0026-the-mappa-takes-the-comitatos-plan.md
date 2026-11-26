@@ -3,10 +3,10 @@
 - **Status:** accepted
 - **Date:** 2026-11-26
 - **Amends:** ADR-0022 (the confirmed rows become the plan’s ten Cantine under
-  their house titles, the dots take the plan’s positions, two Casse join them as
-  gold marks, the labels over the plan reduce to the piazza, the church and the
-  street `Corso Trieste`, and the `Posizione indicativa` caveat and its element
-  are removed);
+  their house titles and the piazzale’s stand joins them, the dots take the
+  plan’s positions, two Casse join them as gold marks, the labels over the plan
+  reduce to the piazza, the church and the street `Corso Trieste`, and the
+  `Posizione indicativa` caveat and its element are removed);
   ADR-0025 (the 3× ceiling now rests on *the plan is a plan, not a survey*, not
   on the positions being placeholders)
 - **Related:** ADR-0003, ADR-0014, ADR-0022, ADR-0023, ADR-0024, ADR-0025,
@@ -33,8 +33,8 @@ be re-exported, no palette is touched and no permission is re-checked.
 ## Decision
 
 **The Mappa carries the Comitato’s plan: its ten Cantine under their house
-titles, its two Casse as gold marks, its positions exactly, and no caveat, no
-number, no count and no route.**
+titles and the piazzale’s stand, its two Casse as gold marks, its positions
+exactly, and no caveat, no number, no count and no route.**
 
 ### The rows
 
@@ -44,8 +44,10 @@ number, no count and no route.**
   different things: the family is never named, the provider is, on the inside
   line.
 - **The plan’s spellings stand.** `Casianu`, `Callaru`, `Macellaru` and
-  `L’ammazzatora` are written as the Comitato confirmed them. `7 capocce` is written `Settecapocce`,
-  the same name in words, because the chapter carries no digit.
+  `L’ammazzatora` are written as the Comitato confirmed them, and
+  `Piazzale della chiesa` is the piazzale’s name. `7 capocce` is written
+  `Settecapocce`, the same name in words, because the chapter carries no
+  digit.
 - **One row leaves.** `Li Meroli` — Proloco Turania — is not on the plan and is
   removed; the removal is deliberate, not an omission.
 - **The page prints no count and no number.** The chapter’s visible text carries
@@ -54,14 +56,34 @@ number, no count and no route.**
   routed, and the page must commit the Comitato to no figure. The absence of
   numbers is the only honest way to print places without implying an order.
 
+### The piazzale in front of the church
+
+- **One more entry, and it is not a Cantina.** The Comitato confirmed the Pro
+  Loco’s stand in the little square in front of the church: its heading is
+  `Piazzale della chiesa`, its inside line `Pro Loco Turania — arrosticini,
+  panini con salsiccia, hot dog`. It is an entry like the Cantine — a bordeaux
+  dot, a panel and a place’s name — because the walk stops there and a reader
+  must find it. Bordeaux marks the Mappa’s entries, not the cellars alone; a
+  Cassa stays gold because it opens nothing.
+- **Its point is the churchyard, and the ring steps aside.** The little square
+  at the church’s foot is the plan’s densest spot, between the piazza’s rings
+  and the southern chain, so the true point (`49.40%` / `53.50%`) keeps a ring
+  that steps 17.8 px up and left, its hairline returning to the square. At
+  280 px its nearest centre is 28.33 px away and the 13 px rings keep 15.33 px
+  between their borders; the 18 px cap is unchanged.
+- **The church’s label steps up to the nave.** It leaves the lower nave for the
+  upper body of the building, so the piazzale’s ring, which must stay at the
+  church’s foot, never sits under the text.
+
 ### The Casse
 
 - **Two, as marks and not entries.** Each is a `span`, not a button or a link,
   with an `aria-hidden` mark and a visible `Cassa` label beside it. It opens no
   panel, is not focusable, carries no `data-dialog`, no number and no price, and
   never blooms.
-- **Gold and hollow, where the Cantine are bordeaux and filled.** Bordeaux is
-  reserved for the Cantine’s dots (ADR-0022), and a Cassa is not a tasting room.
+- **Gold and hollow, where the entries are bordeaux and filled.** Bordeaux
+  marks the Mappa’s entries (ADR-0022), and a Cassa is not an entry: it opens
+  nothing and takes no focus.
   The gold ring is hollow where a dot is filled, so colour and fill both say *not
   a tasting room*; the label carries the meaning for a colour-blind eye, a grey
   print and a small screen, without a legend.
@@ -103,9 +125,9 @@ number, no count and no route.**
 - **No caveat.** `Posizione indicativa` and its element leave every panel, its
   stylesheet rule goes with it, and no other caveat replaces it.
 - **The description says what the drawing contains, without a digit and
-  without a number of Cantine.** It names the buildings, the streets and the
-  piazza, the Cantine in bordeaux and the two Casse in gold — the spec's exact
-  sentence — and no other fact.
+  without a number of entries.** It names the buildings, the streets and the
+  piazza, the Cantine and the piazzale in bordeaux and the two Casse in gold —
+  the spec's sentence, with the piazzale added to it — and no other fact.
 
 ### The 3× ceiling
 
@@ -127,10 +149,11 @@ number, no count and no route.**
 - **The chapter is truthful on foot.** A visitor who knows the Borgo can now find
   each Cantina where it stands, and the piazza pair is reachable on a phone
   because the rings step apart and the hairlines say where they really are.
-- **The register is the plan’s.** Adding or moving a Cantina follows the plan, not
+- **The register is the plan’s.** Adding or moving an entry follows the plan, not
   a sketch: one dot and one panel of the same id, or two percentages. A change to
-  the plan that moves, adds or removes a Cantina is a content change in the
-  page’s markup, not a re-export.
+  the plan that moves, adds or removes an entry is a content change in the
+  page’s markup, not a re-export — including the piazzale, which is a place of
+  the walk and not a Cantina.
 - **The host families’ names leave the page and the suite.** They no longer
   appear in a heading, an inside line or a test.
 - **The no-digit rule is unchanged and now does real work.** It is why
@@ -139,13 +162,16 @@ number, no count and no route.**
   the dialogs, the fallbacks and the script contract stand; the rows, the Casse
   and the caveat are replaced, and the 3× reason moves from placeholders to the
   nature of a plan.
-- **The static guards pin the new register.** The ten rows are asserted verbatim,
-  the old host names absent, the ten dots at their percentages, the two Casse as
-  non-interactive marks with their labels and no panel, the three labels over the
-  plan in order with the piazza in the labels’ step, `Posizione indicativa`
-  absent, the description exact, and every leader paired with a displaced dot
-  within the 18 px limit. The no-digit, no-route, no-list and two-script guards
-  pass unchanged.
+- **The static guards pin the new register.** The entries are asserted
+  verbatim, the old host names absent, the dots at their percentages, the
+  piazzale among them, the two Casse as non-interactive marks with their labels
+  and no panel, the three labels over the plan in order with the piazza in the
+  labels’ step, `Posizione indicativa` absent, the description exact, and every
+  leader paired with a displaced dot within the 18 px limit. The guard that
+  measures the thumb spacing now records the piazzale’s 28.33 px, its ring and
+  the 15.33 px between ring borders, so a further mark that crowds the
+  churchyard fails the suite. The no-digit, no-route, no-list and two-script
+  guards pass unchanged.
 
 ## Considered options
 

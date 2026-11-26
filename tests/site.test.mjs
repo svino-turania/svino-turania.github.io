@@ -5709,10 +5709,11 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
 
 /*
  * La Mappa del Borgo: the walk's picture, between the Cantina prose and the
- * Programma. The drawing is the real plan, served as an image, with the four
- * place labels and the dots as HTML over it. Only the ten Cantine of the
- * Comitato's plan, in its order; no count, no numbered pins, no route line, no
- * unconfirmed title or provider; every dot and every entry share one id set.
+ * Programma. The drawing is the real plan, served as an image, with the three
+ * place labels and the dots as HTML over it. The ten Cantine of the
+ * Comitato's plan and the piazzale, in their order; no count, no numbered pins,
+ * no route line, no unconfirmed title or provider; every dot and every entry
+ * share one id set.
  * The chapter carries no digit at all: no count and no numbered pin.
  */
 /*
@@ -5720,7 +5721,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
  * vecchia cautela sulle posizioni.
  */
 const MAPPA_ALT =
-  'Pianta del borgo di Turania: i fabbricati, le strade e la piazza, con le cantine segnate in bordeaux e le due casse in oro.';
+  'Pianta del borgo di Turania: i fabbricati, le strade e la piazza, con le cantine e il piazzale della chiesa segnati in bordeaux e le due casse in oro.';
 
 /*
  * Le voci del piano, nell'ordine servito. `x` e `y` sono la posizione vera in
@@ -5810,13 +5811,21 @@ const MAPPA_ENTRIES = Object.freeze([
     y: '44.30%',
     nudge: { dx: -11, dy: 7 },
   },
+  {
+    id: 'piazzale-della-chiesa',
+    name: 'Piazzale della chiesa',
+    inside: 'Pro Loco Turania — arrosticini, panini con salsiccia, hot dog',
+    x: '49.40%',
+    y: '53.50%',
+    nudge: { dx: -11, dy: -14 },
+  },
 ]);
 
 // Gli anelli scostati: quelli che portano uno scostamento scritto, e solo quelli.
 const displacedDots = () =>
   MAPPA_ENTRIES.filter(({ nudge }) => nudge.dx !== 0 || nudge.dy !== 0);
 
-test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le dieci cantine del piano', () => {
+test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le voci del piano', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
   assert.ok(section, 'manca la Mappa del Borgo');
@@ -5833,7 +5842,7 @@ test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le dieci can
   assert.ok(elements.indexOf(section) < elements.indexOf(programme), 'la Mappa segue il Programma');
 
   /*
-   * The visible list left the page in #82: the ten dialogs are the only
+   * The visible list left the page in #82: the dialogs are the only
    * entries, so no list, no <details>, and no second copy of the Cantina text.
    */
   assert.equal(
@@ -5846,7 +5855,7 @@ test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le dieci can
   assert.equal(
     dialogs.length,
     MAPPA_ENTRIES.length,
-    'la Mappa non ha le dieci voci del piano',
+    'la Mappa non ha le voci del piano',
   );
   assert.deepEqual(
     dialogs.map((dialog) => dialog.id),
@@ -5875,7 +5884,7 @@ test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le dieci can
     assert.equal(
       normalize(dialog.querySelector('h3')?.textContent),
       expected.name,
-      `il dialogo ${expected.id} non porta il titolo della cantina`,
+      `il dialogo ${expected.id} non porta il titolo della voce`,
     );
     assert.equal(
       normalize(dialog.querySelector('.mappa__dialog-inside')?.textContent),
@@ -5895,18 +5904,18 @@ test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le dieci can
   });
 });
 
-test('le intestazioni e le righe del dentro della Mappa sono, in ordine, i dieci del piano', () => {
+test('le intestazioni e le righe del dentro della Mappa sono, in ordine, quelle del piano', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
   const dialogs = [...section.querySelectorAll('dialog.mappa__dialog')];
 
   /*
-   * The plan's ten rows are the whole set, in its order: a heading or an
+   * The plan's rows are the whole set, in its order: a heading or an
    * inside line left over from the host-named chapter would change one of
    * these lists and fail. Pinning the set is how absence is kept — the suite
    * does not reprint the names it retired.
    */
-  assert.equal(dialogs.length, MAPPA_ENTRIES.length, 'la Mappa non ha le dieci righe del piano');
+  assert.equal(dialogs.length, MAPPA_ENTRIES.length, 'la Mappa non ha le righe del piano');
   assert.deepEqual(
     dialogs.map((dialog) => normalize(dialog.querySelector('h3')?.textContent)),
     MAPPA_ENTRIES.map((entry) => entry.name),
@@ -5937,7 +5946,7 @@ test('ogni punto della Mappa è un pulsante che apre il suo dialogo e nessun pun
   const drawing = section.querySelector('.mappa__drawing');
   assert.ok(drawing, 'manca il riquadro posizionato del disegno');
   const pins = [...drawing.querySelectorAll('button.mappa__dot')];
-  assert.equal(pins.length, MAPPA_ENTRIES.length, 'la Mappa non ha un punto per cantina');
+  assert.equal(pins.length, MAPPA_ENTRIES.length, 'la Mappa non ha un punto per voce');
   assert.equal(
     drawing.querySelectorAll('a.mappa__dot').length,
     0,
@@ -5984,7 +5993,7 @@ test('ogni punto della Mappa è un pulsante che apre il suo dialogo e nessun pun
     assert.equal(
       normalize(accessibleName(document, pin)),
       expected.name,
-      `il punto ${expected.id} non ha il nome accessibile della cantina`,
+      `il punto ${expected.id} non ha il nome accessibile della voce`,
     );
     assert.equal(
       normalize(pin.textContent),
@@ -6045,7 +6054,7 @@ test('ogni punto della Mappa è un pulsante che apre il suo dialogo e nessun pun
       pins.filter((pin) => pin.getAttribute('data-dialog') === `${entry.id}-dialog`)
         .length,
       1,
-      `la cantina ${entry.id} non ha un solo punto`,
+      `la voce ${entry.id} non ha un solo punto`,
     );
   }
 });
@@ -6054,7 +6063,7 @@ test('ogni anello scostato è legato al suo punto vero da un filo, e solo lui', 
   const document = loadSite();
   const layer = document.querySelector('.mappa__zoom');
   const dots = [...layer.querySelectorAll('button.mappa__dot')];
-  assert.equal(dots.length, MAPPA_ENTRIES.length, 'la Mappa non ha un punto per cantina');
+  assert.equal(dots.length, MAPPA_ENTRIES.length, 'la Mappa non ha un punto per voce');
 
   const displaced = displacedDots();
 
@@ -6099,7 +6108,7 @@ test('ogni anello scostato è legato al suo punto vero da un filo, e solo lui', 
     assert.equal(style.match(/--nudge-y:\s*(-?\d+)/)?.[1], String(ny));
   });
 
-  // Il filo è solo di chi si scosta: otto anelli su dieci.
+  // Il filo è solo di chi si scosta: nove anelli su undici.
   assert.equal(
     document.querySelectorAll('.mappa__leader').length,
     displaced.length,
@@ -6167,14 +6176,14 @@ test('il filo del punto è un pixel d’oro, senza punta né tappo, e cresce col
   );
 });
 
-test('ogni cantina si apre in un dialogo nativo, intitolato col suo nome e col dentro', () => {
+test('ogni voce si apre in un dialogo nativo, intitolato col suo nome e col dentro', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
   const dialogs = [...section.querySelectorAll('dialog.mappa__dialog')];
   assert.equal(
     dialogs.length,
     MAPPA_ENTRIES.length,
-    'la Mappa non ha un dialogo per cantina',
+    'la Mappa non ha un dialogo per voce',
   );
   assert.deepEqual(
     dialogs.map((dialog) => dialog.id),
@@ -6199,12 +6208,12 @@ test('ogni cantina si apre in un dialogo nativo, intitolato col suo nome e col d
     assert.equal(
       normalize(heading.textContent),
       expected.name,
-      `il titolo del dialogo ${expected.id} non è il nome della cantina`,
+      `il titolo del dialogo ${expected.id} non è il nome della voce`,
     );
     assert.equal(
       normalize(accessibleName(document, dialog)),
       expected.name,
-      `il dialogo ${expected.id} non è annunciato col nome della cantina`,
+      `il dialogo ${expected.id} non è annunciato col nome della voce`,
     );
     assert.equal(
       normalize(dialog.querySelector('.mappa__dialog-inside')?.textContent),
@@ -6237,7 +6246,7 @@ test('ogni cantina si apre in un dialogo nativo, intitolato col suo nome e col d
   });
 });
 
-test('senza JavaScript i dieci dialoghi scorrono sotto il piano, mentre Chiudi e i punti tacciono', () => {
+test('senza JavaScript gli undici dialoghi scorrono sotto il piano, mentre Chiudi e i punti tacciono', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
   const fallback = section.querySelector('noscript');
@@ -6248,7 +6257,7 @@ test('senza JavaScript i dieci dialoghi scorrono sotto il piano, mentre Chiudi e
 
   /*
    * A closed <dialog> is display:none from the browser's own stylesheet; the
-   * fallback resets that and the browser's positioning, so the ten entries
+   * fallback resets that and the browser's positioning, so the entries
    * flow in the chapter under the plan instead of floating in a modal box.
    */
   const panel = ruleBodyFor(css, '.mappa__dialog');
@@ -6313,7 +6322,7 @@ test('senza JavaScript i dieci dialoghi scorrono sotto il piano, mentre Chiudi e
     );
   }
 
-  // The ten dialogs follow the plan, and they are the same ten entries: the
+  // The dialogs follow the plan, and they are the same entries: the
   // fallback reuses their content instead of adding a second list.
   const order = [
     ...section.querySelectorAll('figure.mappa__board, dialog.mappa__dialog'),
@@ -6321,7 +6330,7 @@ test('senza JavaScript i dieci dialoghi scorrono sotto il piano, mentre Chiudi e
   assert.equal(
     order.length,
     MAPPA_ENTRIES.length + 1,
-    'il ripiego non mostra il piano e i dieci dialoghi',
+    'il ripiego non mostra il piano e gli undici dialoghi',
   );
   assert.ok(
     order[0].classList.contains('mappa__board'),
@@ -6329,7 +6338,7 @@ test('senza JavaScript i dieci dialoghi scorrono sotto il piano, mentre Chiudi e
   );
 });
 
-test('in stampa il piano e i dieci dialoghi si seguono, Chiudi si nasconde e i punti restano segni', () => {
+test('in stampa il piano e gli undici dialoghi si seguono, Chiudi si nasconde e i punti restano segni', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
   const css = stripCssComments(servedStylesheet());
@@ -6411,14 +6420,14 @@ test('in stampa il piano e i dieci dialoghi si seguono, Chiudi si nasconde e i p
     'in stampa il piano resta tagliato dall’animazione di rivelazione',
   );
 
-  // The print view reuses the same ten dialogs, after the plan.
+  // The print view reuses the same dialogs, after the plan.
   const order = [
     ...section.querySelectorAll('figure.mappa__board, dialog.mappa__dialog'),
   ];
   assert.equal(
     order.length,
     MAPPA_ENTRIES.length + 1,
-    'la stampa non ha il piano e le dieci voci',
+    'la stampa non ha il piano e le voci',
   );
   assert.ok(
     order[0].classList.contains('mappa__board'),
@@ -6504,9 +6513,9 @@ test('il dialogo della Mappa si posa aprendosi e si ritira chiudendosi, e la car
   );
 
   /*
-   * The fallback flows the same ten closed dialogs into the chapter, so it
+   * The fallback flows the same closed dialogs into the chapter, so it
    * must undo the closed state the motion adds; otherwise a reader without
-   * JavaScript gets ten invisible entries.
+   * JavaScript gets invisible entries.
    */
   const document = loadSite();
   const fallback = stripCssComments(
@@ -6516,12 +6525,12 @@ test('il dialogo della Mappa si posa aprendosi e si ritira chiudendosi, e la car
   assert.match(
     fallbackPanel,
     /opacity:\s*1/,
-    'senza JavaScript i dieci dialoghi restano trasparenti',
+    'senza JavaScript gli undici dialoghi restano trasparenti',
   );
   assert.match(
     fallbackPanel,
     /transform:\s*none/,
-    'senza JavaScript i dieci dialoghi restano abbassati',
+    'senza JavaScript gli undici dialoghi restano abbassati',
   );
 });
 
@@ -6573,11 +6582,11 @@ test('i punti della Mappa fioriscono il proprio inchiostro, e la carta resta fer
   );
 
   /*
-   * One step behind the last: the first dot has no delay and the other nine
-   * carry the multipliers from one to nine, so the ten read as one field. The
+   * One step behind the last: the first dot has no delay and the rest carry
+   * the multipliers from one to the last, so the dots read as one field. The
    * multiplier is each dot's own `--bloom`, written in its markup, so adding a
    * dot needs no stylesheet rule — only its place in the plan. One rule, not
-   * nine positional selectors.
+   * one positional selector per dot.
    */
   assert.match(
     motion,
@@ -6596,14 +6605,14 @@ test('i punti della Mappa fioriscono il proprio inchiostro, e la carta resta fer
   );
   const document = loadSite();
   const staggered = [...document.querySelectorAll('.mappa__zoom button.mappa__dot')];
-  assert.equal(staggered.length, MAPPA_ENTRIES.length, 'la Mappa non ha i dieci punti');
+  assert.equal(staggered.length, MAPPA_ENTRIES.length, 'la Mappa non ha un punto per voce');
   assert.deepEqual(
     staggered.map((dot) => {
       const style = dot.getAttribute('style') ?? '';
       return Number(style.match(/--bloom:\s*(\d+)/)?.[1]);
     }),
-    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-    'i dieci punti non portano, in ordine di piano, il proprio passo di fioritura',
+    MAPPA_ENTRIES.map((_, index) => index),
+    'i punti non portano, in ordine di piano, il proprio passo di fioritura',
   );
 
   /*
@@ -6743,16 +6752,19 @@ test('la Mappa non si scusa più per le posizioni: la cautela è uscita dal corp
  * da 44 px non possono essere disgiunti: Casianu ed Enzo partono a 7,32 px di
  * centro e il tetto di 18 px per anello ne guadagna al massimo 36, cioè 43,32
  * px, sotto i 44. Il tetto è rispettato — nessun anello si sposta oltre 18 px —
- * e il criterio del pollice è raggiunto con l'area distinta degli anelli: i
- * centri restano a 41,38 px nel punto più stretto, e i cerchi visibili da 13 px
- * non scendono sotto 28 px di distanza bordo a bordo, così ognuno resta
- * separato. Nessun nuovo scontro e il divario cresce a ogni larghezza.
+ * e il criterio del pollice è raggiunto con l'area distinta degli anelli. Il
+ * piazzale della chiesa cade nel punto più fitto della passeggiata, fra gli
+ * anelli della piazza e la catena del sud: il suo anello, scostato in alto a
+ * sinistra, lascia 28,33 px dal centro più vicino, Enzo, e i cerchi visibili da
+ * 13 px restano a 15,33 px bordo a bordo, ancora separati. Le altre coppie
+ * strette stanno poco sopra 41,38 px. Nessun nuovo scontro e il divario cresce
+ * a ogni larghezza.
  */
 test('a 320 px i bersagli sono separati il più possibile e i divari crescono col disegno', () => {
   const document = loadSite();
   const layer = document.querySelector('.mappa__zoom');
   const dots = [...layer.querySelectorAll('button.mappa__dot')];
-  assert.equal(dots.length, MAPPA_ENTRIES.length, 'la Mappa non ha i dieci punti');
+  assert.equal(dots.length, MAPPA_ENTRIES.length, 'la Mappa non ha un punto per voce');
 
   // (a) Il tetto è 18 px per anello, e nessuno lo supera.
   const displacement = Math.max(
@@ -6779,6 +6791,9 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
       ['cantina-macellaru', 'cantina-brunetto'],
       ['cantina-brunetto', 'cantina-ammazzatora'],
       ['cantina-ammazzatora', 'cantina-santu'],
+      ['piazzale-della-chiesa', 'cantina-enzo'],
+      ['piazzale-della-chiesa', 'cantina-ammazzatora'],
+      ['piazzale-della-chiesa', 'cantina-callaru'],
     ].map(([a, b]) => [a, b].sort().join('/')),
   );
 
@@ -6819,16 +6834,17 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
     }
   }
 
-  // (b) A 280 px il divario minimo fra due centri, misurato, è 41,38 px.
+  // (b) A 280 px il divario minimo fra due centri, misurato, è 28,33 px.
   assert.ok(
-    Math.abs(narrowest - 41.38) < 0.01,
-    `il divario minimo fra due centri a 280 px è ${narrowest.toFixed(2)} px, non 41,38`,
+    Math.abs(narrowest - 28.33) < 0.01,
+    `il divario minimo fra due centri a 280 px è ${narrowest.toFixed(2)} px, non 28,33`,
   );
 
-  // (c) Gli anelli da 13 px restano separati: almeno 28 px bordo a bordo.
+  // (c) Gli anelli da 13 px restano separati: fra i bordi resta almeno la
+  // larghezza di un anello.
   assert.ok(
-    narrowest - 13 >= 28,
-    `gli anelli da 13 px si avvicinano a ${(narrowest - 13).toFixed(2)} px bordo a bordo: meno di 28`,
+    narrowest - 13 >= 13,
+    `gli anelli da 13 px si avvicinano a ${(narrowest - 13).toFixed(2)} px bordo a bordo: meno di 13`,
   );
 
   assert.deepEqual(
@@ -7324,7 +7340,7 @@ test('senza JavaScript e in stampa Ingrandisci la Mappa tace, mentre il capitolo
     'il comando è nascosto anche con JavaScript',
   );
 
-  // Without JavaScript the chapter is today's: plan in the figure, ten entries.
+  // Without JavaScript the chapter is today's: plan in the figure, the entries.
   assert.equal(
     section.querySelectorAll('figure.mappa__board .mappa__plan').length,
     1,
@@ -7333,7 +7349,7 @@ test('senza JavaScript e in stampa Ingrandisci la Mappa tace, mentre il capitolo
   assert.equal(
     section.querySelectorAll('dialog.mappa__dialog').length,
     MAPPA_ENTRIES.length,
-    'senza JavaScript le dieci voci non sono più dieci',
+    'senza JavaScript le voci non sono più quelle del piano',
   );
 });
 
@@ -7350,7 +7366,7 @@ test('la Mappa si apre in un dialogo proprio, intitolato La Mappa del Borgo e ch
   assert.equal(
     map.classList.contains('mappa__dialog'),
     false,
-    'il dialogo della Mappa usa la classe dei pannelli delle Cantine',
+    'il dialogo della Mappa usa la classe dei pannelli delle voci',
   );
   assert.equal(map.closest('section.mappa'), null, 'il dialogo della Mappa sta nel capitolo');
   assert.equal(
@@ -7359,9 +7375,9 @@ test('la Mappa si apre in un dialogo proprio, intitolato La Mappa del Borgo e ch
     'il dialogo della Mappa si apre da solo',
   );
 
-  // The ten Cantina panels keep their count, ids, order and class.
+  // The panels keep their count, ids, order and class.
   const panels = [...section.querySelectorAll('dialog.mappa__dialog')];
-  assert.equal(panels.length, MAPPA_ENTRIES.length, 'i dieci pannelli non sono più dieci');
+  assert.equal(panels.length, MAPPA_ENTRIES.length, 'i pannelli non sono più quelli del piano');
   assert.deepEqual(
     panels.map((panel) => panel.id),
     MAPPA_ENTRIES.map((entry) => `${entry.id}-dialog`),
@@ -7428,7 +7444,7 @@ test('la Mappa servita tiene un solo disegno, e lo script lo sposta invece di co
   assert.equal(
     document.querySelectorAll('.mappa__dot').length,
     MAPPA_ENTRIES.length,
-    'la pagina serve più di dieci punti',
+    'la pagina serve più punti delle voci del piano',
   );
   assert.equal(
     (normalize(document.body.textContent).match(/Piazza Umberto I/g) ?? []).length,
@@ -7554,7 +7570,7 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
   );
 
   // One picture: the plan, the three place labels, the two Cassa labels, the
-  // north mark and the ten dots.
+  // north mark and the dots of the entries.
   assert.equal(
     layer.querySelectorAll('img.mappa__plan').length,
     1,
@@ -7573,7 +7589,7 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
   assert.equal(
     layer.querySelectorAll('.mappa__dot').length,
     MAPPA_ENTRIES.length,
-    'il layer non tiene i dieci punti delle cantine',
+    'il layer non tiene i punti delle voci',
   );
   assert.equal(
     layer.querySelectorAll('.mappa__cassa').length,
@@ -7586,7 +7602,7 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
     'il layer non tiene il filo di ogni anello scostato',
   );
 
-  // The served page still has one plan, one piazza, five labels and ten dots.
+  // The served page still has one plan, one piazza, five labels and a dot per entry.
   assert.equal(document.querySelectorAll('img.mappa__plan').length, 1);
   assert.equal(document.querySelectorAll('.mappa__label').length, 5);
   assert.equal(
@@ -7795,11 +7811,11 @@ test('un punto dentro la Mappa apre il suo pannello come secondo modale, senza g
   assert.ok(map && drawing, 'mancano la Mappa in grande o il suo disegno');
 
   const dots = [...drawing.querySelectorAll('button.mappa__dot')];
-  assert.equal(dots.length, MAPPA_ENTRIES.length, 'la Mappa in grande non porta i dieci punti');
+  assert.equal(dots.length, MAPPA_ENTRIES.length, 'la Mappa in grande non porta i punti delle voci');
   assert.deepEqual(
     dots.map((dot) => dot.dataset.dialog),
     MAPPA_ENTRIES.map((entry) => `${entry.id}-dialog`),
-    'i punti della Mappa in grande non aprono i dieci pannelli nell’ordine',
+    'i punti della Mappa in grande non aprono i pannelli nell’ordine',
   );
 
   for (const dot of dots) {
@@ -7808,7 +7824,7 @@ test('un punto dentro la Mappa apre il suo pannello come secondo modale, senza g
     assert.equal(panel.tagName.toLowerCase(), 'dialog', 'il pannello non è un dialogo nativo');
     assert.ok(
       panel.classList.contains('mappa__dialog'),
-      'il pannello non è uno dei dieci pannelli delle Cantine',
+      'il pannello non è uno dei pannelli delle voci',
     );
     assert.equal(
       dot.getAttribute('aria-controls'),
