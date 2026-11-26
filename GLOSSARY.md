@@ -100,8 +100,8 @@ print PDF; the two must never disagree.
 ## Mappa del Borgo
 
 The page's picture of the walk: a real plan of the Borgo, exported from the
-cadastral base, north-up and in scale, with the piazza, the church and the two
-verified streets `Corso Trieste` and `Via Turano` as labels. The ten
+cadastral base, north-up and in scale, with the piazza, the church and the
+verified street `Corso Trieste` as labels. The ten
 Comitato-confirmed Cantine are bordeaux dots — the page's only bordeaux marks —
 and each dot is a button that opens the Cantina's panel, carrying its house
 title and what visitors find inside. Two Casse are gold marks that name

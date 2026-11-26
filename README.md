@@ -197,9 +197,9 @@ paragraph carries the words.
 The Mappa del Borgo follows the prose as the walk's picture, before the
 Programma: the real plan of the borgo, exported from the cadastral base and
 drawn in the page's cream, gold and ink palette. The buildings, streets and
-piazza are in the served SVG; `Piazza Umberto I`, `la chiesa`, `Corso Trieste`
-and `Via Turano` are HTML labels over it, all four set level, with a discreet
-`N` and no scale bar, grid, frame or caption. The Comitato-confirmed Cantine —
+piazza are in the served SVG; `Piazza Umberto I`, `la chiesa` and `Corso
+Trieste` are HTML labels over it, all three set level, with a discreet `N` and
+no scale bar, grid, frame or caption. The Comitato-confirmed Cantine —
 ten of them — are bordeaux dots, the page's only bordeaux-filled marks, and each
 dot is a button that opens its own native dialog: the Cantina's house title is
 the panel's heading, and its inside line says what visitors find inside and who

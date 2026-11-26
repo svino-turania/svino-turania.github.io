@@ -4,7 +4,9 @@
 - **Date:** 2026-11-26
 - **Amends:** ADR-0022 (the confirmed rows become the plan’s ten Cantine under
   their house titles, the dots take the plan’s positions, two Casse join them as
-  gold marks, and the `Posizione indicativa` caveat and its element are removed);
+  gold marks, the labels over the plan reduce to the piazza, the church and the
+  street `Corso Trieste`, and the `Posizione indicativa` caveat and its element
+  are removed);
   ADR-0025 (the 3× ceiling now rests on *the plan is a plan, not a survey*, not
   on the positions being placeholders)
 - **Related:** ADR-0003, ADR-0014, ADR-0022, ADR-0023, ADR-0024, ADR-0025,
@@ -84,6 +86,18 @@ number, no count and no route.**
   that does keeps one, in the markup, so the no-script render, the print view and
   the expanded map all show the same drawing.
 
+### The labels
+
+- **Three names over the plan: the piazza, the church and `Corso Trieste`.** The
+  labels orient a visitor the drawing alone cannot; `Via Turano` leaves them
+  because it crowded the top of the plan without adding an orientation the
+  Corso does not already give.
+- **The piazza’s name sits on the piazza**, in the labels’ own step, told apart
+  by the serif register and the ink rather than by a larger body; the street’s
+  name sits on its street’s band, to the left along the diagonal it names.
+- **The labels stay level and are still HTML text.** No label is rotated, and
+  neither the asset nor the script gains a name.
+
 ### What the chapter drops
 
 - **No caveat.** `Posizione indicativa` and its element leave every panel, its
@@ -127,7 +141,8 @@ number, no count and no route.**
   nature of a plan.
 - **The static guards pin the new register.** The ten rows are asserted verbatim,
   the old host names absent, the ten dots at their percentages, the two Casse as
-  non-interactive marks with their labels and no panel, `Posizione indicativa`
+  non-interactive marks with their labels and no panel, the three labels over the
+  plan in order with the piazza in the labels’ step, `Posizione indicativa`
   absent, the description exact, and every leader paired with a displaced dot
   within the 18 px limit. The no-digit, no-route, no-list and two-script guards
   pass unchanged.
