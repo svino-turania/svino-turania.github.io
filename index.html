@@ -326,22 +326,34 @@
               <span class="mappa__label mappa__label--street" style="--x: 22.0%; --y: 27.8%">Corso Trieste</span>
               <span class="mappa__label mappa__label--street" style="--x: 38.1%; --y: 13.6%">Via Turano</span>
               <span class="mappa__north" aria-hidden="true">N</span>
-              <button type="button" class="mappa__dot" data-dialog="cantina-paci-dialog" aria-controls="cantina-paci-dialog" aria-labelledby="cantina-paci-dialog-title" style="--x: 26%; --y: 62%">
+              <button type="button" class="mappa__dot" data-dialog="cantina-medecu-dialog" aria-controls="cantina-medecu-dialog" aria-labelledby="cantina-medecu-dialog-title" style="--x: 26%; --y: 62%">
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-clara-dialog" aria-controls="cantina-clara-dialog" aria-labelledby="cantina-clara-dialog-title" style="--x: 72%; --y: 20%">
+              <button type="button" class="mappa__dot" data-dialog="cantina-casianu-dialog" aria-controls="cantina-casianu-dialog" aria-labelledby="cantina-casianu-dialog-title" style="--x: 72%; --y: 20%">
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-vale-dialog" aria-controls="cantina-vale-dialog" aria-labelledby="cantina-vale-dialog-title" style="--x: 84%; --y: 56%">
+              <button type="button" class="mappa__dot" data-dialog="cantina-enzo-dialog" aria-controls="cantina-enzo-dialog" aria-labelledby="cantina-enzo-dialog-title" style="--x: 84%; --y: 56%">
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-betta-dialog" aria-controls="cantina-betta-dialog" aria-labelledby="cantina-betta-dialog-title" style="--x: 34%; --y: 82%">
+              <button type="button" class="mappa__dot" data-dialog="cantina-callaru-dialog" aria-controls="cantina-callaru-dialog" aria-labelledby="cantina-callaru-dialog-title" style="--x: 34%; --y: 82%">
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-raffaelli-dialog" aria-controls="cantina-raffaelli-dialog" aria-labelledby="cantina-raffaelli-dialog-title" style="--x: 62%; --y: 30%">
+              <button type="button" class="mappa__dot" data-dialog="cantina-santuccella-dialog" aria-controls="cantina-santuccella-dialog" aria-labelledby="cantina-santuccella-dialog-title" style="--x: 62%; --y: 30%">
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-li-meroli-dialog" aria-controls="cantina-li-meroli-dialog" aria-labelledby="cantina-li-meroli-dialog-title" style="--x: 70%; --y: 74%">
+              <button type="button" class="mappa__dot" data-dialog="cantina-macellari-dialog" aria-controls="cantina-macellari-dialog" aria-labelledby="cantina-macellari-dialog-title" style="--x: 70%; --y: 74%">
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="mappa__dot" data-dialog="cantina-brunetto-dialog" aria-controls="cantina-brunetto-dialog" aria-labelledby="cantina-brunetto-dialog-title" style="--x: 45%; --y: 15%">
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="mappa__dot" data-dialog="cantina-ammazzatora-dialog" aria-controls="cantina-ammazzatora-dialog" aria-labelledby="cantina-ammazzatora-dialog-title" style="--x: 18%; --y: 40%">
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="mappa__dot" data-dialog="cantina-santu-dialog" aria-controls="cantina-santu-dialog" aria-labelledby="cantina-santu-dialog-title" style="--x: 55%; --y: 88%">
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="mappa__dot" data-dialog="cantina-gabriele-dialog" aria-controls="cantina-gabriele-dialog" aria-labelledby="cantina-gabriele-dialog-title" style="--x: 88%; --y: 78%">
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
             </div>
@@ -353,7 +365,7 @@
         </figure>
 
         <!--
-          SENZA JAVASCRIPT: i sei dialoghi sono le sole voci della Mappa, ma da
+          SENZA JAVASCRIPT: i dieci dialoghi sono le sole voci della Mappa, ma da
           chiusi non si vedono. Questo foglio li fa scorrere sotto il piano,
           uno dopo l'altro, con la spaziatura della pagina e un filo d'oro fra
           l'uno e l'altro; i punti, che senza script non aprono nulla, e
@@ -365,7 +377,7 @@
             /* The same static-panel reset as the @media print block in
                assets/css/style.css; keep the two in step. The dialog's
                opening motion leaves a closed panel transparent and a little
-               low, and these six dialogs are closed: undo that so the
+               low, and these ten dialogs are closed: undo that so the
                entries read without JavaScript. */
             .mappa__dialog {
               display: block;
@@ -407,44 +419,72 @@
           delle voci: non c'è un elenco separato. Lo script che li apre sta in
           fondo al corpo, prima del contatore.
         -->
-        <dialog class="mappa__dialog" id="cantina-paci-dialog" aria-labelledby="cantina-paci-dialog-title">
-          <h3 class="mappa__dialog-title" id="cantina-paci-dialog-title">Andrea Paci</h3>
-          <p class="mappa__dialog-inside">Tobia — gin e amari</p>
+        <dialog class="mappa__dialog" id="cantina-medecu-dialog" aria-labelledby="cantina-medecu-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-medecu-dialog-title">Quissi de lu Medecu</h3>
+          <p class="mappa__dialog-inside">Pro Loco Civita — polpette al sugo</p>
           <p class="mappa__dialog-note">Posizione indicativa</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
-        <dialog class="mappa__dialog" id="cantina-clara-dialog" aria-labelledby="cantina-clara-dialog-title">
-          <h3 class="mappa__dialog-title" id="cantina-clara-dialog-title">Clara</h3>
-          <p class="mappa__dialog-inside">Marianna (Il Grembiule) — taglieri, dolci e cioccolata</p>
-          <p class="mappa__dialog-note">Posizione indicativa</p>
-          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
-        </dialog>
-
-        <dialog class="mappa__dialog" id="cantina-vale-dialog" aria-labelledby="cantina-vale-dialog-title">
-          <h3 class="mappa__dialog-title" id="cantina-vale-dialog-title">Vale Leoni</h3>
+        <dialog class="mappa__dialog" id="cantina-casianu-dialog" aria-labelledby="cantina-casianu-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-casianu-dialog-title">Quissi de Casianu</h3>
           <p class="mappa__dialog-inside">vino</p>
           <p class="mappa__dialog-note">Posizione indicativa</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
-        <dialog class="mappa__dialog" id="cantina-betta-dialog" aria-labelledby="cantina-betta-dialog-title">
-          <h3 class="mappa__dialog-title" id="cantina-betta-dialog-title">Betta e Simone</h3>
-          <p class="mappa__dialog-inside">polenta</p>
+        <dialog class="mappa__dialog" id="cantina-enzo-dialog" aria-labelledby="cantina-enzo-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-enzo-dialog-title">Cantina di Enzo</h3>
+          <p class="mappa__dialog-inside">La Cortesia Home Restaurant — pasta e fagioli, trippa al sugo</p>
           <p class="mappa__dialog-note">Posizione indicativa</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
-        <dialog class="mappa__dialog" id="cantina-raffaelli-dialog" aria-labelledby="cantina-raffaelli-dialog-title">
-          <h3 class="mappa__dialog-title" id="cantina-raffaelli-dialog-title">Raffaelli (la Foca)</h3>
-          <p class="mappa__dialog-inside">Proloco Civita — polpette al sugo con rosette</p>
+        <dialog class="mappa__dialog" id="cantina-callaru-dialog" aria-labelledby="cantina-callaru-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-callaru-dialog-title">Quissi de Callaru</h3>
+          <p class="mappa__dialog-inside">Settecapocce + Palaterra — ravioli al tartufo e birra artigianale</p>
           <p class="mappa__dialog-note">Posizione indicativa</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
-        <dialog class="mappa__dialog" id="cantina-li-meroli-dialog" aria-labelledby="cantina-li-meroli-dialog-title">
-          <h3 class="mappa__dialog-title" id="cantina-li-meroli-dialog-title">Li Meroli</h3>
-          <p class="mappa__dialog-inside">Proloco Turania — arrosticini, panini con la salsiccia, hot dog</p>
+        <dialog class="mappa__dialog" id="cantina-santuccella-dialog" aria-labelledby="cantina-santuccella-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-santuccella-dialog-title">Quissi de Santuccella</h3>
+          <p class="mappa__dialog-inside">vino</p>
+          <p class="mappa__dialog-note">Posizione indicativa</p>
+          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
+        </dialog>
+
+        <dialog class="mappa__dialog" id="cantina-macellari-dialog" aria-labelledby="cantina-macellari-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-macellari-dialog-title">Quissi de lu Macellari</h3>
+          <p class="mappa__dialog-inside">vino</p>
+          <p class="mappa__dialog-note">Posizione indicativa</p>
+          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
+        </dialog>
+
+        <dialog class="mappa__dialog" id="cantina-brunetto-dialog" aria-labelledby="cantina-brunetto-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-brunetto-dialog-title">Quissi de Brunetto</h3>
+          <p class="mappa__dialog-inside">Tobia — gin e amari</p>
+          <p class="mappa__dialog-note">Posizione indicativa</p>
+          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
+        </dialog>
+
+        <dialog class="mappa__dialog" id="cantina-ammazzatora-dialog" aria-labelledby="cantina-ammazzatora-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-ammazzatora-dialog-title">L’ammazzatora</h3>
+          <p class="mappa__dialog-inside">Il Grembiule Bistrot — taglieri e dolci</p>
+          <p class="mappa__dialog-note">Posizione indicativa</p>
+          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
+        </dialog>
+
+        <dialog class="mappa__dialog" id="cantina-santu-dialog" aria-labelledby="cantina-santu-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-santu-dialog-title">Quissi de Santu</h3>
+          <p class="mappa__dialog-inside">La Cueva Home Restaurant — polenta</p>
+          <p class="mappa__dialog-note">Posizione indicativa</p>
+          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
+        </dialog>
+
+        <dialog class="mappa__dialog" id="cantina-gabriele-dialog" aria-labelledby="cantina-gabriele-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-gabriele-dialog-title">Quissi de Gabriele</h3>
+          <p class="mappa__dialog-inside">vino</p>
           <p class="mappa__dialog-note">Posizione indicativa</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
