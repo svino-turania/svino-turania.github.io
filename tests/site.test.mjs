@@ -43,9 +43,11 @@ const MERCATINO_PARAGRAPH =
  * che vieta il testo segnaposto. È un impegno che il Comitato terrà, scritto al
  * futuro e senza «presto», «a breve» o «prossimamente»: le quattro Cantine che
  * servono solo vino, senza un provider confermato, la portano alla lettera.
+ * Non porta una formula d'attesa: la promessa dice ciò che il Comitato farà,
+ * e le frasi dei pannelli non ripetono lo stesso invito a prendersela comoda.
  */
 const WINE_LIST_SENTENCE =
-  'Assaggiate il vino, senza fretta: la lista dei vini arriverà su questa pagina.';
+  'Assaggiate il vino: la lista dei vini arriverà su questa pagina.';
 
 const PHOTO_ALT =
   "Interno di una cantina scavata nella roccia: soffitto e pareti di pietra grezza, una lampadina nuda appesa a un filo, damigiane di vetro anche dentro cesti di vimini, una botte coricata e un grande tino chiaro con il coperchio; un palo di legno regge la volta.";
@@ -5757,7 +5759,7 @@ const MAPPA_ENTRIES = Object.freeze([
     name: 'Quissi de lu Medecu',
     providers: ['Pro Loco Civita'],
     sentence:
-      'Fermatevi per le polpette al sugo: una sosta lungo la passeggiata, senza fretta.',
+      'Fermatevi per le polpette al sugo: una sosta lungo la passeggiata.',
     x: '35.41%',
     y: '29.05%',
     nudge: { dx: 0, dy: 0 },
@@ -5813,7 +5815,7 @@ const MAPPA_ENTRIES = Object.freeze([
     id: 'cantina-brunetto',
     name: 'Quissi de Brunetto',
     providers: ['Tobia'],
-    sentence: 'Prendetevi il vostro tempo con gin e amari.',
+    sentence: 'Fermatevi per gin e amari.',
     x: '47.42%',
     y: '68.00%',
     nudge: { dx: 11, dy: -5 },
@@ -5833,7 +5835,7 @@ const MAPPA_ENTRIES = Object.freeze([
     name: 'Quissi de Santu',
     providers: ['La Cueva Home Restaurant'],
     sentence:
-      'Assaggiate la polenta, un piatto semplice da gustare con calma.',
+      'Assaggiate la polenta, un piatto semplice.',
     x: '37.07%',
     y: '57.35%',
     nudge: { dx: -16, dy: 0 },

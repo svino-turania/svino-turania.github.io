@@ -498,8 +498,9 @@ To add a provider, add
 `<p class="mappa__dialog-provider">`; to withhold one, leave it out — never
 print a dash or a generic word. Each sentence is derived only from facts the
 Comitato has confirmed, in the page's `voi` voice, and adds no price, time, menu,
-route, count or superlative; a test pins every provider and every sentence
-verbatim. The four Cantine with no confirmed provider share one sentence, which
+route, count, superlative or catchphrase — each sentence invites once, so the
+panels do not repeat one *take your time* formula; a test pins every provider
+and every sentence verbatim. The four Cantine with no confirmed provider share one sentence, which
 promises that the list of wines will arrive on this page: that promise is the
 one deliberate exception to the content policy's no-placeholder rule, and it
 must not be softened into `prossimamente` (ADR-0027).
@@ -1182,8 +1183,8 @@ following are absent by choice:
   "prossimamente" and the like.
 
 There is one deliberate exception. The four Cantine with no confirmed provider
-share the sentence *Assaggiate il vino, senza fretta: la lista dei vini arriverà
-su questa pagina.* It is not placeholder copy: it is a commitment the Comitato
+share the sentence *Assaggiate il vino: la lista dei vini arriverà su questa
+pagina.* It is not placeholder copy: it is a commitment the Comitato
 will keep, in the future tense, with no timeline word — not "presto", not "a
 breve", not "prossimamente". A test pins it verbatim, so an editor cannot soften
 it, and if the Comitato withdraws the commitment the sentence is removed rather

@@ -60,19 +60,24 @@ sentence says what visitors find inside.**
 ### The copy rule
 
 - **Every sentence is derived from Comitato-confirmed facts.** It speaks in the
-  page's `voi` voice, matching `Vi aspettiamo`, and may borrow a mood or a
-  rhythm the page already uses (`senza fretta`, `con calma`, `ai piedi della
-  chiesa`). It may not add a claim about smell, temperature, freshness, origin,
-  preparation, quantity, time or price, nor a superlative or a `da non perdere`.
-  The confirmed dishes keep their wording and their order.
+  page's `voi` voice, matching `Vi aspettiamo`, and may borrow a word or an
+  image the page already uses (`ai piedi della chiesa`). It may not add a claim
+  about smell, temperature, freshness, origin, preparation, quantity, time or
+  price, nor a superlative or a `da non perdere`. The confirmed dishes keep their
+  wording and their order.
+- **One invitation each, and no repeated gesture.** The panels do not share a
+  catchphrase: `senza fretta` and `con calma` are not used as a closing formula,
+  and the wine-list promise carries the commitment without a mood borrowed to
+  fill it. An invitation that appears on every panel stops being an invitation
+  and becomes the page's one tone.
 - **Every panel is pinned verbatim.** The suite asserts each provider and each
   sentence exactly, so a new fact cannot enter — and a confirmed one cannot
   leave — without a change the review sees.
 
 ### The wine-list promise
 
-- **One sentence for the four Cantine with no provider.** *Assaggiate il vino,
-  senza fretta: la lista dei vini arriverà su questa pagina.*
+- **One sentence for the four Cantine with no provider.** *Assaggiate il vino:
+  la lista dei vini arriverà su questa pagina.*
 - **It is a commitment, not a placeholder.** This is a deliberate exception to
   the content policy's no-placeholder rule: the Comitato will publish the list,
   and the sentence says so in the future tense. It carries no timeline word —
@@ -133,6 +138,9 @@ sentence says what visitors find inside.**
 - **Write a different sentence for each of the four wine panels.** Rejected:
   they share the same confirmed fact — wine, and the list to come — and one
   sentence keeps the promise consistent and easy to withdraw.
+- **Keep the `senza fretta` cadence on every panel.** Rejected: repeated on five
+  panels it stopped reading as hospitality and became the page's only mood, and
+  the wine promise leaned on the cadence instead of on the commitment it makes.
 - **Add the provider as an `aria-label` on the dot.** Rejected: the dot's name is
   the place's name, and the provider is what a visitor hears once the panel is
   open, in reading order.
