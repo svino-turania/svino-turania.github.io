@@ -1186,6 +1186,19 @@
     overflow: clip;
   }
 
+  /*
+   * Il layer che scala il piano: immagine, quattro etichette, nord e sei punti
+   * sono un solo quadro. `zoom` lo ingrandisce in blocco, così etichette,
+   * punti e i loro bersagli da 44 px crescono con il disegno; a 1× è il piano
+   * intero. Nel dialogo lo script alza lo zoom a 1.5, 2 e 3.
+   */
+  .mappa__zoom {
+    position: relative;
+    inline-size: 100%;
+    aspect-ratio: 273 / 396;
+    zoom: 1;
+  }
+
   .mappa__plan {
     display: block;
     inline-size: 100%;
@@ -1477,20 +1490,50 @@
   }
 
   /*
+   * La cornice: la riga che il dialogo lascia al piano. I tre comandi vi
+   * galleggiano sopra il disegno, al piede a destra; il disegno la riempie e
+   * diventa il riquadro che scorre.
+   */
+  .mappa__map-stage {
+    position: relative;
+    min-block-size: 0;
+  }
+
+  /*
    * Dentro il dialogo il disegno è il riquadro che scorre: il dito, le frecce
-   * quando ha il focus, la rotella e la barra muovono il piano con il browser.
-   * `overscroll-behavior` tiene il rimbalzo fuori dalla pagina, e la barra resta
-   * sottile e d'inchiostro. Il rapporto del piano non governa più il riquadro:
-   * l'altezza è la riga che il dialogo gli lascia.
+   * quando ha il focus e la barra muovono il piano con il browser; la rotella
+   * e il doppio clic avvicinano al puntatore. `overscroll-behavior` tiene il
+   * rimbalzo fuori dalla pagina, e la barra resta sottile e d'inchiostro. Il
+   * rapporto del piano non governa più il riquadro: l'altezza è la riga che il
+   * dialogo gli lascia.
    */
   .mappa__map .mappa__drawing {
     position: relative;
     min-block-size: 0;
+    block-size: 100%;
     aspect-ratio: auto;
     overflow: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
     scrollbar-color: var(--ink-muted) transparent;
+    /* Il disegno è anche il contenitore che misura il piano: la sua altezza
+     * dice al layer quanto può essere largo perché il piano intero entri. */
+    container-type: size;
+  }
+
+  /*
+   * A 1× il layer è il piano intero: largo quanto il riquadro, ma mai più
+   * alto, perché la sua larghezza non supera 273/396 dell'altezza. Al centro
+   * quando avanza carta; quando lo zoom lo fa traboccare, i margini automatici
+   * si annullano e il piano scorre dal suo angolo.
+   */
+  .mappa__map .mappa__zoom {
+    /* Entrambi i termini sono lunghezze del contenitore: lo zoom scala la
+     * misura trovata, senza ricalcolare una percentuale sul riquadro e
+     * fermare il piano allo stop più alto. */
+    inline-size: min(100cqw, calc(100cqh * 273 / 396));
+    aspect-ratio: 273 / 396;
+    margin-inline: auto;
   }
 
   .mappa__map .mappa__drawing:focus-visible {
@@ -1509,6 +1552,55 @@
 
   .mappa__map .mappa__drawing::-webkit-scrollbar-track {
     background: transparent;
+  }
+
+  /*
+   * I tre comandi: quadrati di carta al piede del piano, filo d'oro, inchiostro.
+   * Niente ombra, niente angolo tondo, niente movimento; ognuno è un bersaglio
+   * da 44 px con 8 px fra l'uno e l'altro, e i segni sono testo, non disegno.
+   */
+  .mappa__zoom-controls {
+    position: absolute;
+    inset-block-end: var(--space-2);
+    inset-inline-end: var(--space-2);
+    display: flex;
+    gap: 8px;
+  }
+
+  .mappa__zoom-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 44px;
+    block-size: 44px;
+    padding: 0;
+    border: 1px solid var(--rule);
+    border-radius: 0;
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: var(--step-0);
+    line-height: 1;
+  }
+
+  .mappa__zoom-button:hover {
+    border-color: var(--link-hover);
+  }
+
+  /*
+   * Agli estremi il comando si spegne e lo dice con l'inchiostro spento: non
+   * una pressione morta. Il riquadro resta di carta.
+   */
+  .mappa__zoom-button:disabled {
+    border-color: var(--ink-muted);
+    color: var(--ink-muted);
+    cursor: default;
+  }
+
+  .mappa__zoom-button:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: -3px;
   }
 
   /* Chiudi: the page's control in the page's type, with a gold hairline and a
