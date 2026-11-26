@@ -114,12 +114,14 @@
         il banco decorativo; non nomina espositori, numero, luogo o orario, e
         non elenca le merci.
       - Mappa del Borgo: la sezione fra la prosa e il Programma. Pubblica
-        solo le cantine che il Comitato ha confermato: un pulsante sul piano e
+        solo le voci che il Comitato ha confermato — le cantine e il piazzale
+        della chiesa: un pulsante sul piano e
         un dialogo con lo stesso id; il nome sta nell'intestazione del dialogo.
         Non porta numero, titoli non confermati né linea di percorso; la
         posizione del punto si cambia con --x e --y in percentuale. Il disegno
-        è il piano reale, esportato dalla base catastale; le posizioni dei
-        punti sono segnaposto marcati «Posizione indicativa».
+        è il piano reale, esportato dalla base catastale; i punti stanno alle
+        posizioni del piano, e l'anello che si scosta per il pollice è legato
+        al punto vero da un filo d'oro.
       - Calice della prosa: il disegno decorativo davanti al primo paragrafo
         delle Cantine; non porta testo e nomina il vino che il paragrafo
         assaggia. È un segno della pagina, non della Locandina.
@@ -280,12 +282,14 @@
       <!--
         MAPPA DEL BORGO: la forma visiva della passeggiata, fra la prosa delle
         Cantine e il Programma. Il piano è quello reale del borgo, con la
-        piazza, la chiesa e le due vie verificate come etichette; il comune non
-        è etichettato. Le cantine sono punti, senza numero, perché il percorso
-        non è deciso. Le posizioni sono segnaposto finché il Comitato non
-        consegna lo schizzo con le posizioni vere; il legame fra un punto e il
-        suo dialogo è l'id della cantina. Il capitolo pubblica solo le cantine che
-        il Comitato ha confermato, senza numero e senza titoli non confermati.
+        piazza, la chiesa e la strada verificata come etichette; il comune non
+        è etichettato. Le voci sono punti, senza numero, perché il percorso
+        non è deciso: le posizioni sono quelle del piano. Dove due bersagli da
+        44 px si toccherebbero, l'anello si scosta di pochi pixel scritti nel
+        markup e un filo d'oro lo riporta al punto vero. Il legame fra un punto
+        e il suo dialogo è l'id della voce. Il capitolo pubblica solo le voci
+        che il Comitato ha confermato — le cantine e il piazzale — senza numero
+        e senza titoli non confermati.
       -->
       <section class="mappa chapter" id="mappa" aria-labelledby="mappa-title">
         <h2 id="mappa-title">LA MAPPA DEL BORGO</h2>
@@ -296,14 +300,18 @@
           file, non nel markup. Le etichette sono testo HTML posato sul piano,
           così usano i caratteri e la crema della pagina e si modificano con il
           contenuto. Niente scala, griglia, cornice o didascalia: solo una N
-          discreta in alto a destra. I punti delle cantine sono gli unici
-          riempimenti bordeaux e restano segnaposto finché il Comitato non
-          consegna lo schizzo con le posizioni vere.
+          discreta in alto a destra. I punti delle voci della Mappa sono gli
+          unici riempimenti bordeaux e stanno alle posizioni del piano.
 
-          COME SI SPOSTA UN PUNTO: --x e --y in percentuale, ripetuti sul
-          punto e sull'etichetta. COME SI AGGIUNGE UNA CANTINA: un <button>
-          qui con data-dialog="<id>-dialog" e un <dialog> con lo stesso id;
-          i dialoghi sono l'unica voce della Mappa.
+          COME SI SPOSTA UN PUNTO: --x e --y in percentuale sono il punto vero
+          sul piano; --nudge-x e --nudge-y, in pixel, sono lo scostamento del
+          bersaglio da 44 px quando due anelli si toccherebbero, e il filo
+          d'oro dentro il punto unisce l'anello al punto vero. --bloom è il
+          passo della fioritura: il posto del punto nell'ordine del piano, da 0.
+          COME SI AGGIUNGE UNA VOCE: un <button> qui con
+          data-dialog="<id>-dialog", il proprio --bloom e un <dialog> con lo
+          stesso id; i dialoghi sono l'unica voce della Mappa, e una voce è una
+          cantina o un altro posto del percorso, come il piazzale della chiesa.
         -->
         <figure class="mappa__board">
           <div class="mappa__drawing">
@@ -319,31 +327,85 @@
                 height="792"
                 loading="lazy"
                 decoding="async"
-                alt="Pianta del borgo di Turania: i fabbricati, le strade e la piazza. Le posizioni delle cantine confermate sono indicative."
+                alt="Pianta del borgo di Turania: i fabbricati, le strade e la piazza, con le cantine e il piazzale della chiesa segnati in bordeaux e le due casse in oro."
               >
-              <span class="mappa__label mappa__label--place" style="--x: 41.0%; --y: 44.9%">Piazza Umberto I</span>
-              <span class="mappa__label" style="--x: 50.2%; --y: 51.8%">la chiesa</span>
-              <span class="mappa__label mappa__label--street" style="--x: 22.0%; --y: 27.8%">Corso Trieste</span>
-              <span class="mappa__label mappa__label--street" style="--x: 38.1%; --y: 13.6%">Via Turano</span>
+              <span class="mappa__label mappa__label--place" style="--x: 40.7%; --y: 37.9%">Piazza Umberto I</span>
+              <span class="mappa__label" style="--x: 50.2%; --y: 48.4%">la chiesa</span>
+              <span class="mappa__label mappa__label--street" style="--x: 15.0%; --y: 21.5%">Corso Trieste</span>
               <span class="mappa__north" aria-hidden="true">N</span>
-              <button type="button" class="mappa__dot" data-dialog="cantina-paci-dialog" aria-controls="cantina-paci-dialog" aria-labelledby="cantina-paci-dialog-title" style="--x: 26%; --y: 62%">
+              <!--
+                I PUNTI E LO SCOSTAMENTO: --x/--y sono il punto vero sul piano;
+                --nudge-x/--nudge-y, in pixel, scostano il bersaglio da 44 px
+                dove due anelli si toccherebbero. A 320 px di viewport il piano
+                è largo 280 px: il piazzale della chiesa cade fra gli anelli
+                della piazza e la catena del sud, e i suoi centri distano
+                almeno 28,3 px dai più vicini (Casianu a 28,3, l'ammazzatora a
+                28,7); il suo anello si scosta in alto a sinistra di 17,8 px e
+                il filo torna al piazzale. Altrove i centri stretti stanno poco
+                sopra 41,4 px, e a 350, 640 e 728 px ogni divario cresce. Gli
+                anelli da 13 px restano separati: almeno 15 px bordo a bordo.
+                La catena del sud alterna gli scostamenti laterali (santu -16,
+                ammazzatora +3, brunetto +11, macellaru -5), così gli anelli
+                non si coprono; il filo d'oro di ogni anello scostato torna al
+                punto vero. Il tetto è 18 px per anello: a 280 px la piazza
+                (Casianu, Enzo, Callaru, quasi allineati) non può dare 44 px
+                esatti fra due centri — 7,32 + 36 = 43,32 al massimo — ed è per
+                questo che i divari stretti si fermano poco sopra 41. Nessun
+                punto si muove più di 18 px.
+              -->
+              <button type="button" class="mappa__dot" data-dialog="cantina-medecu-dialog" aria-controls="cantina-medecu-dialog" aria-labelledby="cantina-medecu-dialog-title" style="--x: 35.41%; --y: 29.05%; --bloom: 0">
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-clara-dialog" aria-controls="cantina-clara-dialog" aria-labelledby="cantina-clara-dialog-title" style="--x: 72%; --y: 20%">
+              <button type="button" class="mappa__dot" data-dialog="cantina-casianu-dialog" aria-controls="cantina-casianu-dialog" aria-labelledby="cantina-casianu-dialog-title" style="--x: 43.52%; --y: 43.19%; --nudge-x: 17; --nudge-y: 2; --bloom: 1">
+                <span class="mappa__leader" aria-hidden="true"></span>
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-vale-dialog" aria-controls="cantina-vale-dialog" aria-labelledby="cantina-vale-dialog-title" style="--x: 84%; --y: 56%">
+              <button type="button" class="mappa__dot" data-dialog="cantina-enzo-dialog" aria-controls="cantina-enzo-dialog" aria-labelledby="cantina-enzo-dialog-title" style="--x: 41.47%; --y: 42.07%; --nudge-x: -16; --nudge-y: -8; --bloom: 2">
+                <span class="mappa__leader" aria-hidden="true"></span>
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-betta-dialog" aria-controls="cantina-betta-dialog" aria-labelledby="cantina-betta-dialog-title" style="--x: 34%; --y: 82%">
+              <button type="button" class="mappa__dot" data-dialog="cantina-callaru-dialog" aria-controls="cantina-callaru-dialog" aria-labelledby="cantina-callaru-dialog-title" style="--x: 54.04%; --y: 49.44%; --nudge-x: 16; --nudge-y: 7; --bloom: 3">
+                <span class="mappa__leader" aria-hidden="true"></span>
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-raffaelli-dialog" aria-controls="cantina-raffaelli-dialog" aria-labelledby="cantina-raffaelli-dialog-title" style="--x: 62%; --y: 30%">
+              <button type="button" class="mappa__dot" data-dialog="cantina-santuccella-dialog" aria-controls="cantina-santuccella-dialog" aria-labelledby="cantina-santuccella-dialog-title" style="--x: 61.21%; --y: 75.24%; --bloom: 4">
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-li-meroli-dialog" aria-controls="cantina-li-meroli-dialog" aria-labelledby="cantina-li-meroli-dialog-title" style="--x: 70%; --y: 74%">
+              <button type="button" class="mappa__dot" data-dialog="cantina-macellaru-dialog" aria-controls="cantina-macellaru-dialog" aria-labelledby="cantina-macellaru-dialog-title" style="--x: 47.43%; --y: 72.24%; --nudge-x: -5; --nudge-y: 16; --bloom: 5">
+                <span class="mappa__leader" aria-hidden="true"></span>
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
+              <button type="button" class="mappa__dot" data-dialog="cantina-brunetto-dialog" aria-controls="cantina-brunetto-dialog" aria-labelledby="cantina-brunetto-dialog-title" style="--x: 47.42%; --y: 68.00%; --nudge-x: 11; --nudge-y: -5; --bloom: 6">
+                <span class="mappa__leader" aria-hidden="true"></span>
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="mappa__dot" data-dialog="cantina-ammazzatora-dialog" aria-controls="cantina-ammazzatora-dialog" aria-labelledby="cantina-ammazzatora-dialog-title" style="--x: 45.18%; --y: 60.06%; --nudge-x: 3; --nudge-y: -12; --bloom: 7">
+                <span class="mappa__leader" aria-hidden="true"></span>
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="mappa__dot" data-dialog="cantina-santu-dialog" aria-controls="cantina-santu-dialog" aria-labelledby="cantina-santu-dialog-title" style="--x: 37.07%; --y: 57.35%; --nudge-x: -16; --nudge-y: 0; --bloom: 8">
+                <span class="mappa__leader" aria-hidden="true"></span>
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="mappa__dot" data-dialog="cantina-gabriele-dialog" aria-controls="cantina-gabriele-dialog" aria-labelledby="cantina-gabriele-dialog-title" style="--x: 27.65%; --y: 44.30%; --nudge-x: -11; --nudge-y: 7; --bloom: 9">
+                <span class="mappa__leader" aria-hidden="true"></span>
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="mappa__dot" data-dialog="piazzale-della-chiesa-dialog" aria-controls="piazzale-della-chiesa-dialog" aria-labelledby="piazzale-della-chiesa-dialog-title" style="--x: 49.40%; --y: 53.50%; --nudge-x: -11; --nudge-y: -14; --bloom: 10">
+                <span class="mappa__leader" aria-hidden="true"></span>
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <!-- LE DUE CASSE: segni d'oro, non voci della Mappa. Un anello
+                   cavo con il nome accanto; non si aprono, non si contano e
+                   non entrano nell'ordine di Tab. -->
+              <span class="mappa__cassa" style="--x: 24.45%; --y: 16.23%">
+                <span class="mappa__cassa-mark" aria-hidden="true"></span>
+                <span class="mappa__label mappa__label--cassa">Cassa</span>
+              </span>
+              <span class="mappa__cassa" style="--x: 46.57%; --y: 77.81%">
+                <span class="mappa__cassa-mark" aria-hidden="true"></span>
+                <span class="mappa__label mappa__label--cassa">Cassa</span>
+              </span>
             </div>
           </div>
           <!-- IL COMANDO: uno solo, sotto il disegno. Apre la Mappa in un
@@ -353,7 +415,7 @@
         </figure>
 
         <!--
-          SENZA JAVASCRIPT: i sei dialoghi sono le sole voci della Mappa, ma da
+          SENZA JAVASCRIPT: gli undici dialoghi sono le sole voci della Mappa, ma da
           chiusi non si vedono. Questo foglio li fa scorrere sotto il piano,
           uno dopo l'altro, con la spaziatura della pagina e un filo d'oro fra
           l'uno e l'altro; i punti, che senza script non aprono nulla, e
@@ -365,7 +427,7 @@
             /* The same static-panel reset as the @media print block in
                assets/css/style.css; keep the two in step. The dialog's
                opening motion leaves a closed panel transparent and a little
-               low, and these six dialogs are closed: undo that so the
+               low, and these dialogs are closed: undo that so the
                entries read without JavaScript. */
             .mappa__dialog {
               display: block;
@@ -390,6 +452,11 @@
             .mappa__dot {
               display: none;
             }
+            /* La Cassa è un segno da schermo: senza script l'anello sparisce,
+               ma il nome resta sul piano. */
+            .mappa__cassa-mark {
+              display: none;
+            }
             .mappa__dialog-close {
               display: none;
             }
@@ -400,52 +467,76 @@
         </noscript>
 
         <!--
-          DIALOGHI: una cantina si apre dal suo punto come dialogo nativo. Il
-          pannello porta il nome, ciò che si trova dentro, la nota sulla
-          posizione indicativa e il controllo Chiudi. Il testo resta nel DOM,
-          così la pagina resta indicizzabile. I dialoghi sono l'unica fonte
-          delle voci: non c'è un elenco separato. Lo script che li apre sta in
-          fondo al corpo, prima del contatore.
+          DIALOGHI: una voce si apre dal suo punto come dialogo nativo. Il
+          pannello porta il nome, ciò che si trova dentro e il controllo
+          Chiudi: nessuna cautela sulla posizione, che il piano ora colloca.
+          Il testo resta nel DOM, così la pagina resta indicizzabile. I
+          dialoghi sono l'unica fonte delle voci: non c'è un elenco separato.
+          Lo script che li apre sta in fondo al corpo, prima del contatore.
         -->
-        <dialog class="mappa__dialog" id="cantina-paci-dialog" aria-labelledby="cantina-paci-dialog-title">
-          <h3 class="mappa__dialog-title" id="cantina-paci-dialog-title">Andrea Paci</h3>
-          <p class="mappa__dialog-inside">Tobia — gin e amari</p>
-          <p class="mappa__dialog-note">Posizione indicativa</p>
+        <dialog class="mappa__dialog" id="cantina-medecu-dialog" aria-labelledby="cantina-medecu-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-medecu-dialog-title">Quissi de lu Medecu</h3>
+          <p class="mappa__dialog-inside">Pro Loco Civita — polpette al sugo</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
-        <dialog class="mappa__dialog" id="cantina-clara-dialog" aria-labelledby="cantina-clara-dialog-title">
-          <h3 class="mappa__dialog-title" id="cantina-clara-dialog-title">Clara</h3>
-          <p class="mappa__dialog-inside">Marianna (Il Grembiule) — taglieri, dolci e cioccolata</p>
-          <p class="mappa__dialog-note">Posizione indicativa</p>
-          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
-        </dialog>
-
-        <dialog class="mappa__dialog" id="cantina-vale-dialog" aria-labelledby="cantina-vale-dialog-title">
-          <h3 class="mappa__dialog-title" id="cantina-vale-dialog-title">Vale Leoni</h3>
+        <dialog class="mappa__dialog" id="cantina-casianu-dialog" aria-labelledby="cantina-casianu-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-casianu-dialog-title">Quissi de Casianu</h3>
           <p class="mappa__dialog-inside">vino</p>
-          <p class="mappa__dialog-note">Posizione indicativa</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
-        <dialog class="mappa__dialog" id="cantina-betta-dialog" aria-labelledby="cantina-betta-dialog-title">
-          <h3 class="mappa__dialog-title" id="cantina-betta-dialog-title">Betta e Simone</h3>
-          <p class="mappa__dialog-inside">polenta</p>
-          <p class="mappa__dialog-note">Posizione indicativa</p>
+        <dialog class="mappa__dialog" id="cantina-enzo-dialog" aria-labelledby="cantina-enzo-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-enzo-dialog-title">Cantina di Enzo</h3>
+          <p class="mappa__dialog-inside">La Cortesia Home Restaurant — pasta e fagioli, trippa al sugo</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
-        <dialog class="mappa__dialog" id="cantina-raffaelli-dialog" aria-labelledby="cantina-raffaelli-dialog-title">
-          <h3 class="mappa__dialog-title" id="cantina-raffaelli-dialog-title">Raffaelli (la Foca)</h3>
-          <p class="mappa__dialog-inside">Proloco Civita — polpette al sugo con rosette</p>
-          <p class="mappa__dialog-note">Posizione indicativa</p>
+        <dialog class="mappa__dialog" id="cantina-callaru-dialog" aria-labelledby="cantina-callaru-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-callaru-dialog-title">Quissi de Callaru</h3>
+          <p class="mappa__dialog-inside">Settecapocce + Palaterra — ravioli al tartufo e birra artigianale</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
-        <dialog class="mappa__dialog" id="cantina-li-meroli-dialog" aria-labelledby="cantina-li-meroli-dialog-title">
-          <h3 class="mappa__dialog-title" id="cantina-li-meroli-dialog-title">Li Meroli</h3>
-          <p class="mappa__dialog-inside">Proloco Turania — arrosticini, panini con la salsiccia, hot dog</p>
-          <p class="mappa__dialog-note">Posizione indicativa</p>
+        <dialog class="mappa__dialog" id="cantina-santuccella-dialog" aria-labelledby="cantina-santuccella-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-santuccella-dialog-title">Quissi de Santuccella</h3>
+          <p class="mappa__dialog-inside">vino</p>
+          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
+        </dialog>
+
+        <dialog class="mappa__dialog" id="cantina-macellaru-dialog" aria-labelledby="cantina-macellaru-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-macellaru-dialog-title">Quissi de lu Macellaru</h3>
+          <p class="mappa__dialog-inside">vino</p>
+          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
+        </dialog>
+
+        <dialog class="mappa__dialog" id="cantina-brunetto-dialog" aria-labelledby="cantina-brunetto-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-brunetto-dialog-title">Quissi de Brunetto</h3>
+          <p class="mappa__dialog-inside">Tobia — gin e amari</p>
+          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
+        </dialog>
+
+        <dialog class="mappa__dialog" id="cantina-ammazzatora-dialog" aria-labelledby="cantina-ammazzatora-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-ammazzatora-dialog-title">L’ammazzatora</h3>
+          <p class="mappa__dialog-inside">Il Grembiule Bistrot — taglieri e dolci</p>
+          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
+        </dialog>
+
+        <dialog class="mappa__dialog" id="cantina-santu-dialog" aria-labelledby="cantina-santu-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-santu-dialog-title">Quissi de Santu</h3>
+          <p class="mappa__dialog-inside">La Cueva Home Restaurant — polenta</p>
+          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
+        </dialog>
+
+        <dialog class="mappa__dialog" id="cantina-gabriele-dialog" aria-labelledby="cantina-gabriele-dialog-title">
+          <h3 class="mappa__dialog-title" id="cantina-gabriele-dialog-title">Quissi de Gabriele</h3>
+          <p class="mappa__dialog-inside">vino</p>
+          <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
+        </dialog>
+
+        <dialog class="mappa__dialog" id="piazzale-della-chiesa-dialog" aria-labelledby="piazzale-della-chiesa-dialog-title">
+          <h3 class="mappa__dialog-title" id="piazzale-della-chiesa-dialog-title">Piazzale della chiesa</h3>
+          <p class="mappa__dialog-inside">Pro Loco Turania — arrosticini, panini con salsiccia, hot dog</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
       </section>

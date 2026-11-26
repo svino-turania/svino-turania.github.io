@@ -1,6 +1,6 @@
 # Glossary
 
-The eleven terms sVino uses, with the meaning the organisation gives them. Use
+The twelve terms sVino uses, with the meaning the organisation gives them. Use
 this vocabulary and these spellings in code, tests, issues and documents; do
 not drift to synonyms.
 
@@ -9,9 +9,9 @@ Spelling and capitalisation fixed by the project:
 - `sVino` — lower-case `s`, capital `V`. Never "Svino" or "SVino".
 - `II Edizione` in running prose; the printed lockup is `II EDIZIONE`.
 - `Turania (RI)` — with a space before the province abbreviation, exactly.
-- `Locandina`, `Mappa del Borgo`, `Cantina`, `Borgo`, `Programma`, `Mercatino`
-  and `Comitato Feste Turania` are capitalised when they name the event's own
-  artefact, venues and body.
+- `Locandina`, `Mappa del Borgo`, `Cantina`, `Cassa`, `Borgo`, `Programma`,
+  `Mercatino` and `Comitato Feste Turania` are capitalised when they name the
+  event's own artefact, venues and body.
 
 ## sVino
 
@@ -41,13 +41,25 @@ Capitalise when
 naming the event's venues as a set (`le Cantine del Borgo`); the page prose
 uses the lower-case form (`nelle cantine del borgo`).
 
-The Mappa del Borgo names a Cantina only when the Comitato has confirmed it,
-and prints what visitors find inside, naming the provider only where it is
-confirmed. Each confirmed Cantina is one dot on the plan and one panel opened
-from it; there is no separate list. The Mappa states no count of Cantine, no
-route order, no title the Comitato has not confirmed and no price. Do not infer
-a number, a menu, a vendor, a duration or a price from the term: none of those
-is decided.
+The Mappa del Borgo names a Cantina only when the Comitato has confirmed it.
+A Cantina is the venue, and the page names it by its house title, which its
+panel prints as the heading. The host family who keeps the cellar and the
+provider who serves there are different things: the host family is never
+named, and only the provider appears, on the panel's inside line, where the
+Comitato has confirmed it. Each confirmed Cantina is one dot on the plan and
+one panel opened from it; there is no separate list. The Mappa states no count
+of Cantine, no route order, no title the Comitato has not confirmed and no
+price. Do not infer a number, a menu, a vendor, a duration or a price from the
+term: none of those is decided.
+
+## Cassa
+
+The point where the tasting is paid for. On the Mappa del Borgo a Cassa is a
+gold ring with its name beside it: a mark and not an entry. It opens no panel,
+carries no number and prints no price. Its ring is hollow and gold where a
+Cantina's dot is filled bordeaux, so colour and fill both say *not a tasting
+room*; the word `Cassa` written beside it carries the meaning without a legend.
+Capitalise when naming the event's own point (`la Cassa`).
 
 ## Borgo
 
@@ -88,15 +100,20 @@ print PDF; the two must never disagree.
 ## Mappa del Borgo
 
 The page's picture of the walk: a real plan of the Borgo, exported from the
-cadastral base, north-up and in scale, with the piazza, the church and the two
-verified streets `Corso Trieste` and `Via Turano` as labels. The Comitato-confirmed
-Cantine are dots — the page's only bordeaux marks — and each dot is a button
-that opens the Cantina's panel, carrying its name and what visitors find inside.
-The dots are the map's entries: there is no list beside or beneath the drawing.
-It claims places, not an order, and names no count, no route and no Cantina the
-Comitato has not confirmed. The positions are placeholders and each panel says
-`Posizione indicativa` until the Comitato supplies its sketch. Capitalise when
-naming the chapter (`la Mappa del Borgo`); the page prose does not use the term.
+cadastral base, north-up and in scale, with the piazza, the church and the
+verified street `Corso Trieste` as labels. The ten Comitato-confirmed Cantine
+and the `Piazzale della chiesa` — the little square at the church's foot, where
+the Pro Loco serves arrosticini, panini con salsiccia and hot dog — are bordeaux
+dots, the page's only bordeaux marks, and each dot is a button that opens the
+place's panel, carrying its name (a Cantina's house title, or the piazzale's)
+and what visitors find inside. Two Casse are gold marks that name
+themselves and open nothing. The dots are the map's entries: there is no list
+beside or beneath the drawing. The marks stand at the plan's real positions,
+and where a dot must step aside for a thumb a gold hairline joins it to its
+true position; the hairline is not a route and carries no arrow. The Mappa
+claims places, not an order, and names no count, no number, no route and no
+entry the Comitato has not confirmed. Capitalise when naming the chapter
+(`la Mappa del Borgo`); the page prose does not use the term.
 
 ## Turania (RI)
 

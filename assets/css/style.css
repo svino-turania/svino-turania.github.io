@@ -275,7 +275,7 @@
     /*
      * The Mappa's dots are the one motion that repeats: a hairline ring of
      * ink blooms out of each dot and thins away, slowly, so a plan with no
-     * hover still says it can be opened. The step staggers the six so they
+     * hover still says it can be opened. The step staggers the dots so they
      * read as a field rather than as one flash. It is the only loop on the
      * page and it carries no reading: under reduced motion it is absent.
      */
@@ -1187,10 +1187,11 @@
   }
 
   /*
-   * Il layer che scala il piano: immagine, quattro etichette, nord e sei punti
-   * sono un solo quadro. `zoom` lo ingrandisce in blocco, così etichette,
-   * punti e i loro bersagli da 44 px crescono con il disegno; a 1× è il piano
-   * intero. Nel dialogo lo script alza lo zoom a 1.5, 2 e 3.
+   * Il layer che scala il piano: immagine, le tre etichette dei luoghi, le
+   * due Casse, il nord e i punti sono un solo quadro. `zoom` lo
+   * ingrandisce in blocco, così etichette, Casse, punti e i loro bersagli da
+   * 44 px crescono con il disegno; a 1× è il piano intero. Nel dialogo lo
+   * script alza lo zoom a 1.5, 2 e 3.
    */
   .mappa__zoom {
     position: relative;
@@ -1240,9 +1241,9 @@
 
   /*
    * The labels are the page's text over the drawing: the piazza in the serif
-   * register, the church and the two streets in the sans register. A cream
-   * halo keeps them legible over the plan without a plate of their own. All
-   * four labels sit level: a street name reads across its street, not along it.
+   * register, the church and the street in the sans register. A cream halo
+   * keeps them legible over the plan without a plate of their own. All three
+   * labels sit level: a street name reads across its street, not along it.
    */
   .mappa__label {
     position: absolute;
@@ -1261,18 +1262,59 @@
       0 0 10px var(--surface);
   }
 
-  /* The piazza is the plan's one place name: a step above the street names,
-     not the display size the chapter's headings use. */
+  /* The piazza is the plan's one place name: the serif register distinguishes it
+     from the street names, not a larger body. */
   .mappa__label--place {
     color: var(--ink);
     font-family: var(--serif);
-    font-size: var(--step-0);
+    font-size: var(--step--1);
     font-weight: 700;
   }
 
   .mappa__label--street {
     font-weight: 700;
     letter-spacing: 0.14em;
+  }
+
+  /*
+   * Le Casse: segni d'oro, non voci. Ogni Cassa ancora il suo punto sul piano;
+   * l'anello cavo e il nome gli stanno accanto. Non apre nulla, non prende il
+   * focus e non fiorisce: il riempimento bordeaux resta alle cantine.
+   */
+  .mappa__cassa {
+    position: absolute;
+    inset-block-start: var(--y);
+    inset-inline-start: var(--x);
+    inline-size: 13px;
+    block-size: 13px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .mappa__cassa-mark {
+    position: absolute;
+    inset: 0;
+    display: block;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+  }
+
+  /*
+   * Il nome della Cassa nel registro dei valori piccoli: sans, gradino più
+   * piccolo, la spaziatura delle etichette stampate, l'inchiostro spento per
+   * leggersi sulla crema. Sta a destra dell'anello, sullo stesso punto.
+   */
+  .mappa__label--cassa {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: calc(100% + 4px);
+    transform: translateY(-50%);
+    color: var(--ink-muted);
+    font-family: var(--sans);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
   }
 
   /* The north mark is a quiet note in the top-right: no scale, no grid. */
@@ -1297,6 +1339,11 @@
    * and the dot show. The 44 px target is transparent and generous, so it
    * stays usable on a phone while the ring and the dot stay small on the
    * plan. The ring and the dot never take the pointer themselves.
+   *
+   * --x and --y are the true point on the plan. --nudge-x and --nudge-y, in
+   * pixels and written in the markup, step the whole 44 px target aside where
+   * two targets would overlap at the narrowest width; the leader inside the
+   * dot keeps the true point on the paper. The script never reads them.
    */
   .mappa__dot {
     position: absolute;
@@ -1310,9 +1357,33 @@
     border-radius: 50%;
     background: none;
     appearance: none;
-    transform: translate(-50%, -50%);
+    transform: translate(
+      calc(-50% + var(--nudge-x, 0) * 1px),
+      calc(-50% + var(--nudge-y, 0) * 1px)
+    );
     color: var(--ink);
     cursor: pointer;
+  }
+
+  /*
+   * Il filo d'oro: quando un bersaglio da 44 px si scosta perché due anelli si
+   * toccherebbero, questo span di un pixel unisce l'anello al punto vero del
+   * piano. Parte dal punto vero (il centro del pulsante meno lo scostamento),
+   * è lungo quanto lo scostamento e ne prende la direzione. Non è una linea di
+   * percorso: non porta punta né tappo, non prende il tocco e non si muove.
+   * La geometria viene dalle stesse variabili scritte nel markup, mai dallo
+   * script; dentro il layer, cresce con il disegno.
+   */
+  .mappa__leader {
+    position: absolute;
+    inset-block-start: calc(50% - var(--nudge-y) * 1px);
+    inset-inline-start: calc(50% - var(--nudge-x) * 1px);
+    inline-size: calc(hypot(var(--nudge-x), var(--nudge-y)) * 1px);
+    block-size: 1px;
+    transform-origin: 0 50%;
+    transform: translateY(-50%) rotate(atan2(var(--nudge-y), var(--nudge-x)));
+    background: var(--gold);
+    pointer-events: none;
   }
 
   .mappa__dot:focus-visible {
@@ -1403,14 +1474,6 @@
     color: var(--ink);
     font-size: var(--step-0);
     line-height: 1.5;
-  }
-
-  .mappa__dialog-note {
-    margin: var(--space-2) 0 0;
-    color: var(--ink-muted);
-    font-family: var(--sans);
-    font-size: var(--step--1);
-    letter-spacing: 0.08em;
   }
 
   /* The visible way out: a control in the page's type, with a gold hairline
@@ -2548,7 +2611,7 @@
      * on `display` and `overlay` keeps the native dialog drawn in the top layer
      * until its fade is done, which is the only way a `<dialog>` can animate
      * its closing without scripting. The whole thing is scoped to the screen:
-     * on paper the six entries are already in the flow and must not fade.
+     * on paper the entries are already in the flow and must not fade.
      * Browsers without these features open and close at once, with the panel
      * complete either way.
      */
@@ -2594,12 +2657,14 @@
       /*
        * The dots are the plan's hotspots, and a phone has no hover to say so:
        * each keeps a hairline ring of its own ink blooming out of it and
-       * thinning away at the 44 px target's edge, the six staggered by a step
-       * so they read as a field rather than as one flash. This is the page's
-       * one repeating motion. It carries no reading, it exists only on screen
-       * with motion allowed, and it pauses behind an open Cantina panel — in
-       * the chapter or over the expanded map — so the panel being read is the
-       * only thing moving.
+       * thinning away at the 44 px target's edge, the dots staggered by a step
+       * so they read as a field rather than as one flash. The step is each
+       * dot's own `--bloom`, carried in its markup as its place in the plan,
+       * so a new dot needs no rule here. This is the page's one repeating
+       * motion. It carries no reading, it exists only on screen with motion
+       * allowed, and it pauses behind an open Cantina panel — in the chapter
+       * or over the expanded map — so the panel being read is the only thing
+       * moving.
        */
       .mappa__dot-mark::before {
         content: "";
@@ -2614,26 +2679,7 @@
         opacity: 0;
         pointer-events: none;
         animation: ink-bloom var(--motion-bloom) var(--ease-set) infinite;
-      }
-
-      .mappa__dot:nth-of-type(2) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 1);
-      }
-
-      .mappa__dot:nth-of-type(3) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 2);
-      }
-
-      .mappa__dot:nth-of-type(4) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 3);
-      }
-
-      .mappa__dot:nth-of-type(5) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 4);
-      }
-
-      .mappa__dot:nth-of-type(6) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 5);
+        animation-delay: calc(var(--motion-bloom-step) * var(--bloom, 0));
       }
 
       /*
@@ -2791,11 +2837,11 @@
 }
 
 /*
- * On paper the Mappa is the plan and its six entries. A closed <dialog> is
+ * On paper the Mappa is the plan and its entries. A closed <dialog> is
  * display:none from the browser, so the print rule resets that and the
  * browser's positioning, as the no-script fallback does. Chiudi has no modal
  * to close on paper; the dots stay as marks on the plan. The entries are the
- * same six dialogs, not a second list.
+ * same dialogs, not a second list.
  */
 @media print {
   /* The scroll-driven reveal clips the label and the plan to their first
@@ -2841,7 +2887,7 @@
     display: none;
   }
 
-  /* Ingrandisci la Mappa is a screen control: the plan and the six entries
+  /* Ingrandisci la Mappa is a screen control: the plan and its entries
    * already print, so the button stays off the paper. */
   .mappa__expand {
     display: none;
@@ -2850,6 +2896,12 @@
   /* The dots are printed marks: keep the ink instead of dropping the fill. */
   .mappa__dot {
     display: block;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Le due Casse sono segni stampati: l'anello d'oro resta sulla carta. */
+  .mappa__cassa {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }

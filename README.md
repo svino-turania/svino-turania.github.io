@@ -197,39 +197,45 @@ paragraph carries the words.
 The Mappa del Borgo follows the prose as the walk's picture, before the
 Programma: the real plan of the borgo, exported from the cadastral base and
 drawn in the page's cream, gold and ink palette. The buildings, streets and
-piazza are in the served SVG; `Piazza Umberto I`, `la chiesa`, `Corso Trieste`
-and `Via Turano` are HTML labels over it, all four set level, with a discreet
-`N` and no scale bar, grid, frame or caption. The confirmed Cantine are dots — the page's only
-bordeaux-filled marks — and each dot is a button that opens its own native
-dialog with the Cantina's name, what visitors find inside and the note
-`Posizione indicativa`. Each dot also blooms a slow ring of its ink — the plan's
-only repeating motion — so the chapter reads as openable where nothing hovers.
-There is no list: the dialogs are the entries. The
-chapter states no count and no route, and names no Cantina the Comitato has not
-confirmed.
+piazza are in the served SVG; `Piazza Umberto I`, `la chiesa` and `Corso
+Trieste` are HTML labels over it, all three set level, with a discreet `N` and
+no scale bar, grid, frame or caption. The Comitato-confirmed Cantine —
+ten of them — and the `Piazzale della chiesa`, the Pro Loco's stand in the little
+square at the church's foot, are bordeaux dots, the page's only bordeaux-filled
+marks, and each dot is a button that opens its own native dialog: the place's
+name is the panel's heading, its house title for a Cantina, and its inside line
+says what visitors find inside and who serves it. Two Casse are quiet gold
+marks that name themselves with the word `Cassa` and open nothing. The marks stand where the plan draws them; where a
+dot must step aside so a thumb can reach it, a short gold hairline joins it to
+its true position. Each dot also blooms a slow ring of its ink — the plan's only
+repeating motion — so the chapter reads as openable where nothing hovers, while
+the Casse carry no ring. There is no list: the dialogs are the entries. The
+chapter states no count, no number, no route and no order, and names no Cantina
+the Comitato has not confirmed.
 
 The chapter adds one control: `Ingrandisci la Mappa` sits under the plan and
 opens the map in a near-full-viewport native dialog of its own. There the
 drawing becomes the frame's scroll viewport — one finger, the wheel (two
 fingers on a trackpad), the arrow keys and the scrollbar pan it natively — and
-one layer wrapping the plan, its labels and its dots scales as one picture at
-1, 1.5, 2 and 3×, with three quiet paper squares at the frame's bottom right
-for `+`, `−` and the whole plan; a double-click zooms toward the pointer, while
-Ctrl+wheel stays the browser's page zoom. The chapter remains one screen-high
-object at every width; the expanded view is a transient surface that owns nearly
-the whole screen while it is open, and closing it returns the plan to the
-chapter at fit. A dot inside the expanded map still opens its Cantina panel
-above it, and returns to the same view when the panel closes. Bordeaux stays
-the dots' alone.
+one layer wrapping the plan, its labels, its dots and the two Casse scales as
+one picture at 1, 1.5, 2 and 3×, with three quiet paper squares at the frame's
+bottom right for `+`, `−` and the whole plan; a double-click zooms toward the
+pointer, while Ctrl+wheel stays the browser's page zoom. The chapter remains one
+screen-high object at every width; the expanded view is a transient surface that
+owns nearly the whole screen while it is open, and closing it returns the plan
+to the chapter at fit. A dot inside the expanded map still opens its Cantina
+panel above it, and returns to the same view when the panel closes. Bordeaux
+stays the entries' dots alone; the Casse are gold marks beside them.
 
-Without JavaScript the six dialogs flow under the plan and the expand control is
-not shown; on paper the plan and the six entries print in order and the control
-is not printed. The plan is a generated asset: the
+Without JavaScript the eleven dialogs flow under the plan and the expand control
+is not shown; on paper the plan, the entries and the Cassa marks print in order
+and the control is not printed. The plan is a generated asset: the
 permission to publish a derived plan, the source data and the export script
 stay outside this repository, and only the rendered SVG is committed, never
 edited by hand. ADR-0022 records the plan, its
 provenance, the dialogs and the two-script contract, and supersedes ADR-0021;
-ADR-0025 records the expanded map.
+ADR-0025 records the expanded map; ADR-0026 records the plan's rows and real
+positions, the two Casse, the piazzale and the removed position caveat.
 
 The Programma follows as the second illustrated chapter and as the page's
 mid-walk strong surface: a full-bleed bordeaux interlude with the printed label — sans, the
@@ -333,7 +339,7 @@ view's three zoom squares are the page's other controls: a dot re-inks its ring
 on hover and focus, and opens its Cantina's dialog; the expand control and the
 squares re-ink their hairline on hover, and the panel's `Chiudi` is the visible
 way back. Each dot also keeps a slow bloom — a hairline ring of its own ink
-leaves the dot and thins out at the 44 px target's edge, the six staggered — so
+leaves the dot and thins out at the 44 px target's edge, the dots staggered — so
 the plan says it can be opened even where nothing hovers. It is the page's one
 repeating motion, it pauses behind an open Cantina panel — in the chapter or
 over the expanded Mappa — and it is absent under reduced motion. On a phone the
@@ -361,7 +367,8 @@ are:
   there.
 - **Only the map's dots repeat.** The page has one ambient effect: the Mappa's
   dots bloom a ring of their ink so the plan reads as openable on a phone,
-  where nothing hovers. It is staggered by `--motion-bloom-step`, runs inside
+  where nothing hovers. It is staggered by `--motion-bloom-step` times each
+  dot's own `--bloom`, runs inside
   the chapter and the expanded Mappa alike, pauses while a Cantina's panel is
   open, exists only on screen with motion allowed, and is gone under `reduce` —
   the base stylesheet draws no ring at all. Everything else runs once; sustained
@@ -374,7 +381,7 @@ are:
   allow-discrete` on `display` and `overlay`, so the native panel fades before
   the browser drops it and the script stays as ADR-0022 records it. The
   expanded Mappa adds no entrance and its zoom never animates, at any motion
-  setting. On paper the six entries are in the flow and never fade; where the
+  setting. On paper the entries are in the flow and never fade; where the
   features are missing, the panel opens and closes at once.
 - **Every duration, delay and easing comes from the motion tokens** in `:root`
   (`--motion-recede`, `--motion-press`, `--motion-ink`, `--motion-settle`,
@@ -425,7 +432,7 @@ a short comment beside it in the file:
 | Edition               | `II EDIZIONE`                  | the lockup beside the signature, the colophon and the metadata |
 | Opening image description | the approved Italian sentence | the `alt` attribute of the image in `.hero-photo`          |
 | Photograph description| the approved Italian sentence  | the `alt` attribute of the Cantina photograph                 |
-| Cantine on the map    | six Comitato-confirmed Cantine | one dot button in the Mappa's plan and one `<dialog>`, same `id`; no list |
+| Entries on the map    | ten Comitato-confirmed Cantine, the `Piazzale della chiesa` and two Casse | one dot button and one `<dialog>` with the same `id` per entry; two non-interactive gold marks, each with its `Cassa` label; no list |
 | Locandina download    | `assets/download/locandina-svino-ii-edizione.jpg` | the single link in the closing band, at every width |
 
 The date is the one value the page states in several forms. Change
@@ -454,8 +461,10 @@ appears more than once. The piazza's name appears once as visible text, as the
 Mappa del Borgo's label over the plan; the plan's `alt` says `la piazza` without
 the name; the Petescia card's `alt` quotes the lettering printed inside that
 photograph, and the structured `Event` location repeats the name in data only.
-The Mappa's `alt` and its dialogs state no count of Cantine, no route and no
-order, and no structured data is added for individual Cantine.
+The Mappa's `alt` and its dialogs carry no digit and no number of entries, no
+route and no order; the `alt` names the bordeaux entries and the plan's two gold
+marks, and it follows the spec's sentence. No structured data is added for
+individual entries.
 
 The Locandina download is one anchor, in the closing bordeaux band. It is
 present at every width, with no second copy and no rule that hides it, so
@@ -469,16 +478,22 @@ The second paragraph promises that this page will carry the event's news, so
 add no categories to that promise — no entry, price or duration — until the
 Comitato decides them.
 
-The Mappa's Cantine are edited in one place each: one dot button in the plan
-and one `<dialog>` with the same `id`, carrying the Cantina's name, what
-visitors find inside and `Posizione indicativa`. A test requires one dot and
-one dialog per Comitato-confirmed Cantina and the same `id` set; it fails if the
-chapter carries a list, any digit at all (no count, no numbered pin), a
-connecting route line, an unconfirmed Cantina or an unconfirmed title. Do not
-edit `assets/img/mappa-del-borgo.svg` by hand: the plan is exported outside this
-repository from the cadastral base, and a changed frame or palette is a new
-export. The dots' positions are percentage
-placeholders until the Comitato supplies its sketch.
+The Mappa's entries are edited in one place each: one dot button in the plan
+and one `<dialog>` with the same `id`, whose heading is the place's name — a
+Cantina's house title or the piazzale's — and whose inside line carries what
+visitors find inside and who serves it. To add an entry, add one dot and one
+panel of the same `id`, and give the dot its own `--bloom` — its place in the
+plan's order, from zero — so the stagger needs no stylesheet rule; to move one,
+change its two percentages, `--x` and `--y`, taken from the drawing box. A dot
+that steps aside for a thumb keeps its true position in `--nudge-x` /
+`--nudge-y` and a `span.mappa__leader` hairline, never more than 18 px. The two
+Cassa marks and their `Cassa` labels live beside the dots in the same drawing
+markup. A test requires one dot and one dialog per Comitato-confirmed Cantina
+and the same `id` set; it fails if the chapter carries a list, any digit at all
+(no count, no numbered pin), a connecting route line, an unconfirmed Cantina or
+an unconfirmed title. Do not edit `assets/img/mappa-del-borgo.svg` by hand: the
+plan is exported outside this repository from the cadastral base, and a changed
+frame or palette is a new export.
 
 To propose a change:
 
@@ -657,7 +672,7 @@ The test seam is the repository root, as a static server serves it. `npm test`
 runs `node --test tests/*.test.mjs`; there is no build to run first. The tests
 read `index.html`, its assets and its metadata as a visitor or link checker
 would: the printed facts, the Cantina prose, the Programma paragraph, the
-Mercatino paragraph and the Mappa's six dialog entries verbatim, the date
+Mercatino paragraph and the Mappa's eleven dialog entries verbatim, the date
 literals against `datetime`, the map destination, the declared language,
 headings and link names, the three narrow guards — two executable scripts, the
 Mappa's inline binding before the counter, with the counter pinned to
@@ -669,27 +684,29 @@ pixel stays in the colophon inside `<noscript>` for readers without JavaScript,
 with no Referer, an empty `alt`, and a cookie-free notice linking the
 processor's privacy page. The pixel is the page's only external image request.
 
-The Mappa has its own guards. It pins the six Comitato-confirmed dialog entries
-and their copy; it requires one button dot and one dialog per Cantina, with the
+The Mappa has its own guards. It pins the Comitato-confirmed dialog entries
+and their copy; it requires one button dot and one dialog per entry, with the
 same `id` set, and fails if the chapter still has a list or a `<details>`. It
 fails on any digit in the chapter (no count, no numbered pin), on text inside a
 dot, on a connecting route line, and on the unconfirmed rows and titles. It
 requires the plan to be an `<img>` pointing at the shipped SVG, lazy and
 asynchronous, with its intrinsic 546 × 792 size and an `alt` that describes the
-plan without a count or the piazza's name; it also requires the four HTML
+plan without a digit or the piazza's name; it also requires the four HTML
 labels, the north mark and the absent scale, grid, frame and caption. It reads
 the SVG as an image: well formed, with no text, script, external reference or
 embedded raster, the three layers `strade`, `piazza` and `fabbricati`, the baked
 palette, a transparent ground, and the comment that says it is generated from
 the cadastral base and must not be edited by hand. It pins the no-script style
-that flows the six
+that flows the ten
 dialogs under the plan and hides the dead dots and close controls, the print
-rule that prints the plan and the six entries with the close controls hidden,
+rule that prints the plan, the entries and the two Cassa marks with the
+close controls hidden,
 the dialog's screen-scoped opening and closing — its motion tokens, the
 discrete `display` and `overlay`, the starting style and the fallback resets
 that keep the entries visible without JavaScript; the dots' ink bloom — the
-page's one allowed loop, its `--motion-bloom` tokens, the six staggered delays,
-the pause behind an open panel and the absence of the ring without motion; the
+page's one allowed loop, its `--motion-bloom` tokens, the staggered delays,
+the pause behind an open panel, the Casse with no ring, and the absence of the
+ring without motion; the
 inline script's dot-to-dialog binding and close handling under a size cap, and
 the counter as the last executable script. The expanded
 map has its own narrow guards: the chapter's `Ingrandisci la Mappa` and its
@@ -1127,9 +1144,10 @@ following are absent by choice:
 - any contact detail the Comitato has not confirmed — email and phone remain
   absent;
 - any Programma item, time or detail the Comitato has not confirmed;
-- any Cantina the Comitato has not confirmed, any count or order of Cantine, any
-  route, and any claim of an exact position: the Mappa's dots are indicative
-  placeholders and each panel says `Posizione indicativa`;
+- any Cantina the Comitato has not confirmed, any order of Cantine and any
+  route: the Mappa's dots stand where the Comitato's plan draws them, and the
+  page prints no count and no number because the plan marks places, not an
+  order;
 - any placeholder copy — "in via di definizione", "da definire",
   "prossimamente" and the like.
 
@@ -1141,9 +1159,10 @@ resources: the page loads no embed, feed, script, pixel or image from either
 host.
 
 Empty is acceptable; a placeholder is not. Do not invent details to fill a
-section: the number of Cantine, food, duration and weather are not stated
-because they are not decided. The same rule applies to issues, pull requests
-and documentation.
+section: the page prints no number of Cantine, no route and no order — the plan
+marks places, not an order (ADR-0026) — and no duration or weather, because
+those are not decided. The same rule applies to issues, pull requests and
+documentation.
 
 `tests/site.test.mjs` enforces the policy over the served page: it fails on
 banned placeholder phrases, email addresses, phone numbers and `mailto:` or
