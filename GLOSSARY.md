@@ -45,8 +45,9 @@ The Mappa del Borgo names a Cantina only when the Comitato has confirmed it.
 A Cantina is the venue, and the page names it by its house title, which its
 panel prints as the heading. The host family who keeps the cellar and the
 provider who serves there are different things: the host family is never
-named, and only the provider appears, on the panel's inside line, where the
-Comitato has confirmed it. Each confirmed Cantina is one dot on the plan and
+named, and only the provider appears, on the panel's provider line — its own
+paragraph under the heading, never joined to the food — where the Comitato has
+confirmed it. Each confirmed Cantina is one dot on the plan and
 one panel opened from it; there is no separate list. The Mappa states no count
 of Cantine, no route order, no title the Comitato has not confirmed and no
 price. Do not infer a number, a menu, a vendor, a duration or a price from the
@@ -105,8 +106,9 @@ verified street `Corso Trieste` as labels. The ten Comitato-confirmed Cantine
 and the `Piazzale della chiesa` — the little square at the church's foot, where
 the Pro Loco serves arrosticini, panini con salsiccia and hot dog — are bordeaux
 dots, the page's only bordeaux marks, and each dot is a button that opens the
-place's panel, carrying its name (a Cantina's house title, or the piazzale's)
-and what visitors find inside. Two Casse are gold marks that name
+place's panel, carrying its name (a Cantina's house title, or the piazzale's),
+the provider where one is confirmed, and a sentence on what visitors find
+inside. Two Casse are gold marks that name
 themselves and open nothing. The dots are the map's entries: there is no list
 beside or beneath the drawing. The marks stand at the plan's real positions,
 and where a dot must step aside for a thumb a gold hairline joins it to its

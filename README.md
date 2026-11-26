@@ -202,10 +202,18 @@ Trieste` are HTML labels over it, all three set level, with a discreet `N` and
 no scale bar, grid, frame or caption. The Comitato-confirmed Cantine —
 ten of them — and the `Piazzale della chiesa`, the Pro Loco's stand in the little
 square at the church's foot, are bordeaux dots, the page's only bordeaux-filled
-marks, and each dot is a button that opens its own native dialog: the place's
-name is the panel's heading, its house title for a Cantina, and its inside line
-says what visitors find inside and who serves it. Two Casse are quiet gold
-marks that name themselves with the word `Cassa` and open nothing. The marks stand where the plan draws them; where a
+marks, and each dot is a button that opens its own native dialog. The panel is
+three parts: the place's name as the heading — a Cantina's house title — then,
+where the Comitato has confirmed one, the provider on a line of its own, and
+then one sentence on what visitors find inside. The provider wears the page's
+printed-label register — sans, uppercase, the small step, muted ink — so it
+reads as a caption and not as part of the food list; two providers stand on two
+equal lines with no separator and no rank. Where no provider is confirmed the
+line is simply absent. The sentence speaks in the page's `voi` voice and adds
+no fact the Comitato has not confirmed; the four Cantine that serve only wine
+share one sentence promising that the list of wines will arrive on this page.
+Two Casse are quiet gold marks that name themselves with the word `Cassa` and
+open nothing. The marks stand where the plan draws them; where a
 dot must step aside so a thumb can reach it, a short gold hairline joins it to
 its true position. Each dot also blooms a slow ring of its ink — the plan's only
 repeating motion — so the chapter reads as openable where nothing hovers, while
@@ -235,7 +243,9 @@ stay outside this repository, and only the rendered SVG is committed, never
 edited by hand. ADR-0022 records the plan, its
 provenance, the dialogs and the two-script contract, and supersedes ADR-0021;
 ADR-0025 records the expanded map; ADR-0026 records the plan's rows and real
-positions, the two Casse, the piazzale and the removed position caveat.
+positions, the two Casse, the piazzale and the removed position caveat;
+ADR-0027 records the panel's provider line, the derived sentences and the
+wine-list promise.
 
 The Programma follows as the second illustrated chapter and as the page's
 mid-walk strong surface: a full-bleed bordeaux interlude with the printed label — sans, the
@@ -432,7 +442,7 @@ a short comment beside it in the file:
 | Edition               | `II EDIZIONE`                  | the lockup beside the signature, the colophon and the metadata |
 | Opening image description | the approved Italian sentence | the `alt` attribute of the image in `.hero-photo`          |
 | Photograph description| the approved Italian sentence  | the `alt` attribute of the Cantina photograph                 |
-| Entries on the map    | ten Comitato-confirmed Cantine, the `Piazzale della chiesa` and two Casse | one dot button and one `<dialog>` with the same `id` per entry; two non-interactive gold marks, each with its `Cassa` label; no list |
+| Entries on the map    | ten Comitato-confirmed Cantine, the `Piazzale della chiesa` and two Casse | one dot button and one `<dialog>` with the same `id` per entry, the panel carrying the provider line and the sentence; two non-interactive gold marks, each with its `Cassa` label; no list |
 | Locandina download    | `assets/download/locandina-svino-ii-edizione.jpg` | the single link in the closing band, at every width |
 
 The date is the one value the page states in several forms. Change
@@ -479,17 +489,30 @@ add no categories to that promise — no entry, price or duration — until the
 Comitato decides them.
 
 The Mappa's entries are edited in one place each: one dot button in the plan
-and one `<dialog>` with the same `id`, whose heading is the place's name — a
-Cantina's house title or the piazzale's — and whose inside line carries what
-visitors find inside and who serves it. To add an entry, add one dot and one
-panel of the same `id`, and give the dot its own `--bloom` — its place in the
-plan's order, from zero — so the stagger needs no stylesheet rule; to move one,
-change its two percentages, `--x` and `--y`, taken from the drawing box. A dot
-that steps aside for a thumb keeps its true position in `--nudge-x` /
-`--nudge-y` and a `span.mappa__leader` hairline, never more than 18 px. The two
-Cassa marks and their `Cassa` labels live beside the dots in the same drawing
-markup. A test requires one dot and one dialog per Comitato-confirmed Cantina
-and the same `id` set; it fails if the chapter carries a list, any digit at all
+and one `<dialog>` with the same `id`. The panel has three slots, in this order:
+the heading, the place's name — a Cantina's house title or the piazzale's; the
+provider line, present only where the Comitato has confirmed one — its own
+paragraph, with two names on two lines joined by a `<br>` and no separator or
+rank — and the sentence, one line of copy that says what visitors find inside.
+To add a provider, add
+`<p class="mappa__dialog-provider">`; to withhold one, leave it out — never
+print a dash or a generic word. Each sentence is derived only from facts the
+Comitato has confirmed, in the page's `voi` voice, and adds no price, time, menu,
+route, count or superlative; a test pins every provider and every sentence
+verbatim. The four Cantine with no confirmed provider share one sentence, which
+promises that the list of wines will arrive on this page: that promise is the
+one deliberate exception to the content policy's no-placeholder rule, and it
+must not be softened into `prossimamente` (ADR-0027).
+
+To add an entry, add one dot and one panel of the same `id`, and give the dot
+its own `--bloom` — its place in the plan's order, from zero — so the stagger
+needs no stylesheet rule; to move one, change its two percentages, `--x` and
+`--y`, taken from the drawing box. A dot that steps aside for a thumb keeps its
+true position in `--nudge-x` / `--nudge-y` and a `span.mappa__leader` hairline,
+never more than 18 px. The two Cassa marks and their `Cassa` labels live beside
+the dots in the same drawing markup. A test requires one dot and one dialog per
+Comitato-confirmed Cantina and the same `id` set; it fails if the chapter
+carries a list, any digit at all
 (no count, no numbered pin), a connecting route line, an unconfirmed Cantina or
 an unconfirmed title. Do not edit `assets/img/mappa-del-borgo.svg` by hand: the
 plan is exported outside this repository from the cadastral base, and a changed
@@ -685,7 +708,14 @@ with no Referer, an empty `alt`, and a cookie-free notice linking the
 processor's privacy page. The pixel is the page's only external image request.
 
 The Mappa has its own guards. It pins the Comitato-confirmed dialog entries
-and their copy; it requires one button dot and one dialog per entry, with the
+and their copy: the heading, the provider line — present with exactly the
+confirmed names, on two lines where there are two, and absent where there is
+none — and the sentence, each verbatim; it requires the four wine panels to
+share one sentence, pins that sentence in the content-policy block, and asserts
+the old single inside line gone from the markup and the stylesheet. It also
+asserts the panel's two registers in the stylesheet — the provider's printed
+label and the sentence's serif — without a new frame, colour or motion. It
+requires one button dot and one dialog per entry, with the
 same `id` set, and fails if the chapter still has a list or a `<details>`. It
 fails on any digit in the chapter (no count, no numbered pin), on text inside a
 dot, on a connecting route line, and on the unconfirmed rows and titles. It
@@ -1150,6 +1180,14 @@ following are absent by choice:
   order;
 - any placeholder copy — "in via di definizione", "da definire",
   "prossimamente" and the like.
+
+There is one deliberate exception. The four Cantine with no confirmed provider
+share the sentence *Assaggiate il vino, senza fretta: la lista dei vini arriverà
+su questa pagina.* It is not placeholder copy: it is a commitment the Comitato
+will keep, in the future tense, with no timeline word — not "presto", not "a
+breve", not "prossimamente". A test pins it verbatim, so an editor cannot soften
+it, and if the Comitato withdraws the commitment the sentence is removed rather
+than hedged (ADR-0027).
 
 The Comitato confirmed two channels in November 2026, and the page links them
 as icon-only actions in the closing band: the Instagram profile at

@@ -38,6 +38,15 @@ const PROGRAMMA_PARAGRAPH =
 const MERCATINO_PARAGRAPH =
   "Come nella prima edizione, anche quest'anno c'è un mercatino: produttori locali espongono i loro prodotti. Si gira tra le bancarelle senza fretta, si guarda, si chiede, e ci si porta a casa qualcosa. La cosa migliore, qui come nelle cantine, è fermarsi a parlare.";
 
+/*
+ * La promessa della lista dei vini: l'unica eccezione deliberata alla regola
+ * che vieta il testo segnaposto. È un impegno che il Comitato terrà, scritto al
+ * futuro e senza «presto», «a breve» o «prossimamente»: le quattro Cantine che
+ * servono solo vino, senza un provider confermato, la portano alla lettera.
+ */
+const WINE_LIST_SENTENCE =
+  'Assaggiate il vino, senza fretta: la lista dei vini arriverà su questa pagina.';
+
 const PHOTO_ALT =
   "Interno di una cantina scavata nella roccia: soffitto e pareti di pietra grezza, una lampadina nuda appesa a un filo, damigiane di vetro anche dentro cesti di vimini, una botte coricata e un grande tino chiaro con il coperchio; un palo di legno regge la volta.";
 
@@ -3935,6 +3944,18 @@ test('la pagina non promette nulla che il comitato non abbia deciso', () => {
     assert.ok(!text.includes(phrase), `testo non ammesso: "${phrase}"`);
   }
 
+  /*
+   * The wine list is the one thing the page promises without having it yet.
+   * That promise is a deliberate exception to the no-placeholder rule — a real
+   * commitment in the future tense, with no timeline word — and it is pinned
+   * verbatim so a later edit cannot soften it into `prossimamente`.
+   */
+  assert.equal(
+    occurrences(text, WINE_LIST_SENTENCE.toLowerCase()),
+    4,
+    'la promessa della lista dei vini non compare nei quattro pannelli senza provider',
+  );
+
   assert.doesNotMatch(html, /mailto:|tel:/i, 'la pagina espone un contatto');
   assert.doesNotMatch(
     text,
@@ -5734,7 +5755,9 @@ const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'cantina-medecu',
     name: 'Quissi de lu Medecu',
-    inside: 'Pro Loco Civita — polpette al sugo',
+    providers: ['Pro Loco Civita'],
+    sentence:
+      'Fermatevi per le polpette al sugo: una sosta lungo la passeggiata, senza fretta.',
     x: '35.41%',
     y: '29.05%',
     nudge: { dx: 0, dy: 0 },
@@ -5742,7 +5765,8 @@ const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'cantina-casianu',
     name: 'Quissi de Casianu',
-    inside: 'vino',
+    providers: [],
+    sentence: WINE_LIST_SENTENCE,
     x: '43.52%',
     y: '43.19%',
     nudge: { dx: 17, dy: 2 },
@@ -5750,7 +5774,9 @@ const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'cantina-enzo',
     name: 'Cantina di Enzo',
-    inside: 'La Cortesia Home Restaurant — pasta e fagioli, trippa al sugo',
+    providers: ['La Cortesia Home Restaurant'],
+    sentence:
+      'Trovate pasta e fagioli, trippa al sugo: piatti che sanno di casa.',
     x: '41.47%',
     y: '42.07%',
     nudge: { dx: -16, dy: -8 },
@@ -5758,7 +5784,9 @@ const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'cantina-callaru',
     name: 'Quissi de Callaru',
-    inside: 'Settecapocce + Palaterra — ravioli al tartufo e birra artigianale',
+    providers: ['Settecapocce', 'Palaterra'],
+    sentence:
+      'Gustate ravioli al tartufo e birra artigianale, per una pausa che sa di festa.',
     x: '54.04%',
     y: '49.44%',
     nudge: { dx: 16, dy: 7 },
@@ -5766,7 +5794,8 @@ const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'cantina-santuccella',
     name: 'Quissi de Santuccella',
-    inside: 'vino',
+    providers: [],
+    sentence: WINE_LIST_SENTENCE,
     x: '61.21%',
     y: '75.24%',
     nudge: { dx: 0, dy: 0 },
@@ -5774,7 +5803,8 @@ const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'cantina-macellaru',
     name: 'Quissi de lu Macellaru',
-    inside: 'vino',
+    providers: [],
+    sentence: WINE_LIST_SENTENCE,
     x: '47.43%',
     y: '72.24%',
     nudge: { dx: -5, dy: 16 },
@@ -5782,7 +5812,8 @@ const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'cantina-brunetto',
     name: 'Quissi de Brunetto',
-    inside: 'Tobia — gin e amari',
+    providers: ['Tobia'],
+    sentence: 'Prendetevi il vostro tempo con gin e amari.',
     x: '47.42%',
     y: '68.00%',
     nudge: { dx: 11, dy: -5 },
@@ -5790,7 +5821,9 @@ const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'cantina-ammazzatora',
     name: 'L’ammazzatora',
-    inside: 'Il Grembiule Bistrot — taglieri e dolci',
+    providers: ['Il Grembiule Bistrot'],
+    sentence:
+      'Assaggiate taglieri e dolci, per una pausa che sa di domenica.',
     x: '45.18%',
     y: '60.06%',
     nudge: { dx: 3, dy: -12 },
@@ -5798,7 +5831,9 @@ const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'cantina-santu',
     name: 'Quissi de Santu',
-    inside: 'La Cueva Home Restaurant — polenta',
+    providers: ['La Cueva Home Restaurant'],
+    sentence:
+      'Assaggiate la polenta, un piatto semplice da gustare con calma.',
     x: '37.07%',
     y: '57.35%',
     nudge: { dx: -16, dy: 0 },
@@ -5806,7 +5841,8 @@ const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'cantina-gabriele',
     name: 'Quissi de Gabriele',
-    inside: 'vino',
+    providers: [],
+    sentence: WINE_LIST_SENTENCE,
     x: '27.65%',
     y: '44.30%',
     nudge: { dx: -11, dy: 7 },
@@ -5814,12 +5850,34 @@ const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'piazzale-della-chiesa',
     name: 'Piazzale della chiesa',
-    inside: 'Pro Loco Turania — arrosticini, panini con salsiccia, hot dog',
+    providers: ['Pro Loco Turania'],
+    sentence:
+      'Assaggiate arrosticini, panini con salsiccia e hot dog: la sosta golosa ai piedi della chiesa.',
     x: '49.40%',
     y: '53.50%',
     nudge: { dx: -11, dy: -14 },
   },
 ]);
+
+/*
+ * The names in a provider paragraph, in reading order. Two providers stack on
+ * two lines in the same paragraph, joined by a <br> with no separator and no
+ * order the Comitato did not give, so the line break is the only split.
+ */
+const providerNames = (paragraph) => {
+  if (!paragraph) {
+    return [];
+  }
+  const lines = [[]];
+  for (const node of paragraph.childNodes) {
+    if (node.nodeType === 3) {
+      lines.at(-1).push(node.textContent);
+    } else if (node.nodeName === 'BR') {
+      lines.push([]);
+    }
+  }
+  return lines.map((chunk) => normalize(chunk.join('')));
+};
 
 // Gli anelli scostati: quelli che portano uno scostamento scritto, e solo quelli.
 const displacedDots = () =>
@@ -5864,9 +5922,10 @@ test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le voci del 
   );
 
   // The visible text excludes the fallback stylesheet's own source: CSS is not
-  // prose, but every Cantina title and inside line must still appear only in
-  // its dialogs. Three Cantine serve `vino`, so the count of an inside line is
-  // one per row that carries it, never a second copy beside the dialogs.
+  // prose, but every Cantina title, provider line and sentence must still
+  // appear only in its dialogs. Four Cantine serve `vino` with no provider
+  // confirmed and share one sentence, so a sentence's count is the number of
+  // rows that carry it, never a second copy beside the dialogs.
   const clone = section.cloneNode(true);
   for (const style of clone.querySelectorAll('style')) {
     style.remove();
@@ -5875,10 +5934,10 @@ test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le voci del 
   const quote = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // Whole titles, not substrings: `Quissi de Santu` is contained in
   // `Quissi de Santuccella`, and both are rows of their own.
-  const occurrences = (value) =>
+  const count = (value) =>
     (text.match(new RegExp(`(?:^|\\s)${quote(value)}(?=\\s|$)`, 'g')) ?? []).length;
-  const insideCount = (inside) =>
-    MAPPA_ENTRIES.filter((entry) => entry.inside === inside).length;
+  const sentenceCount = (sentence) =>
+    MAPPA_ENTRIES.filter((entry) => entry.sentence === sentence).length;
   dialogs.forEach((dialog, index) => {
     const expected = MAPPA_ENTRIES[index];
     assert.equal(
@@ -5887,31 +5946,36 @@ test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le voci del 
       `il dialogo ${expected.id} non porta il titolo della voce`,
     );
     assert.equal(
-      normalize(dialog.querySelector('.mappa__dialog-inside')?.textContent),
-      expected.inside,
-      `il dialogo ${expected.id} non porta ciò che si trova dentro, alla lettera`,
+      normalize(dialog.querySelector('.mappa__dialog-sentence')?.textContent),
+      expected.sentence,
+      `il dialogo ${expected.id} non porta la sua frase, alla lettera`,
+    );
+    assert.deepEqual(
+      providerNames(dialog.querySelector('.mappa__dialog-provider')),
+      expected.providers,
+      `il dialogo ${expected.id} non porta i provider confermati, alla lettera`,
     );
     assert.equal(
-      occurrences(expected.name),
+      count(expected.name),
       1,
       `il titolo ${expected.id} compare più di una volta: i dialoghi sono l’unica voce`,
     );
     assert.equal(
-      occurrences(expected.inside),
-      insideCount(expected.inside),
-      `il dentro di ${expected.id} compare fuori dal suo dialogo: i dialoghi sono l’unica voce`,
+      count(expected.sentence),
+      sentenceCount(expected.sentence),
+      `la frase di ${expected.id} compare fuori dal suo dialogo: i dialoghi sono l’unica voce`,
     );
   });
 });
 
-test('le intestazioni e le righe del dentro della Mappa sono, in ordine, quelle del piano', () => {
+test('le intestazioni, i provider e le frasi della Mappa sono, in ordine, quelli del piano', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
   const dialogs = [...section.querySelectorAll('dialog.mappa__dialog')];
 
   /*
-   * The plan's rows are the whole set, in its order: a heading or an
-   * inside line left over from the host-named chapter would change one of
+   * The plan's rows are the whole set, in its order: a heading, a provider
+   * line or a sentence left over from another register would change one of
    * these lists and fail. Pinning the set is how absence is kept — the suite
    * does not reprint the names it retired.
    */
@@ -5922,11 +5986,30 @@ test('le intestazioni e le righe del dentro della Mappa sono, in ordine, quelle 
     'i titoli dei pannelli non sono, in ordine, quelli del piano',
   );
   assert.deepEqual(
-    dialogs.map((dialog) =>
-      normalize(dialog.querySelector('.mappa__dialog-inside')?.textContent),
-    ),
-    MAPPA_ENTRIES.map((entry) => entry.inside),
-    'ciò che si trova dentro non è, in ordine, quello del piano',
+    dialogs.map((dialog) => providerNames(dialog.querySelector('.mappa__dialog-provider'))),
+    MAPPA_ENTRIES.map((entry) => entry.providers),
+    'i provider dei pannelli non sono, in ordine, quelli confermati',
+  );
+  assert.deepEqual(
+    dialogs.map((dialog) => normalize(dialog.querySelector('.mappa__dialog-sentence')?.textContent)),
+    MAPPA_ENTRIES.map((entry) => entry.sentence),
+    'le frasi dei pannelli non sono, in ordine, quelle approvate',
+  );
+
+  /*
+   * The old single inside line joined the provider and the food with a dash:
+   * it is gone from the markup and from the stylesheet, so no panel can fall
+   * back to it.
+   */
+  assert.equal(
+    section.querySelectorAll('.mappa__dialog-inside').length,
+    0,
+    'la Mappa porta ancora la vecchia riga unica del dentro',
+  );
+  assert.doesNotMatch(
+    stripCssComments(servedStylesheet()),
+    /\.mappa__dialog-inside\b/,
+    'il foglio conserva la regola della vecchia riga unica',
   );
 
   // One dot per row and no dot outside the set: the id pairing is the whole
@@ -6176,7 +6259,7 @@ test('il filo del punto è un pixel d’oro, senza punta né tappo, e cresce col
   );
 });
 
-test('ogni voce si apre in un dialogo nativo, intitolato col suo nome e col dentro', () => {
+test('ogni voce si apre in un dialogo nativo, intitolato col suo nome, col provider e con la frase', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
   const dialogs = [...section.querySelectorAll('dialog.mappa__dialog')];
@@ -6190,6 +6273,8 @@ test('ogni voce si apre in un dialogo nativo, intitolato col suo nome e col dent
     MAPPA_ENTRIES.map((entry) => `${entry.id}-dialog`),
     'gli id dei dialoghi non sono quelli attesi, in ordine',
   );
+
+  const withProvider = MAPPA_ENTRIES.filter((entry) => entry.providers.length > 0);
 
   dialogs.forEach((dialog, index) => {
     const expected = MAPPA_ENTRIES[index];
@@ -6215,11 +6300,52 @@ test('ogni voce si apre in un dialogo nativo, intitolato col suo nome e col dent
       expected.name,
       `il dialogo ${expected.id} non è annunciato col nome della voce`,
     );
+
+    /*
+     * The provider is its own paragraph under the heading, present only where
+     * the Comitato confirmed one, and the sentence follows it. Where no
+     * provider is confirmed the element is absent — not empty, not a dash and
+     * not an invented name.
+     */
+    const provider = dialog.querySelector('.mappa__dialog-provider');
+    const sentence = dialog.querySelector('.mappa__dialog-sentence');
+    if (expected.providers.length === 0) {
+      assert.equal(
+        provider,
+        null,
+        `il dialogo ${expected.id} porta una riga del provider senza un provider confermato`,
+      );
+    } else {
+      assert.ok(provider, `il dialogo ${expected.id} non ha la riga del provider`);
+      assert.deepEqual(
+        providerNames(provider),
+        expected.providers,
+        `il dialogo ${expected.id} non nomina i provider confermati, alla lettera`,
+      );
+      // Two names are equal: one line each, no separator, no rank.
+      assert.equal(
+        provider.querySelectorAll('br').length,
+        Math.max(expected.providers.length - 1, 0),
+        `i provider di ${expected.id} non stanno uno per riga`,
+      );
+      assert.equal(
+        heading.nextElementSibling,
+        provider,
+        `la riga del provider di ${expected.id} non segue il titolo`,
+      );
+    }
+    assert.ok(sentence, `il dialogo ${expected.id} non ha la sua frase`);
     assert.equal(
-      normalize(dialog.querySelector('.mappa__dialog-inside')?.textContent),
-      expected.inside,
-      `il dialogo ${expected.id} non porta ciò che si trova dentro, alla lettera`,
+      normalize(sentence.textContent),
+      expected.sentence,
+      `la frase del dialogo ${expected.id} non è quella approvata`,
     );
+    assert.equal(
+      provider ? provider.nextElementSibling : heading.nextElementSibling,
+      sentence,
+      `la frase di ${expected.id} non segue il provider o, se manca, il titolo`,
+    );
+
     // La cautela è uscita da ogni pannello: il piano colloca i punti.
     assert.equal(
       Boolean(dialog.querySelector('.mappa__dialog-note')),
@@ -6243,7 +6369,24 @@ test('ogni voce si apre in un dialogo nativo, intitolato col suo nome e col dent
       'Chiudi',
       'il controllo di chiusura non dice Chiudi',
     );
+    assert.equal(
+      close.previousElementSibling,
+      sentence,
+      `Chiudi non segue la frase nel dialogo ${expected.id}`,
+    );
   });
+
+  // Seven of the eleven panels name a provider; one — Callaru — names two.
+  assert.equal(
+    section.querySelectorAll('.mappa__dialog-provider').length,
+    withProvider.length,
+    'la Mappa non ha una riga del provider per ogni voce con un provider confermato',
+  );
+  assert.equal(
+    section.querySelectorAll('.mappa__dialog-provider br').length,
+    1,
+    'la riga dei due provider non è l’unica a stare su due righe',
+  );
 });
 
 test('senza JavaScript gli undici dialoghi scorrono sotto il piano, mentre Chiudi e i punti tacciono', () => {
@@ -7194,6 +7337,67 @@ test('il dialogo della Mappa è carta di crema con filo d’oro, senza ombra né
     /\.mappa__dialog-close:focus-visible\s*\{[^}]*outline/s,
     'Chiudi non prende l’indicatore di focus della pagina',
   );
+});
+
+test('il pannello della Mappa separa chi serve dalla frase, in due registri', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  /*
+   * The provider line wears the page's printed-label vocabulary — the same
+   * sans, small step, weight and tracking as `Cassa` and the chapter labels —
+   * and the muted ink, so it reads as a caption and not as part of the food
+   * list. It is uppercased in CSS, so the markup keeps the confirmed names'
+   * own spelling.
+   */
+  const provider = ruleBodyFor(css, '.mappa__dialog-provider');
+  assert.ok(provider, 'manca la regola della riga del provider');
+  assert.match(provider, /font-family:\s*var\(--sans\)/, 'la riga del provider non usa il sans');
+  assert.match(provider, /text-transform:\s*uppercase/, 'la riga del provider non è maiuscola');
+  assert.match(
+    provider,
+    /font-size:\s*var\(--step--1\)/,
+    'la riga del provider non usa il gradino più piccolo',
+  );
+  assert.match(provider, /font-weight:\s*700/, 'la riga del provider non è in grassetto');
+  assert.match(
+    provider,
+    /letter-spacing:\s*0\.16em/,
+    'la riga del provider non usa la spaziatura delle etichette stampate',
+  );
+  assert.match(
+    provider,
+    /color:\s*var\(--ink-muted\)/,
+    'la riga del provider non usa l’inchiostro spento',
+  );
+  assert.match(
+    provider,
+    /margin:\s*var\(--space-2\)\s+0\s+0/,
+    'la riga del provider non si stacca dal titolo di --space-2',
+  );
+
+  /*
+   * The sentence stays in the dialog's serif at the reading step, one and a
+   * half lines tall, in full ink. It follows the provider, or the heading where
+   * the provider is absent, at --space-3.
+   */
+  const sentence = ruleBodyFor(css, '.mappa__dialog-sentence');
+  assert.ok(sentence, 'manca la regola della frase del pannello');
+  assert.match(sentence, /font-family:\s*var\(--serif\)/, 'la frase non usa il serif del pannello');
+  assert.match(sentence, /font-size:\s*var\(--step-0\)/, 'la frase non usa il gradino di lettura');
+  assert.match(sentence, /line-height:\s*1\.5/, 'la frase non ha l’interlinea approvata');
+  assert.match(sentence, /color:\s*var\(--ink\)/, 'la frase non scrive in inchiostro');
+  assert.match(
+    sentence,
+    /margin:\s*var\(--space-3\)\s+0\s+0/,
+    'la frase non si stacca di --space-3 dal provider o dal titolo',
+  );
+
+  // The frame, the close control and the panel's motion are untouched by the
+  // new content: the register adds no colour, font, rule, shadow or radius.
+  for (const body of [provider, sentence]) {
+    assert.doesNotMatch(body, /border|box-shadow|background|border-radius/, 'la nuova riga porta una cornice o un fondo');
+    assert.doesNotMatch(body, /\b(?:animation|transition)\s*:/, 'la nuova riga aggiunge movimento');
+  }
 });
 
 test('la Mappa usa tutta la misura sul telefono ed è centrata e limitata a 40 rem da tablet in su', () => {

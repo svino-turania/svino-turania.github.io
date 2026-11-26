@@ -9,6 +9,9 @@
   `Posizione indicativa` caveat and its element are removed);
   ADR-0025 (the 3× ceiling now rests on *the plan is a plan, not a survey*, not
   on the positions being placeholders)
+- **Amended by:** ADR-0027 (the panel’s single inside line becomes a provider
+  paragraph and a derived sentence; the heading, the dots, the positions, the
+  Casse, the labels and the fallbacks stand)
 - **Related:** ADR-0003, ADR-0014, ADR-0022, ADR-0023, ADR-0024, ADR-0025,
   `GLOSSARY.md` (*Mappa del Borgo*, *Cantina*, *Cassa*), README (*Composition*,
   *Content table*, *Content policy*, *Editor workflow*, *Tests*), `index.html`,

@@ -468,75 +468,98 @@
 
         <!--
           DIALOGHI: una voce si apre dal suo punto come dialogo nativo. Il
-          pannello porta il nome, ciò che si trova dentro e il controllo
-          Chiudi: nessuna cautela sulla posizione, che il piano ora colloca.
+          pannello porta il nome, chi serve e una frase su ciò che si trova
+          dentro, poi il controllo Chiudi: nessuna cautela sulla posizione, che
+          il piano ora colloca.
+
+          IL PROVIDER è un paragrafo suo, presente solo dove il Comitato ne ha
+          confermato uno; due nomi stanno su due righe, pari, senza separatore e
+          senza graduatoria. Lo stile è quello delle etichette stampate della
+          pagina: sans, maiuscolo per CSS, gradino più piccolo, inchiostro
+          spento. Senza provider il paragrafo manca del tutto: nessun trattino,
+          nessuna parola generica.
+
+          LA FRASE parla in seconda persona plurale come «Vi aspettiamo», e
+          dice solo ciò che il Comitato ha confermato: nessun prezzo, orario,
+          menù, percorso o numero. Dove il provider non c'è, le quattro Cantine
+          del vino portano la stessa promessa, che la lista dei vini arriverà su
+          questa pagina: è un impegno vero, non un segnaposto, e resta al futuro
+          senza «presto» o «prossimamente».
+
           Il testo resta nel DOM, così la pagina resta indicizzabile. I
           dialoghi sono l'unica fonte delle voci: non c'è un elenco separato.
           Lo script che li apre sta in fondo al corpo, prima del contatore.
         -->
         <dialog class="mappa__dialog" id="cantina-medecu-dialog" aria-labelledby="cantina-medecu-dialog-title">
           <h3 class="mappa__dialog-title" id="cantina-medecu-dialog-title">Quissi de lu Medecu</h3>
-          <p class="mappa__dialog-inside">Pro Loco Civita — polpette al sugo</p>
+          <p class="mappa__dialog-provider">Pro Loco Civita</p>
+          <p class="mappa__dialog-sentence">Fermatevi per le polpette al sugo: una sosta lungo la passeggiata, senza fretta.</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
         <dialog class="mappa__dialog" id="cantina-casianu-dialog" aria-labelledby="cantina-casianu-dialog-title">
           <h3 class="mappa__dialog-title" id="cantina-casianu-dialog-title">Quissi de Casianu</h3>
-          <p class="mappa__dialog-inside">vino</p>
+          <p class="mappa__dialog-sentence">Assaggiate il vino, senza fretta: la lista dei vini arriverà su questa pagina.</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
         <dialog class="mappa__dialog" id="cantina-enzo-dialog" aria-labelledby="cantina-enzo-dialog-title">
           <h3 class="mappa__dialog-title" id="cantina-enzo-dialog-title">Cantina di Enzo</h3>
-          <p class="mappa__dialog-inside">La Cortesia Home Restaurant — pasta e fagioli, trippa al sugo</p>
+          <p class="mappa__dialog-provider">La Cortesia Home Restaurant</p>
+          <p class="mappa__dialog-sentence">Trovate pasta e fagioli, trippa al sugo: piatti che sanno di casa.</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
         <dialog class="mappa__dialog" id="cantina-callaru-dialog" aria-labelledby="cantina-callaru-dialog-title">
           <h3 class="mappa__dialog-title" id="cantina-callaru-dialog-title">Quissi de Callaru</h3>
-          <p class="mappa__dialog-inside">Settecapocce + Palaterra — ravioli al tartufo e birra artigianale</p>
+          <p class="mappa__dialog-provider">Settecapocce<br>Palaterra</p>
+          <p class="mappa__dialog-sentence">Gustate ravioli al tartufo e birra artigianale, per una pausa che sa di festa.</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
         <dialog class="mappa__dialog" id="cantina-santuccella-dialog" aria-labelledby="cantina-santuccella-dialog-title">
           <h3 class="mappa__dialog-title" id="cantina-santuccella-dialog-title">Quissi de Santuccella</h3>
-          <p class="mappa__dialog-inside">vino</p>
+          <p class="mappa__dialog-sentence">Assaggiate il vino, senza fretta: la lista dei vini arriverà su questa pagina.</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
         <dialog class="mappa__dialog" id="cantina-macellaru-dialog" aria-labelledby="cantina-macellaru-dialog-title">
           <h3 class="mappa__dialog-title" id="cantina-macellaru-dialog-title">Quissi de lu Macellaru</h3>
-          <p class="mappa__dialog-inside">vino</p>
+          <p class="mappa__dialog-sentence">Assaggiate il vino, senza fretta: la lista dei vini arriverà su questa pagina.</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
         <dialog class="mappa__dialog" id="cantina-brunetto-dialog" aria-labelledby="cantina-brunetto-dialog-title">
           <h3 class="mappa__dialog-title" id="cantina-brunetto-dialog-title">Quissi de Brunetto</h3>
-          <p class="mappa__dialog-inside">Tobia — gin e amari</p>
+          <p class="mappa__dialog-provider">Tobia</p>
+          <p class="mappa__dialog-sentence">Prendetevi il vostro tempo con gin e amari.</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
         <dialog class="mappa__dialog" id="cantina-ammazzatora-dialog" aria-labelledby="cantina-ammazzatora-dialog-title">
           <h3 class="mappa__dialog-title" id="cantina-ammazzatora-dialog-title">L’ammazzatora</h3>
-          <p class="mappa__dialog-inside">Il Grembiule Bistrot — taglieri e dolci</p>
+          <p class="mappa__dialog-provider">Il Grembiule Bistrot</p>
+          <p class="mappa__dialog-sentence">Assaggiate taglieri e dolci, per una pausa che sa di domenica.</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
         <dialog class="mappa__dialog" id="cantina-santu-dialog" aria-labelledby="cantina-santu-dialog-title">
           <h3 class="mappa__dialog-title" id="cantina-santu-dialog-title">Quissi de Santu</h3>
-          <p class="mappa__dialog-inside">La Cueva Home Restaurant — polenta</p>
+          <p class="mappa__dialog-provider">La Cueva Home Restaurant</p>
+          <p class="mappa__dialog-sentence">Assaggiate la polenta, un piatto semplice da gustare con calma.</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
         <dialog class="mappa__dialog" id="cantina-gabriele-dialog" aria-labelledby="cantina-gabriele-dialog-title">
           <h3 class="mappa__dialog-title" id="cantina-gabriele-dialog-title">Quissi de Gabriele</h3>
-          <p class="mappa__dialog-inside">vino</p>
+          <p class="mappa__dialog-sentence">Assaggiate il vino, senza fretta: la lista dei vini arriverà su questa pagina.</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
 
         <dialog class="mappa__dialog" id="piazzale-della-chiesa-dialog" aria-labelledby="piazzale-della-chiesa-dialog-title">
           <h3 class="mappa__dialog-title" id="piazzale-della-chiesa-dialog-title">Piazzale della chiesa</h3>
-          <p class="mappa__dialog-inside">Pro Loco Turania — arrosticini, panini con salsiccia, hot dog</p>
+          <p class="mappa__dialog-provider">Pro Loco Turania</p>
+          <p class="mappa__dialog-sentence">Assaggiate arrosticini, panini con salsiccia e hot dog: la sosta golosa ai piedi della chiesa.</p>
           <button type="button" class="mappa__dialog-close" data-close>Chiudi</button>
         </dialog>
       </section>

@@ -1469,9 +1469,35 @@
     line-height: 1.2;
   }
 
-  .mappa__dialog-inside {
+  /*
+   * Chi serve: la riga del provider sta nel registro delle etichette stampate
+   * della pagina, come il nome della Cassa e le etichette sul piano — sans, il
+   * gradino più piccolo, il grassetto, la spaziatura larga, l'inchiostro spento
+   * — e in maiuscolo per CSS, così il markup conserva la grafia confermata. Si
+   * legge come una didascalia, non come parte dell'elenco dei piatti, e si
+   * stacca dal titolo di --space-2. Dove il Comitato non ha confermato un
+   * provider il paragrafo non c'è: nessun trattino e nessuna parola generica.
+   */
+  .mappa__dialog-provider {
+    margin: var(--space-2) 0 0;
+    color: var(--ink-muted);
+    font-family: var(--sans);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  /*
+   * La frase: il serif del pannello al gradino di lettura, un'interlinea e
+   * mezzo, inchiostro pieno. Segue il provider, o il titolo dove il provider
+   * manca, a --space-3.
+   */
+  .mappa__dialog-sentence {
     margin: var(--space-3) 0 0;
     color: var(--ink);
+    font-family: var(--serif);
     font-size: var(--step-0);
     line-height: 1.5;
   }
