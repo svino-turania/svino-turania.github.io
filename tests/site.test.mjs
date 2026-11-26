@@ -6295,11 +6295,28 @@ test('i punti della Mappa fioriscono il proprio inchiostro, e la carta resta fer
     'l’anello dei punti esiste anche senza movimento',
   );
 
-  // While a panel is open, the plan behind it holds still.
+  /*
+   * The dots pause behind both surfaces. Once the map opens, the drawing and
+   * its dots leave the chapter for the map dialog, and a Cantina panel is a
+   * second surface over that dialog, not a descendant of it: the old
+   * chapter-only rule no longer reaches the dots. The pause therefore answers
+   * to the page (any open Cantina panel, wherever the dots now live) and to
+   * the map surface itself. No key handler and no third animation.
+   */
   assert.match(
     motion,
-    /section\.mappa:has\(\.mappa__dialog\[open\]\)\s+\.mappa__dot-mark::before\s*\{[^}]*animation-play-state:\s*paused/s,
-    'il piano continua a respirare dietro il pannello',
+    /body:has\(\s*dialog\.mappa__dialog\[open\]\s*\)\s+\.mappa__dot-mark::before\s*\{[^}]*animation-play-state:\s*paused/s,
+    'i punti continuano a respirare quando un pannello è aperto sopra la Mappa',
+  );
+  assert.match(
+    motion,
+    /dialog\.mappa__map\[open\]\s+\.mappa__dot-mark::before\s*\{[^}]*animation-play-state:\s*paused/s,
+    'i punti continuano a respirare dentro la Mappa aperta',
+  );
+  assert.doesNotMatch(
+    motion,
+    /section\.mappa:has\(\.mappa__dialog\[open\]\)\s+\.mappa__dot-mark::before\s*\{/s,
+    'la pausa dei punti risponde ancora solo al capitolo, dove i punti non stanno più',
   );
 });
 
@@ -7148,6 +7165,94 @@ test('chiudere la Mappa getta luogo e zoom: riaprendo si riparte dalla vista int
     code,
     /disabled\s*=\s*i\s*===\s*0/,
     'a 1× Riduci e Vista intera non tornano spenti',
+  );
+});
+
+/*
+ * #88: a dot inside the expanded map opens its existing Cantina panel as a
+ * second native modal. The panels are not descendants of the map dialog, so
+ * the browser stacks the panel over the map; Esc, the focus trap and the
+ * focus return stay the browser's. Closing the panel leaves the map's place
+ * and zoom alone; only the map's own close discards the view.
+ */
+test('un punto dentro la Mappa apre il suo pannello come secondo modale, senza gettare la vista', () => {
+  const document = loadSite();
+  const map = document.querySelector('dialog.mappa__map');
+  const drawing = document.querySelector('.mappa__drawing');
+  assert.ok(map && drawing, 'mancano la Mappa in grande o il suo disegno');
+
+  const dots = [...drawing.querySelectorAll('button.mappa__dot')];
+  assert.equal(dots.length, MAPPA_ENTRIES.length, 'la Mappa in grande non porta i sei punti');
+  assert.deepEqual(
+    dots.map((dot) => dot.dataset.dialog),
+    MAPPA_ENTRIES.map((entry) => `${entry.id}-dialog`),
+    'i punti della Mappa in grande non aprono i sei pannelli nell’ordine',
+  );
+
+  for (const dot of dots) {
+    const panel = document.getElementById(dot.dataset.dialog);
+    assert.ok(panel, `manca il pannello ${dot.dataset.dialog}`);
+    assert.equal(panel.tagName.toLowerCase(), 'dialog', 'il pannello non è un dialogo nativo');
+    assert.ok(
+      panel.classList.contains('mappa__dialog'),
+      'il pannello non è uno dei sei delle Cantine',
+    );
+    assert.equal(
+      dot.getAttribute('aria-controls'),
+      panel.id,
+      'il punto non dichiara il pannello che apre',
+    );
+    // The panel stacks as a second surface; it is not nested in the map.
+    assert.equal(
+      map.contains(panel),
+      false,
+      'il pannello sta dentro la Mappa invece di impilarsi sopra',
+    );
+    assert.equal(panel.contains(drawing), false, 'il pannello contiene il disegno della Mappa');
+  }
+
+  const code = executableScripts(document)[0].textContent;
+  // Both surfaces are native modals: the dots and the map use showModal().
+  assert.match(code, /\.mappa__dot\b/, 'lo script non cerca i punti');
+  assert.match(code, /dataset\.dialog/, 'lo script non legge il pannello del punto');
+  assert.match(code, /d\.showModal\s*\(\s*\)/, 'il punto non apre il pannello come modale nativo');
+  assert.match(code, /m\.showModal\s*\(\s*\)/, 'la Mappa non si apre come modale nativo');
+  assert.doesNotMatch(code, /Escape|keydown|keyup|keypress/, 'lo script gestisce la tastiera');
+  assert.doesNotMatch(code, /\.focus\s*\(/, 'lo script sposta il focus da sé');
+
+  // The Cantina binding touches only its own panel: no reset of the map's
+  // stop or scroll, so closing a panel gives the same view back.
+  const binding =
+    code.match(/for \(const p of document\.querySelectorAll\('\.mappa__dot'\)\)\s*\{[\s\S]*?\n\}/)?.[0] ??
+    '';
+  assert.ok(binding, 'lo script non lega i punti ai loro pannelli');
+  assert.match(binding, /d\.close\s*\(\s*\)/, 'Chiudi non chiude il pannello');
+  assert.doesNotMatch(
+    binding,
+    /\bgo\s*\(|scrollLeft|scrollTop|style\.zoom|\bm\.close\b/,
+    'chiudere un pannello getta la vista della Mappa o chiude la Mappa',
+  );
+
+  // The map's own close still discards the view.
+  const mapClose = code.match(/m\.addEventListener\(\s*['"]close['"],[\s\S]*?\n\}\);?/)?.[0] ?? '';
+  assert.ok(mapClose, 'manca la chiusura della Mappa');
+  assert.match(mapClose, /go\(\s*0\s*\)/, 'chiudere la Mappa non torna a 1×');
+  assert.match(
+    mapClose,
+    /scrollLeft\s*=\s*\w+\.scrollTop\s*=\s*0/,
+    'chiudere la Mappa non getta il luogo',
+  );
+
+  // A keyboard activation's click reports detail 0 and 0,0: the click-outside
+  // guard must not mistake it for a click on the backdrop, or Enter on a dot
+  // would open the panel and close the map in the same click, and focus could
+  // not return to the dot inside the map.
+  const outside = code.match(/const out = [\s\S]*?\n\}\);/)?.[0] ?? '';
+  assert.ok(outside, 'manca la chiusura al clic fuori dal pannello');
+  assert.match(
+    outside,
+    /e\.detail/,
+    'il clic fuori dal pannello scambia un clic di tastiera per un clic sul fondo',
   );
 });
 

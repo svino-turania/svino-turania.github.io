@@ -1028,9 +1028,10 @@
       </div>
       <button type="button" class="mappa__map-close" data-close>Chiudi</button>
     </dialog>
-    <!-- MAPPA: ogni punto apre il suo dialogo in modale, Chiudi lo chiude e un clic fuori dal pannello lo chiude; Esc e il ritorno del focus al punto sono del browser. Il comando Ingrandisci la Mappa apre il dialogo della Mappa e vi sposta il disegno; Chiudi, Esc, il clic fuori e il ritorno del focus sono del browser. Dentro, la rotella e il doppio clic avvicinano al puntatore, i tre comandi al centro del riquadro, e lo zoom salta: nessuna transizione. Alla chiusura luogo e zoom si gettano. Lo script resta uno e sotto il tetto di 2000 caratteri, per questo è scritto fitto. Vedi ADR-0022. -->
+    <!-- MAPPA: ogni punto apre il suo dialogo in modale, Chiudi lo chiude e un clic fuori dal pannello lo chiude; Esc e il ritorno del focus al punto sono del browser. Dentro la Mappa lo stesso punto apre il pannello come secondo modale sopra di essa: Esc chiude solo la superficie in cima, chiudere il pannello dà la stessa vista e riporta il focus al punto, e un clic di tastiera (dettaglio 0) non è un clic fuori. Il comando Ingrandisci la Mappa apre il dialogo della Mappa e vi sposta il disegno; Chiudi, Esc, il clic fuori e il ritorno del focus sono del browser. Dentro, la rotella e il doppio clic avvicinano al puntatore, i tre comandi al centro del riquadro, e lo zoom salta: nessuna transizione. Alla chiusura luogo e zoom si gettano. Lo script resta uno e sotto il tetto di 2000 caratteri, per questo è scritto fitto. Vedi ADR-0022. -->
     <script>
 const out = (d) => d.addEventListener('click', (e) => {
+  if (!e.detail) return;
   const b = d.getBoundingClientRect();
   if (e.clientX < b.left || e.clientX > b.right || e.clientY < b.top || e.clientY > b.bottom) d.close();
 });
