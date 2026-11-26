@@ -460,8 +460,9 @@ appears more than once. The piazza's name appears once as visible text, as the
 Mappa del Borgo's label over the plan; the plan's `alt` says `la piazza` without
 the name; the Petescia card's `alt` quotes the lettering printed inside that
 photograph, and the structured `Event` location repeats the name in data only.
-The Mappa's `alt` and its dialogs state no count of Cantine, no route and no
-order, and no structured data is added for individual Cantine.
+The Mappa's `alt` and its dialogs carry no digit and no number of Cantine, no
+route and no order; the `alt` names the plan's two gold marks, and it is the
+spec's exact sentence. No structured data is added for individual Cantine.
 
 The Locandina download is one anchor, in the closing bordeaux band. It is
 present at every width, with no second copy and no rule that hides it, so
@@ -688,7 +689,7 @@ fails on any digit in the chapter (no count, no numbered pin), on text inside a
 dot, on a connecting route line, and on the unconfirmed rows and titles. It
 requires the plan to be an `<img>` pointing at the shipped SVG, lazy and
 asynchronous, with its intrinsic 546 × 792 size and an `alt` that describes the
-plan without a count or the piazza's name; it also requires the four HTML
+plan without a digit or the piazza's name; it also requires the four HTML
 labels, the north mark and the absent scale, grid, frame and caption. It reads
 the SVG as an image: well formed, with no text, script, external reference or
 embedded raster, the three layers `strade`, `piazza` and `fabbricati`, the baked
@@ -1141,9 +1142,10 @@ following are absent by choice:
 - any contact detail the Comitato has not confirmed — email and phone remain
   absent;
 - any Programma item, time or detail the Comitato has not confirmed;
-- any Cantina the Comitato has not confirmed, any count or order of Cantine and
-  any route: the Mappa's dots stand where the Comitato's plan draws them, and
-  the page prints no count and no number;
+- any Cantina the Comitato has not confirmed, any order of Cantine and any
+  route: the Mappa's dots stand where the Comitato's plan draws them, and the
+  page prints no count and no number because the plan marks places, not an
+  order;
 - any placeholder copy — "in via di definizione", "da definire",
   "prossimamente" and the like.
 
@@ -1155,9 +1157,10 @@ resources: the page loads no embed, feed, script, pixel or image from either
 host.
 
 Empty is acceptable; a placeholder is not. Do not invent details to fill a
-section: the page prints no number of Cantine, no route and no order, and no
-duration or weather, because those are not decided. The same rule applies to
-issues, pull requests and documentation.
+section: the page prints no number of Cantine, no route and no order — the plan
+marks places, not an order (ADR-0026) — and no duration or weather, because
+those are not decided. The same rule applies to issues, pull requests and
+documentation.
 
 `tests/site.test.mjs` enforces the policy over the served page: it fails on
 banned placeholder phrases, email addresses, phone numbers and `mailto:` or
