@@ -4,6 +4,9 @@
 - **Date:** 2026-11-26
 - **Supersedes in part:** ADR-0015 (the sentence "There is no ambient motion and
   no new UI")
+- **Amended by:** ADR-0025 (the dots are also the expanded map's hotspots; the
+  chapter's expand control and the view's zoom controls join the page's
+  controls)
 - **Related:** ADR-0003, ADR-0010, ADR-0014, ADR-0015, ADR-0022, ADR-0023,
   README (*Motion*, *Mappa del Borgo*, *Tests*), `assets/css/style.css`,
   `tests/site.test.mjs`
@@ -11,11 +14,12 @@
 ## Context
 
 The owner asked for a hotspot animation on the Mappa del Borgo's dots. The dots
-are the page's only controls besides the links, and each one opens a Cantina's
-dialog, but they say so only on hover and focus: they re-ink their ring. On a
-phone there is no hover, so the plan gives a reader no sign that its marks can
-be opened — the one signal the chapter has is a colour change that never
-happens on touch.
+are the plan's controls, and each one opens a Cantina's dialog, but they say so
+only on hover and focus: they re-ink their ring. On a phone there is no hover,
+so the plan gives a reader no sign that its marks can be opened — the one signal
+the chapter has is a colour change that never happens on touch. The page's other
+controls are the links; ADR-0025 later adds the chapter's `Ingrandisci la Mappa`
+control and the expanded view's three zoom squares.
 
 ADR-0015 settled the motion law after the page was redesigned for motion: CSS
 only, every duration, delay and easing a token, every effect an addition under
@@ -56,9 +60,13 @@ away, slowly and forever. It is the page's one repeating motion.**
   `prefers-reduced-motion: no-preference`. Under `reduce`, on paper and without
   motion the element is never generated: the dots are the plain marks they
   were, and the page is the finished spread.
-- **The plan holds still behind a panel.** `section.mappa:has(.mappa__dialog[open])`
-  pauses the ring, so while a Cantina is open the panel is the only thing moving.
-  The pause is a property of the animation, not a script.
+- **The plan holds still behind a panel.** An open Cantina panel pauses the
+  ring through `body:has(dialog.mappa__dialog[open]) .mappa__dot-mark::before`.
+  The pause answers to the page because a panel stacks over whichever surface
+  holds the dots — the chapter, or the expanded map whose drawing is the same
+  element. Inside the expanded map, with no panel over it, the dots are that
+  surface's own hotspots and keep pulsing: the map being open is not a reason
+  to stop them. The pause is a property of the animation, not a script.
 
 ## Consequences
 

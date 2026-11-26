@@ -206,12 +206,30 @@ dialog with the Cantina's name, what visitors find inside and the note
 only repeating motion — so the chapter reads as openable where nothing hovers.
 There is no list: the dialogs are the entries. The
 chapter states no count and no route, and names no Cantina the Comitato has not
-confirmed. Without JavaScript the six dialogs flow under the plan; on paper the
-plan and the six entries print in order. The plan is a generated asset: the
+confirmed.
+
+The chapter adds one control: `Ingrandisci la Mappa` sits under the plan and
+opens the map in a near-full-viewport native dialog of its own. There the
+drawing becomes the frame's scroll viewport — one finger, the wheel (two
+fingers on a trackpad), the arrow keys and the scrollbar pan it natively — and
+one layer wrapping the plan, its labels and its dots scales as one picture at
+1, 1.5, 2 and 3×, with three quiet paper squares at the frame's bottom right
+for `+`, `−` and the whole plan; a double-click zooms toward the pointer, while
+Ctrl+wheel stays the browser's page zoom. The chapter remains one screen-high
+object at every width; the expanded view is a transient surface that owns nearly
+the whole screen while it is open, and closing it returns the plan to the
+chapter at fit. A dot inside the expanded map still opens its Cantina panel
+above it, and returns to the same view when the panel closes. Bordeaux stays
+the dots' alone.
+
+Without JavaScript the six dialogs flow under the plan and the expand control is
+not shown; on paper the plan and the six entries print in order and the control
+is not printed. The plan is a generated asset: the
 permission to publish a derived plan, the source data and the export script
 stay outside this repository, and only the rendered SVG is committed, never
 edited by hand. ADR-0022 records the plan, its
-provenance, the dialogs and the two-script contract; it supersedes ADR-0021.
+provenance, the dialogs and the two-script contract, and supersedes ADR-0021;
+ADR-0025 records the expanded map.
 
 The Programma follows as the second illustrated chapter and as the page's
 mid-walk strong surface: a full-bleed bordeaux interlude with the printed label — sans, the
@@ -310,45 +328,54 @@ grapes' drift, which never hides or fades.
 The page's four tracked links all respond: they shift their ink and re-ink
 their rule from the left edge. The two typographic actions also lead their
 arrows by 2 px, as if the label were picked up. Each action settles 1 px while
-pressed. The Mappa's dots are the page's only other controls: a dot re-inks its
-ring on hover and focus, and opens its Cantina's dialog; the panel's `Chiudi`
-is the visible way back. Each dot also keeps a slow bloom — a hairline ring of
-its own ink leaves the dot and thins out at the 44 px target's edge, the six
-staggered — so the plan says it can be opened even where nothing hovers. It is
-the page's one repeating motion, it pauses behind an open panel, and it is
-absent under reduced motion. On a phone the browser's own blue tap flash is
-turned off and the panel wears no browser ring, so a touch answers in the page's
-ink.
-The panel is laid on the page as it opens — it comes
-up a few pixels and inks in while the bordeaux scrim darkens — and settles
-back as it fades when it closes; under reduced motion it is simply there. The
-plates and the photographs remain furniture, not controls.
+pressed. The Mappa's dots, the chapter's `Ingrandisci la Mappa` and the expanded
+view's three zoom squares are the page's other controls: a dot re-inks its ring
+on hover and focus, and opens its Cantina's dialog; the expand control and the
+squares re-ink their hairline on hover, and the panel's `Chiudi` is the visible
+way back. Each dot also keeps a slow bloom — a hairline ring of its own ink
+leaves the dot and thins out at the 44 px target's edge, the six staggered — so
+the plan says it can be opened even where nothing hovers. It is the page's one
+repeating motion, it pauses behind an open Cantina panel — in the chapter or
+over the expanded Mappa — and it is absent under reduced motion. On a phone the
+browser's own blue tap flash is turned off and the panel wears no browser ring,
+so a touch answers in the page's ink.
+The expanded Mappa and a Cantina's panel are the two surfaces that enter over
+the page. The map is simply there when it opens and gone when it closes, and its
+zoom jumps; the panel is laid on the page — it comes up a few pixels and inks in
+while the bordeaux scrim darkens — and settles back as it fades when it closes.
+Under reduced motion both are simply there. The plates and the photographs
+remain furniture, not controls.
 
 Motion is CSS only. The no-JavaScript guard allows exactly two executable
-scripts — the Mappa's small inline binding and the counter — so no effect may
-depend on either. The rules are:
+scripts — the Mappa's small inline binding and the counter — so no animation may
+depend on either; the binding's own work is opening and closing the expanded map
+and stepping a zoom that jumps, while panning stays the browser's. Without it
+the expand control is not shown and the chapter is as it is today. The rules
+are:
 
 - **The base style is the finished page.** Animations are added under
   `prefers-reduced-motion: no-preference`; under `reduce` the page is
   complete and still. Nothing on the page starts invisible and nothing is
-  shrunk; the one thing that enters is the Mappa's dialog, which opens over
-  the page and is simply there under reduced motion.
+  shrunk; the two things that enter are the expanded Mappa and a Cantina's
+  panel, both opened over the page, and under reduced motion both are simply
+  there.
 - **Only the map's dots repeat.** The page has one ambient effect: the Mappa's
   dots bloom a ring of their ink so the plan reads as openable on a phone,
-  where nothing hovers. It is staggered by `--motion-bloom-step`, pauses while
-  a Cantina's panel is open, exists only on screen with motion allowed, and is
-  gone under `reduce` — the base stylesheet draws no ring at all. Everything
-  else runs once; sustained movement comes from scroll position, never from a
-  clock.
+  where nothing hovers. It is staggered by `--motion-bloom-step`, runs inside
+  the chapter and the expanded Mappa alike, pauses while a Cantina's panel is
+  open, exists only on screen with motion allowed, and is gone under `reduce` —
+  the base stylesheet draws no ring at all. Everything else runs once; sustained
+  movement comes from scroll position, never from a clock.
 - **The focus indicator appears at once.** The outline is the indicator and it
   is not animated; the link's colour and rule follow the same transition as
   hover. That is not motion that delays use.
-- **The dialog's motion is CSS too, and screen only.** Its opening frame is
-  `@starting-style` and its close stays drawn by `transition-behavior:
+- **A Cantina panel's motion is CSS too, and screen only.** Its opening frame
+  is `@starting-style` and its close stays drawn by `transition-behavior:
   allow-discrete` on `display` and `overlay`, so the native panel fades before
-  the browser drops it and the script stays as ADR-0022 records it. On paper
-  the six entries are in the flow and never fade; where the features are
-  missing, the panel opens and closes at once.
+  the browser drops it and the script stays as ADR-0022 records it. The
+  expanded Mappa adds no entrance and its zoom never animates, at any motion
+  setting. On paper the six entries are in the flow and never fade; where the
+  features are missing, the panel opens and closes at once.
 - **Every duration, delay and easing comes from the motion tokens** in `:root`
   (`--motion-recede`, `--motion-press`, `--motion-ink`, `--motion-settle`,
   `--motion-date`, `--motion-numeral`, `--motion-quick`, `--motion-rule`,
@@ -373,7 +400,8 @@ rendered boxes identical. ADR-0019 records the walk and its two strong surfaces;
 ADR-0020 records the cartoline settle, the one keyframe that rotation adds to
 the vocabulary; ADR-0015 records the earlier scroll story, the
 cover drift and its stagger ranges; ADR-0024 records the dots' bloom, the page's
-one loop. The motion itself is cheap to reverse.
+one loop; ADR-0025 records the expanded map, its native panning and its zoom
+that does not animate. The motion itself is cheap to reverse.
 
 ## Editor workflow (Comitato)
 
@@ -663,8 +691,11 @@ that keep the entries visible without JavaScript; the dots' ink bloom — the
 page's one allowed loop, its `--motion-bloom` tokens, the six staggered delays,
 the pause behind an open panel and the absence of the ring without motion; the
 inline script's dot-to-dialog binding and close handling under a size cap, and
-the counter as the last executable script. The old inline schematic is asserted
-absent.
+the counter as the last executable script. The expanded
+map has its own narrow guards: the chapter's `Ingrandisci la Mappa` and its
+no-script hiding; the map dialog's name and close; the drawing as the scrolling
+viewport; the single `zoom` layer; and the three zoom squares with their
+disabled ends. The old inline schematic is asserted absent.
 
 The suite is not a browser runner: the native dialog's open, Esc,
 click-outside and focus-return, the no-script render and the print view are

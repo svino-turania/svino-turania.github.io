@@ -307,39 +307,49 @@
         -->
         <figure class="mappa__board">
           <div class="mappa__drawing">
-            <img
-              class="mappa__plan"
-              src="assets/img/mappa-del-borgo.svg"
-              width="546"
-              height="792"
-              loading="lazy"
-              decoding="async"
-              alt="Pianta del borgo di Turania: i fabbricati, le strade e la piazza. Le posizioni delle cantine confermate sono indicative."
-            >
-            <span class="mappa__label mappa__label--place" style="--x: 41.0%; --y: 44.9%">Piazza Umberto I</span>
-            <span class="mappa__label" style="--x: 50.2%; --y: 51.8%">la chiesa</span>
-            <span class="mappa__label mappa__label--street" style="--x: 22.0%; --y: 27.8%">Corso Trieste</span>
-            <span class="mappa__label mappa__label--street" style="--x: 38.1%; --y: 13.6%">Via Turano</span>
-            <span class="mappa__north" aria-hidden="true">N</span>
-            <button type="button" class="mappa__dot" data-dialog="cantina-paci-dialog" aria-controls="cantina-paci-dialog" aria-labelledby="cantina-paci-dialog-title" style="--x: 26%; --y: 62%">
-              <span class="mappa__dot-mark" aria-hidden="true"></span>
-            </button>
-            <button type="button" class="mappa__dot" data-dialog="cantina-clara-dialog" aria-controls="cantina-clara-dialog" aria-labelledby="cantina-clara-dialog-title" style="--x: 72%; --y: 20%">
-              <span class="mappa__dot-mark" aria-hidden="true"></span>
-            </button>
-            <button type="button" class="mappa__dot" data-dialog="cantina-vale-dialog" aria-controls="cantina-vale-dialog" aria-labelledby="cantina-vale-dialog-title" style="--x: 84%; --y: 56%">
-              <span class="mappa__dot-mark" aria-hidden="true"></span>
-            </button>
-            <button type="button" class="mappa__dot" data-dialog="cantina-betta-dialog" aria-controls="cantina-betta-dialog" aria-labelledby="cantina-betta-dialog-title" style="--x: 34%; --y: 82%">
-              <span class="mappa__dot-mark" aria-hidden="true"></span>
-            </button>
-            <button type="button" class="mappa__dot" data-dialog="cantina-raffaelli-dialog" aria-controls="cantina-raffaelli-dialog" aria-labelledby="cantina-raffaelli-dialog-title" style="--x: 62%; --y: 30%">
-              <span class="mappa__dot-mark" aria-hidden="true"></span>
-            </button>
-            <button type="button" class="mappa__dot" data-dialog="cantina-li-meroli-dialog" aria-controls="cantina-li-meroli-dialog" aria-labelledby="cantina-li-meroli-dialog-title" style="--x: 70%; --y: 74%">
-              <span class="mappa__dot-mark" aria-hidden="true"></span>
-            </button>
+            <!-- UN SOLO QUADRO: il piano, le etichette, il nord e i punti stanno
+                 nel layer che lo script scala con `zoom`; a 1× è il piano
+                 intero. Niente va copiato: aprendo, il disegno si sposta nel
+                 dialogo con il suo layer. -->
+            <div class="mappa__zoom">
+              <img
+                class="mappa__plan"
+                src="assets/img/mappa-del-borgo.svg"
+                width="546"
+                height="792"
+                loading="lazy"
+                decoding="async"
+                alt="Pianta del borgo di Turania: i fabbricati, le strade e la piazza. Le posizioni delle cantine confermate sono indicative."
+              >
+              <span class="mappa__label mappa__label--place" style="--x: 41.0%; --y: 44.9%">Piazza Umberto I</span>
+              <span class="mappa__label" style="--x: 50.2%; --y: 51.8%">la chiesa</span>
+              <span class="mappa__label mappa__label--street" style="--x: 22.0%; --y: 27.8%">Corso Trieste</span>
+              <span class="mappa__label mappa__label--street" style="--x: 38.1%; --y: 13.6%">Via Turano</span>
+              <span class="mappa__north" aria-hidden="true">N</span>
+              <button type="button" class="mappa__dot" data-dialog="cantina-paci-dialog" aria-controls="cantina-paci-dialog" aria-labelledby="cantina-paci-dialog-title" style="--x: 26%; --y: 62%">
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="mappa__dot" data-dialog="cantina-clara-dialog" aria-controls="cantina-clara-dialog" aria-labelledby="cantina-clara-dialog-title" style="--x: 72%; --y: 20%">
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="mappa__dot" data-dialog="cantina-vale-dialog" aria-controls="cantina-vale-dialog" aria-labelledby="cantina-vale-dialog-title" style="--x: 84%; --y: 56%">
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="mappa__dot" data-dialog="cantina-betta-dialog" aria-controls="cantina-betta-dialog" aria-labelledby="cantina-betta-dialog-title" style="--x: 34%; --y: 82%">
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="mappa__dot" data-dialog="cantina-raffaelli-dialog" aria-controls="cantina-raffaelli-dialog" aria-labelledby="cantina-raffaelli-dialog-title" style="--x: 62%; --y: 30%">
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="mappa__dot" data-dialog="cantina-li-meroli-dialog" aria-controls="cantina-li-meroli-dialog" aria-labelledby="cantina-li-meroli-dialog-title" style="--x: 70%; --y: 74%">
+                <span class="mappa__dot-mark" aria-hidden="true"></span>
+              </button>
+            </div>
           </div>
+          <!-- IL COMANDO: uno solo, sotto il disegno. Apre la Mappa in un
+               dialogo nativo dove il piano diventa il riquadro che scorre. Lo
+               script lo nasconde senza JavaScript; in stampa non si stampa. -->
+          <button type="button" class="mappa__expand">Ingrandisci la Mappa</button>
         </figure>
 
         <!--
@@ -381,6 +391,9 @@
               display: none;
             }
             .mappa__dialog-close {
+              display: none;
+            }
+            .mappa__expand {
               display: none;
             }
           </style>
@@ -992,22 +1005,73 @@
         </div>
       </div>
     </footer>
-    <!-- MAPPA: ogni punto apre il suo dialogo in modale, Chiudi lo chiude e un clic fuori dal pannello lo chiude; Esc e il ritorno del focus al punto sono del browser. Vedi ADR-0022. -->
+    <!--
+      LA MAPPA IN GRANDE: il dialogo della Mappa vive fuori dal capitolo, qui
+      accanto allo script. Nel markup servito è vuoto del disegno: aprendolo, lo
+      script vi sposta l'unico disegno del capitolo e lo riporta alla chiusura.
+      Il titolo è visibile e nomina il dialogo; Chiudi e Esc lo chiudono, e un
+      clic fuori dal riquadro lo chiude; il focus torna al comando che l'ha
+      aperto. La carta, l'inchiostro e il filo d'oro sono quelli della pagina;
+      dentro, il disegno è il riquadro che scorre, e il movimento è del browser.
+      Vedi ADR-0025.
+    -->
+    <dialog class="mappa__map" id="mappa-map" aria-labelledby="mappa-map-title">
+      <h3 class="mappa__map-title" id="mappa-map-title">La Mappa del Borgo</h3>
+      <!-- LA CORNICE: la riga che resta del dialogo. Aprendo, lo script vi
+           sposta il disegno, che diventa il riquadro che scorre; i tre
+           quadrati di carta restano al piede, a destra, sopra il piano. -->
+      <div class="mappa__map-stage">
+        <div class="mappa__zoom-controls">
+          <button type="button" class="mappa__zoom-button" data-zoom="in" aria-label="Ingrandisci">+</button>
+          <button type="button" class="mappa__zoom-button" data-zoom="out" aria-label="Riduci" disabled>−</button>
+          <button type="button" class="mappa__zoom-button" data-zoom="reset" aria-label="Vista intera" disabled>⤢</button>
+        </div>
+      </div>
+      <button type="button" class="mappa__map-close" data-close>Chiudi</button>
+    </dialog>
+    <!-- MAPPA: ogni punto apre il suo dialogo in modale, Chiudi lo chiude e un clic fuori dal pannello lo chiude; Esc e il ritorno del focus al punto sono del browser. Dentro la Mappa lo stesso punto apre il pannello come secondo modale sopra di essa: Esc chiude solo la superficie in cima, chiudere il pannello dà la stessa vista e riporta il focus al punto, e un clic di tastiera (dettaglio 0) non è un clic fuori. Il comando Ingrandisci la Mappa apre il dialogo della Mappa e vi sposta il disegno; Chiudi, Esc, il clic fuori e il ritorno del focus sono del browser. Dentro, la rotella scorre il piano come la pagina — due dita sul trackpad lo spostano — e il doppio clic avvicina al puntatore; i tre comandi al centro del riquadro, e lo zoom salta: nessuna transizione. Fuori, a Mappa chiusa, la rotella scorre la pagina e il doppio clic non fa nulla. Alla chiusura luogo e zoom si gettano. Lo script resta uno e sotto il tetto di 2000 caratteri, per questo è scritto fitto. Il pannello dei punti è di ADR-0022 e ADR-0023; la Mappa in grande e lo zoom, di ADR-0025. -->
     <script>
-      for (const dot of document.querySelectorAll('.mappa__dot')) {
-        const dialog = document.getElementById(dot.dataset.dialog);
-        dot.addEventListener('click', () => dialog.showModal());
-        dialog.querySelector('[data-close]').addEventListener('click', () => dialog.close());
-        dialog.addEventListener('click', (event) => {
-          const box = dialog.getBoundingClientRect();
-          if (
-            event.clientX < box.left || event.clientX > box.right ||
-            event.clientY < box.top || event.clientY > box.bottom
-          ) {
-            dialog.close();
-          }
-        });
-      }
+const out = (d) => d.addEventListener('click', (e) => {
+  if (!e.detail) return;
+  const b = d.getBoundingClientRect();
+  if (e.clientX < b.left || e.clientX > b.right || e.clientY < b.top || e.clientY > b.bottom) d.close();
+});
+const sel = (s, r = document) => r.querySelector(s);
+for (const p of document.querySelectorAll('.mappa__dot')) {
+  const d = document.getElementById(p.dataset.dialog);
+  p.addEventListener('click', () => d.showModal());
+  sel('[data-close]', d).addEventListener('click', () => d.close());
+  out(d);
+}
+const m = sel('.mappa__map'), f = sel('.mappa__board'), w = sel('.mappa__drawing'), x = sel('.mappa__expand');
+const l = sel('.mappa__zoom', w), s = sel('.mappa__map-stage', m), c = sel('[data-close]', m);
+const z = [1, 1.5, 2, 3], [up, down, one] = m.querySelectorAll('[data-zoom]');
+let i = 0;
+const go = (n, cx, cy) => {
+  const b = w.getBoundingClientRect(), r = l.getBoundingClientRect();
+  const px = cx ?? b.left + b.width / 2, py = cy ?? b.top + b.height / 2;
+  const ux = (px - r.left) / z[i], uy = (py - r.top) / z[i];
+  i=n<0?0:n>3?3:n;
+  l.style.zoom=z[i];
+  const r2 = l.getBoundingClientRect();
+  w.scrollLeft += r2.left + ux * z[i] - px;
+  w.scrollTop += r2.top + uy * z[i] - py;
+  up.disabled=i===3;down.disabled=one.disabled=i===0;
+};
+x.addEventListener('click', () => {
+  s.insertBefore(w, s.firstChild); w.tabIndex = 0;
+  sel('img', w).loading = 'eager';
+  m.showModal();
+});
+for (const [b, d] of [[up, 1], [down, -1], [one, 0]]) b.addEventListener('click', () => go(d ? i + d : 0));
+w.addEventListener('dblclick', (e) => m.open && go(i + 1, e.clientX, e.clientY));
+c.addEventListener('click', () => m.close());
+m.addEventListener('close', () => {
+  w.removeAttribute('tabindex');
+  f.insertBefore(w, x);
+  go(0); w.scrollLeft = w.scrollTop = 0;
+});
+out(m);
     </script>
     <!-- CONTATORE: GoatCounter legge la sorgente, la regione e i quattro clic; il pixel nel colophon copre chi non ha JavaScript. Vedi ADR-0014. -->
     <script

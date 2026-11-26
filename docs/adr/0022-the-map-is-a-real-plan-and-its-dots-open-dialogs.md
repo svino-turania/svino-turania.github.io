@@ -9,6 +9,9 @@
 - **Amends:** ADR-0014 (the script allowance: one executable script becomes
   two, and the counter stays last); the one-script constraint in ADR-0016 and
   ADR-0017 is amended in the same way
+- **Amended by:** ADR-0025 (the chapter keeps its one plan and gains one
+  control; the expanded map is a transient second surface, and “one
+  screen-high object” now describes the chapter)
 - **Related:** ADR-0003, ADR-0010, ADR-0014, ADR-0019, `GLOSSARY.md` (*Mappa del
   Borgo*, *Cantina*), README (*Composition*, *Motion*, *Editor workflow*,
   *Search visibility*, *Content policy*, *Tests*), `index.html`,
@@ -157,9 +160,9 @@ There is no list.**
 
 - **One object at every width.** On the phone the drawing uses the chapter's
   full measure; from the tablet and desktop compositions it is capped at about
-  40 rem and centred, so it stays one screen-high object. The chapter's label
-  remains above it, there is no list column, and the page does not scroll
-  sideways at any width or at 200% text zoom.
+  40 rem and centred, so the chapter stays one screen-high object. The
+  chapter's label remains above it, there is no list column, and the page does
+  not scroll sideways at any width or at 200% text zoom.
 
 ## Consequences
 

@@ -6295,11 +6295,29 @@ test('i punti della Mappa fioriscono il proprio inchiostro, e la carta resta fer
     'l’anello dei punti esiste anche senza movimento',
   );
 
-  // While a panel is open, the plan behind it holds still.
+  /*
+   * The dots pause behind a Cantina panel only. Once the map opens, the
+   * drawing and its dots leave the chapter for the map dialog, and a panel
+   * opened from a dot stacks over that dialog rather than nesting inside it:
+   * the pause therefore answers to the page, wherever the dots now live.
+   * Inside the expanded map the dots are the surface's own hotspots and keep
+   * pulsing; the map being open is not itself a reason to stop them. No key
+   * handler and no third animation.
+   */
   assert.match(
     motion,
-    /section\.mappa:has\(\.mappa__dialog\[open\]\)\s+\.mappa__dot-mark::before\s*\{[^}]*animation-play-state:\s*paused/s,
-    'il piano continua a respirare dietro il pannello',
+    /body:has\(\s*dialog\.mappa__dialog\[open\]\s*\)\s+\.mappa__dot-mark::before\s*\{[^}]*animation-play-state:\s*paused/s,
+    'i punti non tacciono quando un pannello è aperto sopra la Mappa',
+  );
+  assert.doesNotMatch(
+    motion,
+    /dialog\.mappa__map\[open\][^\{]*\.mappa__dot-mark::before\s*\{[^}]*animation-play-state:\s*paused/s,
+    'la Mappa aperta ferma da sola l’anello dei punti',
+  );
+  assert.doesNotMatch(
+    motion,
+    /section\.mappa:has\(\.mappa__dialog\[open\]\)\s+\.mappa__dot-mark::before\s*\{/s,
+    'la pausa dei punti risponde ancora solo al capitolo, dove i punti non stanno più',
   );
 });
 
@@ -6627,6 +6645,689 @@ test('la Mappa usa tutta la misura sul telefono ed è centrata e limitata a 40 r
     reveals.includes('.chapter.mappa > .mappa__board'),
     'il riquadro del disegno non si rivela',
   );
+});
+
+/*
+ * #86: the chapter gains one quiet control that opens the plan in a view of
+ * its own. It is a visible-text button after the drawing, inside the figure —
+ * not a digit, not a paragraph, not a list, not a disclosure. The map dialog
+ * is a separate native surface with its own class, and opening it *moves* the
+ * chapter's one drawing instead of copying it.
+ */
+test('il capitolo della Mappa ha un solo comando Ingrandisci la Mappa, dopo il disegno dentro la figura', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const figure = section.querySelector('figure.mappa__board');
+  const drawing = figure.querySelector('.mappa__drawing');
+  assert.ok(figure && drawing, 'manca il riquadro del disegno');
+
+  const expands = [...section.querySelectorAll('.mappa__expand')];
+  assert.equal(expands.length, 1, 'la Mappa non ha un solo comando per ingrandirla');
+  const expand = expands[0];
+  assert.equal(
+    expand.tagName.toLowerCase(),
+    'button',
+    'Ingrandisci la Mappa non è un pulsante',
+  );
+  assert.equal(
+    expand.getAttribute('type'),
+    'button',
+    'Ingrandisci la Mappa non è un pulsante esplicito',
+  );
+  assert.equal(
+    normalize(expand.textContent),
+    'Ingrandisci la Mappa',
+    'il comando non porta il testo visibile «Ingrandisci la Mappa»',
+  );
+  assert.doesNotMatch(
+    normalize(expand.textContent),
+    /\d/,
+    'il comando porta una cifra: la Mappa non conta',
+  );
+
+  // It lives after the drawing, inside the figure, and nowhere else.
+  assert.equal(expand.parentElement, figure, 'il comando non sta dentro la figura');
+  assert.equal(
+    drawing.nextElementSibling,
+    expand,
+    'il comando non sta subito dopo il disegno',
+  );
+  assert.equal(
+    figure.lastElementChild,
+    expand,
+    'il comando non è l’ultimo elemento della figura',
+  );
+  assert.equal(
+    section.querySelectorAll('.mappa__expand').length,
+    1,
+    'il comando compare più di una volta nel capitolo',
+  );
+
+  // Not a paragraph, a list or a disclosure: the chapter keeps no such prose.
+  assert.equal(expand.closest('details')?.nodeName ?? null, null, 'il comando è un disclosure');
+  assert.equal(
+    figure.querySelectorAll('p, ul, ol, dl, details').length,
+    0,
+    'il comando prende la forma di un paragrafo, di un elenco o di un disclosure',
+  );
+
+  // The script is what makes the button open the map dialog.
+  const code = executableScripts(document)[0].textContent;
+  assert.match(code, /\.mappa__expand\b/, 'lo script non lega Ingrandisci la Mappa');
+  assert.match(code, /showModal\s*\(/, 'Ingrandisci la Mappa non apre un dialogo');
+});
+
+test('senza JavaScript e in stampa Ingrandisci la Mappa tace, mentre il capitolo resta quello di sempre', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const expand = section.querySelector('.mappa__expand');
+  assert.ok(expand, 'manca il comando Ingrandisci la Mappa');
+
+  const fallback = stripCssComments(
+    section.querySelector('noscript style')?.textContent ?? '',
+  );
+  assert.match(
+    ruleBodyFor(fallback, '.mappa__expand'),
+    /display:\s*none/,
+    'senza JavaScript il comando resta vivo e non apre nulla',
+  );
+
+  const css = stripCssComments(servedStylesheet());
+  const print = atRuleBlocks(css, '@media\\s+print\\s*\\{');
+  assert.equal(print.length, 1, 'manca la regola di stampa della Mappa');
+  const block = css.slice(print[0].start, print[0].end + 1);
+  assert.match(
+    ruleBodyFor(block, '.mappa__expand'),
+    /display:\s*none/,
+    'in stampa il comando finisce sulla carta',
+  );
+
+  // The base control is shown when the script exists.
+  assert.doesNotMatch(
+    ruleBodyFor(css, '.mappa__expand'),
+    /display:\s*none/,
+    'il comando è nascosto anche con JavaScript',
+  );
+
+  // Without JavaScript the chapter is today's: plan in the figure, six entries.
+  assert.equal(
+    section.querySelectorAll('figure.mappa__board .mappa__plan').length,
+    1,
+    'il piano non resta nella figura senza JavaScript',
+  );
+  assert.equal(
+    section.querySelectorAll('dialog.mappa__dialog').length,
+    MAPPA_ENTRIES.length,
+    'senza JavaScript le sei voci non sono più sei',
+  );
+});
+
+test('la Mappa si apre in un dialogo proprio, intitolato La Mappa del Borgo e chiuso da Chiudi', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const map = document.querySelector('dialog.mappa__map');
+  assert.ok(map, 'manca il dialogo della Mappa');
+  assert.equal(
+    document.querySelectorAll('dialog.mappa__map').length,
+    1,
+    'il dialogo della Mappa compare più di una volta',
+  );
+  assert.equal(
+    map.classList.contains('mappa__dialog'),
+    false,
+    'il dialogo della Mappa usa la classe dei pannelli delle Cantine',
+  );
+  assert.equal(map.closest('section.mappa'), null, 'il dialogo della Mappa sta nel capitolo');
+  assert.equal(
+    map.hasAttribute('open'),
+    false,
+    'il dialogo della Mappa si apre da solo',
+  );
+
+  // The six Cantina panels keep their count, ids, order and class.
+  const panels = [...section.querySelectorAll('dialog.mappa__dialog')];
+  assert.equal(panels.length, MAPPA_ENTRIES.length, 'i sei pannelli non sono più sei');
+  assert.deepEqual(
+    panels.map((panel) => panel.id),
+    MAPPA_ENTRIES.map((entry) => `${entry.id}-dialog`),
+    'i pannelli hanno cambiato id o ordine per fare posto al dialogo della Mappa',
+  );
+
+  // It names itself with a visible heading, and is named by it.
+  const heading = map.querySelector('h3');
+  assert.ok(heading, 'il dialogo della Mappa non ha un titolo visibile');
+  assert.equal(
+    normalize(heading.textContent),
+    'La Mappa del Borgo',
+    'il titolo del dialogo non è «La Mappa del Borgo»',
+  );
+  assert.equal(
+    map.getAttribute('aria-labelledby'),
+    heading.id,
+    'il dialogo della Mappa non è intitolato dal suo titolo',
+  );
+  assert.equal(
+    normalize(accessibleName(document, map)),
+    'La Mappa del Borgo',
+    'il dialogo della Mappa non è annunciato col suo nome',
+  );
+
+  const close = map.querySelector('button[data-close]');
+  assert.ok(close, 'il dialogo della Mappa non ha il controllo Chiudi');
+  assert.equal(close.getAttribute('type'), 'button', 'Chiudi non è un pulsante esplicito');
+  assert.equal(normalize(close.textContent), 'Chiudi', 'il controllo di chiusura non dice Chiudi');
+
+  // Empty of the drawing in the served markup.
+  assert.equal(
+    map.querySelector('.mappa__drawing'),
+    null,
+    'il dialogo della Mappa contiene già un disegno nel markup servito',
+  );
+  assert.equal(
+    map.querySelectorAll('img, .mappa__label, .mappa__dot, .mappa__north').length,
+    0,
+    'il dialogo della Mappa copia pezzi del piano nel markup servito',
+  );
+});
+
+test('la Mappa servita tiene un solo disegno, e lo script lo sposta invece di copiarlo', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  assert.equal(
+    document.querySelectorAll('.mappa__drawing').length,
+    1,
+    'la pagina ha più di un disegno della Mappa',
+  );
+  assert.equal(
+    document.querySelectorAll('img.mappa__plan').length,
+    1,
+    'la pagina serve più di un piano',
+  );
+  assert.equal(
+    document.querySelectorAll('.mappa__label').length,
+    4,
+    'la pagina serve più di quattro etichette',
+  );
+  assert.equal(
+    document.querySelectorAll('.mappa__dot').length,
+    MAPPA_ENTRIES.length,
+    'la pagina serve più di sei punti',
+  );
+  assert.equal(
+    (normalize(document.body.textContent).match(/Piazza Umberto I/g) ?? []).length,
+    1,
+    'la piazza compare più di una volta nel markup servito',
+  );
+  assert.equal(
+    section.querySelectorAll('.mappa__drawing').length,
+    1,
+    'il capitolo non tiene il suo unico disegno',
+  );
+
+  // Opening moves the drawing; closing returns it. No clone, no copy.
+  const code = executableScripts(document)[0].textContent;
+  assert.match(code, /\.mappa__drawing\b/, 'lo script non conosce il disegno da spostare');
+  assert.match(code, /\.mappa__map\b/, 'lo script non conosce il dialogo della Mappa');
+  assert.match(code, /insertBefore\s*\(/, 'lo script non sposta il disegno nel dialogo');
+  assert.doesNotMatch(code, /cloneNode/, 'lo script clona il disegno invece di spostarlo');
+  // The chapter loads the plan lazily; opening the view must ask for it even
+  // when the reader never scrolled the chapter's plan into sight.
+  assert.match(
+    code,
+    /\.loading\s*=\s*['"]eager['"]/,
+    'lo script non chiede il piano quando la Mappa si apre: il disegno può restare vuoto',
+  );
+  assert.match(code, /tabIndex/, 'lo script non rende il disegno raggiungibile con la tastiera');
+  assert.match(
+    code,
+    /removeAttribute\(\s*['"]tabindex['"]\s*\)/,
+    'lo script non toglie il tabindex quando il disegno torna nella figura',
+  );
+  assert.match(
+    code,
+    /addEventListener\(\s*['"]close['"]/,
+    'lo script non riporta il disegno nella figura alla chiusura',
+  );
+});
+
+test('dentro il dialogo il disegno è il riquadro che scorre, con barre sottili d’inchiostro', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  // The surface: paper and ink, near-full-viewport from viewport units, gold
+  // hairline, no shadow, no rounding, no motion.
+  const map = ruleBodyFor(css, '.mappa__map');
+  assert.ok(map, 'manca la regola del dialogo della Mappa');
+  assert.match(map, /inline-size:[^;]*vw/, 'il dialogo non è largo quanto lo schermo');
+  assert.match(map, /block-size:[^;]*dvh/, 'il dialogo non è alto quanto lo schermo');
+  assert.match(map, /max-inline-size:\s*none/, 'il dialogo conserva un limite di larghezza');
+  assert.match(map, /max-block-size:\s*none/, 'il dialogo conserva un limite di altezza');
+  assert.match(map, /background:\s*var\(--surface\)/, 'il dialogo non è carta di crema');
+  assert.match(map, /color:\s*var\(--ink\)/, 'il dialogo non scrive in inchiostro');
+  assert.match(map, /border:[^;]*var\(--rule\)/, 'il dialogo non ha il filo d’oro');
+  assert.match(map, /border-radius:\s*0/, 'il dialogo arrotonda gli angoli');
+  assert.match(map, /box-shadow:\s*none/, 'il dialogo proietta un’ombra');
+  assert.doesNotMatch(
+    map,
+    /\b(?:transition|animation)\s*:/,
+    'il dialogo della Mappa aggiunge movimento',
+  );
+
+  // The open dialog is a grid whose middle row is the scroll frame.
+  const open = ruleBodyFor(css, '.mappa__map[open]');
+  assert.match(open, /display:\s*grid/, 'il dialogo aperto non impagina titolo, piano e Chiudi');
+  assert.match(
+    open,
+    /grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)\s+auto/,
+    'il dialogo aperto non dà al piano la riga che resta',
+  );
+
+  // Inside, the drawing itself is the viewport the browser scrolls.
+  const viewport =
+    css.match(/\.mappa__map\s+\.mappa__drawing\s*\{([^}]*)\}/s)?.[1] ?? '';
+  assert.ok(viewport, 'dentro il dialogo il disegno non ha una regola propria');
+  assert.match(viewport, /overflow:\s*auto/, 'dentro il dialogo il disegno non scorre');
+  assert.match(
+    viewport,
+    /overscroll-behavior:\s*contain/,
+    'il trascinamento del piano fa rimbalzare la pagina',
+  );
+  assert.match(viewport, /scrollbar-width:\s*thin/, 'le barre del piano non sono sottili');
+  assert.match(
+    viewport,
+    /scrollbar-color:\s*var\(--ink-muted\)\s+transparent/,
+    'le barre del piano non sono d’inchiostro',
+  );
+  assert.match(
+    viewport,
+    /min-block-size:\s*0/,
+    'il disegno non può restringersi nella riga che gli resta',
+  );
+
+  // A focused scroll frame keeps the page's visible focus indicator.
+  assert.match(
+    css,
+    /\.mappa__map\s+\.mappa__drawing:focus-visible\s*\{[^}]*outline/s,
+    'il disegno che scorre non prende l’indicatore di focus della pagina',
+  );
+});
+
+test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene piano, etichette, nord e punti', () => {
+  const document = loadSite();
+  const drawings = document.querySelectorAll('.mappa__drawing');
+  assert.equal(drawings.length, 1, 'la pagina non ha un solo disegno della Mappa');
+  const drawing = drawings[0];
+
+  const layers = document.querySelectorAll('.mappa__zoom');
+  assert.equal(layers.length, 1, 'la Mappa non ha un solo layer che scala il piano');
+  const layer = layers[0];
+  assert.equal(
+    layer.parentElement,
+    drawing,
+    'il layer che scala il piano non sta dentro il disegno',
+  );
+  assert.equal(
+    drawing.children.length,
+    1,
+    'il disegno contiene altro oltre al layer che scala il piano',
+  );
+  assert.equal(
+    drawing.firstElementChild,
+    layer,
+    'il layer non è l’unico figlio del disegno',
+  );
+
+  // One picture: the plan, its four labels, the north mark and the six dots.
+  assert.equal(
+    layer.querySelectorAll('img.mappa__plan').length,
+    1,
+    'il layer non tiene il piano',
+  );
+  assert.equal(
+    layer.querySelectorAll('.mappa__label').length,
+    4,
+    'il layer non tiene le quattro etichette',
+  );
+  assert.equal(
+    layer.querySelectorAll('.mappa__north').length,
+    1,
+    'il layer non tiene il segno del nord',
+  );
+  assert.equal(
+    layer.querySelectorAll('.mappa__dot').length,
+    MAPPA_ENTRIES.length,
+    'il layer non tiene i sei punti delle cantine',
+  );
+
+  // The served page still has one plan, one piazza, four labels and six dots.
+  assert.equal(document.querySelectorAll('img.mappa__plan').length, 1);
+  assert.equal(document.querySelectorAll('.mappa__label').length, 4);
+  assert.equal(
+    (normalize(document.body.textContent).match(/Piazza Umberto I/g) ?? []).length,
+    1,
+    'la piazza compare più di una volta nel markup servito',
+  );
+  assert.equal(document.querySelectorAll('.mappa__dot').length, MAPPA_ENTRIES.length);
+
+  // The layer is what carries the CSS zoom, at the plan's ratio.
+  const css = stripCssComments(servedStylesheet());
+  const body = ruleBodyFor(css, '.mappa__zoom');
+  assert.ok(body, 'manca la regola del layer che scala il piano');
+  assert.match(body, /zoom:\s*1\b/, 'il layer non porta la proprietà zoom');
+  assert.match(
+    body,
+    /aspect-ratio:\s*273\s*\/\s*396/,
+    'il layer non ha il rapporto del piano (273:396)',
+  );
+});
+
+test('a 1× il piano intero entra nel riquadro: il layer si misura sul lato corto e il disegno resta il riquadro che scorre', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  // The scroll viewport is the drawing, and it is also the query container
+  // whose height tells the layer how wide it may be.
+  const viewport = ruleBodyFor(css, '.mappa__map .mappa__drawing');
+  assert.ok(viewport, 'dentro il dialogo il disegno non ha una regola propria');
+  assert.match(
+    viewport,
+    /container-type:\s*size/,
+    'il disegno non è il contenitore che misura il piano',
+  );
+  assert.match(viewport, /overflow:\s*auto/, 'dentro il dialogo il disegno non scorre');
+  assert.match(viewport, /block-size:\s*100%/, 'il disegno non riempie la riga che gli resta');
+
+  // At 1× the layer is the whole plan, fitted by the shorter axis.
+  const layer = ruleBodyFor(css, '.mappa__map .mappa__zoom');
+  assert.ok(layer, 'dentro il dialogo il layer non ha una regola propria');
+  assert.match(
+    layer,
+    /inline-size:\s*min\(\s*100cqw\s*,\s*calc\(\s*100cqh\s*\*\s*273\s*\/\s*396\s*\)\s*\)/,
+    'a 1× il layer non si misura sulla larghezza e sull’altezza del riquadro',
+  );
+  assert.match(
+    layer,
+    /aspect-ratio:\s*273\s*\/\s*396/,
+    'il layer nel dialogo non conserva il rapporto del piano',
+  );
+
+  // The frame the controls float in gives the drawing its row.
+  const stage = ruleBodyFor(css, '.mappa__map-stage');
+  assert.ok(stage, 'manca la cornice del piano nel dialogo');
+  assert.match(stage, /position:\s*relative/, 'la cornice non àncora i comandi');
+  assert.match(stage, /min-block-size:\s*0/, 'la cornice non lascia restringere il piano');
+});
+
+test('tre quadrati di carta al piede del piano: Ingrandisci, Riduci e Vista intera', () => {
+  const document = loadSite();
+  const map = document.querySelector('dialog.mappa__map');
+  const stage = map.querySelector('.mappa__map-stage');
+  assert.ok(stage, 'manca la cornice del piano nel dialogo');
+  const group = stage.querySelector('.mappa__zoom-controls');
+  assert.ok(group, 'mancano i tre comandi dello zoom');
+  assert.equal(
+    group.parentElement,
+    stage,
+    'i comandi non stanno nella cornice del piano',
+  );
+
+  const controls = [...group.querySelectorAll('.mappa__zoom-button')];
+  assert.equal(controls.length, 3, 'i comandi dello zoom non sono tre');
+  assert.deepEqual(
+    controls.map((control) => control.dataset.zoom),
+    ['in', 'out', 'reset'],
+    'i comandi non sono, nell’ordine, Ingrandisci, Riduci e Vista intera',
+  );
+  assert.deepEqual(
+    controls.map((control) => normalize(accessibleName(document, control))),
+    ['Ingrandisci', 'Riduci', 'Vista intera'],
+    'i comandi non hanno i nomi accessibili Ingrandisci, Riduci e Vista intera',
+  );
+  assert.deepEqual(
+    controls.map((control) => normalize(control.textContent)),
+    ['+', '−', '⤢'],
+    'i comandi non portano i segni +, − e il segno della vista intera',
+  );
+  for (const control of controls) {
+    assert.equal(control.tagName.toLowerCase(), 'button', 'un comando non è un pulsante');
+    assert.equal(control.getAttribute('type'), 'button', 'un comando non è un pulsante esplicito');
+  }
+  assert.equal(controls[0].hasAttribute('disabled'), false, 'Ingrandisci parte spento');
+  assert.equal(controls[1].hasAttribute('disabled'), true, 'Riduci parte acceso a 1×');
+  assert.equal(controls[2].hasAttribute('disabled'), true, 'Vista intera parte accesa a 1×');
+
+  const css = stripCssComments(servedStylesheet());
+  const groupStyle = ruleBodyFor(css, '.mappa__zoom-controls');
+  assert.ok(groupStyle, 'manca la regola dei tre comandi');
+  assert.match(groupStyle, /position:\s*absolute/, 'i comandi non galleggiano sul piano');
+  assert.match(groupStyle, /inset-block-end:/, 'i comandi non stanno al piede del piano');
+  assert.match(groupStyle, /inset-inline-end:/, 'i comandi non stanno a destra del piano');
+  assert.match(groupStyle, /gap:\s*8px/, 'i tre comandi non hanno la distanza del tocco');
+
+  const button = ruleBodyFor(css, '.mappa__zoom-button');
+  assert.ok(button, 'manca la regola dei quadrati di carta');
+  assert.match(button, /inline-size:\s*44px/, 'un comando non è largo 44 px');
+  assert.match(button, /block-size:\s*44px/, 'un comando non è alto 44 px');
+  assert.match(button, /border:[^;]*var\(--rule\)/, 'un comando non ha il filo d’oro');
+  assert.match(button, /background:\s*var\(--surface\)/, 'un comando non è carta di crema');
+  assert.match(button, /border-radius:\s*0/, 'un comando arrotonda gli angoli');
+  assert.doesNotMatch(button, /\bbox-shadow\s*:/, 'un comando proietta un’ombra');
+  assert.doesNotMatch(
+    css,
+    /\.mappa__zoom-button:disabled\s*\{[^}]*\b(?:animation|transition)\s*:/s,
+    'lo stato spento di un comando aggiunge movimento',
+  );
+  assert.match(
+    css,
+    /\.mappa__zoom-button:focus-visible\s*\{[^}]*outline/s,
+    'un comando non prende l’indicatore di focus della pagina',
+  );
+
+  // The script steps through the four stops and switches the ends off.
+  const code = executableScripts(document)[0].textContent;
+  assert.match(
+    code,
+    /\[\s*1\s*,\s*1\.5\s*,\s*2\s*,\s*3\s*\]/,
+    'gli stop dello zoom non sono 1, 1.5, 2 e 3×',
+  );
+  assert.match(code, /\.style\.zoom\s*=/, 'lo script non posa lo zoom sul layer');
+  assert.match(code, /disabled\s*=\s*i\s*===\s*3/, 'lo script non spegne Ingrandisci a 3×');
+  assert.match(code, /disabled\s*=\s*i\s*===\s*0/, 'lo script non spegne Riduci e Vista intera a 1×');
+  assert.match(code, /addEventListener\(\s*['"]dblclick['"]/, 'il doppio clic non muove lo zoom');
+  assert.match(code, /scrollLeft\s*\+=/, 'lo zoom non corregge il luogo orizzontale');
+  assert.match(code, /scrollTop\s*\+=/, 'lo zoom non corregge il luogo verticale');
+
+  /*
+   * The wheel is the browser's, at both surfaces: over the open map it
+   * scrolls the drawing's viewport, which is the plan's native pan, and over
+   * the chapter it scrolls the page. A wheel handler — even one guarded on
+   * `m.open` — would claim the gesture for the zoom and leave a trackpad
+   * reader no way to move a zoomed plan. The double-click carries the
+   * pointer-anchored zoom, and only inside the open map: while the map is
+   * closed the drawing is the chapter's in-flow plan, where the gesture must
+   * do nothing.
+   */
+  assert.doesNotMatch(
+    code,
+    /addEventListener\(\s*['"]wheel['"]/,
+    'la rotella non è più del browser: la Mappa non si sposta',
+  );
+  assert.doesNotMatch(code, /preventDefault\s*\(/, 'lo script ferma un gesto del browser');
+  const dblclick =
+    code.match(/addEventListener\(\s*['"]dblclick['"][^\n]*/)?.[0] ?? '';
+  assert.ok(dblclick, 'manca il doppio clic della Mappa');
+  assert.match(
+    dblclick,
+    /m\.open\s*&&\s*go\s*\(/,
+    'il doppio clic ingrandisce il piano anche a Mappa chiusa',
+  );
+});
+
+test('chiudere la Mappa getta luogo e zoom: riaprendo si riparte dalla vista intera', () => {
+  const document = loadSite();
+  const code = executableScripts(document)[0].textContent;
+  const close = code.match(/addEventListener\(\s*['"]close['"],[\s\S]*?\n\}\);/) ?? [];
+  assert.equal(close.length, 1, 'manca il ritorno del disegno alla chiusura della Mappa');
+  assert.match(
+    close[0],
+    /go\(\s*0\s*\)/,
+    'alla chiusura lo zoom non torna a 1×',
+  );
+  assert.match(
+    close[0],
+    /scrollLeft\s*=\s*\w+\.scrollTop\s*=\s*0/,
+    'alla chiusura il piano resta dove era',
+  );
+  // The first stop is 1, and go(0) re-reads the ends: at fit Ingrandisci is on,
+  // Riduci and Vista intera are off.
+  assert.match(code, /\[\s*1\s*,\s*1\.5\s*,\s*2\s*,\s*3\s*\]/, 'il primo stop non è 1×');
+  assert.match(code, /disabled\s*=\s*i\s*===\s*3/, 'a 1× Ingrandisci non torna acceso');
+  assert.match(
+    code,
+    /disabled\s*=\s*i\s*===\s*0/,
+    'a 1× Riduci e Vista intera non tornano spenti',
+  );
+});
+
+/*
+ * #88: a dot inside the expanded map opens its existing Cantina panel as a
+ * second native modal. The panels are not descendants of the map dialog, so
+ * the browser stacks the panel over the map; Esc, the focus trap and the
+ * focus return stay the browser's. Closing the panel leaves the map's place
+ * and zoom alone; only the map's own close discards the view.
+ */
+test('un punto dentro la Mappa apre il suo pannello come secondo modale, senza gettare la vista', () => {
+  const document = loadSite();
+  const map = document.querySelector('dialog.mappa__map');
+  const drawing = document.querySelector('.mappa__drawing');
+  assert.ok(map && drawing, 'mancano la Mappa in grande o il suo disegno');
+
+  const dots = [...drawing.querySelectorAll('button.mappa__dot')];
+  assert.equal(dots.length, MAPPA_ENTRIES.length, 'la Mappa in grande non porta i sei punti');
+  assert.deepEqual(
+    dots.map((dot) => dot.dataset.dialog),
+    MAPPA_ENTRIES.map((entry) => `${entry.id}-dialog`),
+    'i punti della Mappa in grande non aprono i sei pannelli nell’ordine',
+  );
+
+  for (const dot of dots) {
+    const panel = document.getElementById(dot.dataset.dialog);
+    assert.ok(panel, `manca il pannello ${dot.dataset.dialog}`);
+    assert.equal(panel.tagName.toLowerCase(), 'dialog', 'il pannello non è un dialogo nativo');
+    assert.ok(
+      panel.classList.contains('mappa__dialog'),
+      'il pannello non è uno dei sei delle Cantine',
+    );
+    assert.equal(
+      dot.getAttribute('aria-controls'),
+      panel.id,
+      'il punto non dichiara il pannello che apre',
+    );
+    // The panel stacks as a second surface; it is not nested in the map.
+    assert.equal(
+      map.contains(panel),
+      false,
+      'il pannello sta dentro la Mappa invece di impilarsi sopra',
+    );
+    assert.equal(panel.contains(drawing), false, 'il pannello contiene il disegno della Mappa');
+  }
+
+  const code = executableScripts(document)[0].textContent;
+  // Both surfaces are native modals: the dots and the map use showModal().
+  assert.match(code, /\.mappa__dot\b/, 'lo script non cerca i punti');
+  assert.match(code, /dataset\.dialog/, 'lo script non legge il pannello del punto');
+  assert.match(code, /d\.showModal\s*\(\s*\)/, 'il punto non apre il pannello come modale nativo');
+  assert.match(code, /m\.showModal\s*\(\s*\)/, 'la Mappa non si apre come modale nativo');
+  assert.doesNotMatch(code, /Escape|keydown|keyup|keypress/, 'lo script gestisce la tastiera');
+  assert.doesNotMatch(code, /\.focus\s*\(/, 'lo script sposta il focus da sé');
+
+  // The Cantina binding touches only its own panel: no reset of the map's
+  // stop or scroll, so closing a panel gives the same view back.
+  const binding =
+    code.match(/for \(const p of document\.querySelectorAll\('\.mappa__dot'\)\)\s*\{[\s\S]*?\n\}/)?.[0] ??
+    '';
+  assert.ok(binding, 'lo script non lega i punti ai loro pannelli');
+  assert.match(binding, /d\.close\s*\(\s*\)/, 'Chiudi non chiude il pannello');
+  assert.doesNotMatch(
+    binding,
+    /\bgo\s*\(|scrollLeft|scrollTop|style\.zoom|\bm\.close\b/,
+    'chiudere un pannello getta la vista della Mappa o chiude la Mappa',
+  );
+
+  // The map's own close still discards the view.
+  const mapClose = code.match(/m\.addEventListener\(\s*['"]close['"],[\s\S]*?\n\}\);?/)?.[0] ?? '';
+  assert.ok(mapClose, 'manca la chiusura della Mappa');
+  assert.match(mapClose, /go\(\s*0\s*\)/, 'chiudere la Mappa non torna a 1×');
+  assert.match(
+    mapClose,
+    /scrollLeft\s*=\s*\w+\.scrollTop\s*=\s*0/,
+    'chiudere la Mappa non getta il luogo',
+  );
+
+  // A keyboard activation's click reports detail 0 and 0,0: the click-outside
+  // guard must not mistake it for a click on the backdrop, or Enter on a dot
+  // would open the panel and close the map in the same click, and focus could
+  // not return to the dot inside the map.
+  const outside = code.match(/const out = [\s\S]*?\n\}\);/)?.[0] ?? '';
+  assert.ok(outside, 'manca la chiusura al clic fuori dal pannello');
+  assert.match(
+    outside,
+    /e\.detail/,
+    'il clic fuori dal pannello scambia un clic di tastiera per un clic sul fondo',
+  );
+});
+
+test('la Mappa in grande non aggiunge movimento, ombre, angoli o soglie alla pagina', () => {
+  const css = stripCssComments(servedStylesheet());
+  assert.equal(
+    (css.match(/@media\b/g) ?? []).length,
+    5,
+    'la Mappa in grande aggiunge una soglia di viewport',
+  );
+  for (const selector of [
+    '.mappa__zoom',
+    '.mappa__map-stage',
+    '.mappa__zoom-controls',
+    '.mappa__zoom-button',
+  ]) {
+    const body = ruleBodyFor(css, selector);
+    assert.ok(body, `manca la regola di ${selector}`);
+    assert.doesNotMatch(
+      body,
+      /\b(?:animation|transition)\s*:/,
+      `la Mappa in grande aggiunge movimento a ${selector}`,
+    );
+    assert.doesNotMatch(
+      body,
+      /\bbox-shadow\s*:/,
+      `la Mappa in grande aggiunge un’ombra a ${selector}`,
+    );
+  }
+});
+
+test('lo script della Mappa resta uno, corto e senza gestori di tasti o focus', () => {
+  const document = loadSite();
+  const scripts = executableScripts(document);
+  assert.equal(scripts.length, 2, 'la pagina non ha esattamente i due script previsti');
+  const code = scripts[0].textContent;
+  assert.ok(
+    code.length <= 2000,
+    `lo script della mappa è cresciuto oltre il contratto: ${code.length} caratteri`,
+  );
+  assert.doesNotMatch(
+    code,
+    /Escape|keydown|keyup|keypress/,
+    'lo script gestisce la tastiera: lo scorrimento è del browser',
+  );
+  assert.doesNotMatch(
+    code,
+    /\.focus\s*\(/,
+    'lo script sposta il focus da sé: il ritorno è del browser',
+  );
+
+  // The Cantina binding survives the new map surface.
+  assert.match(code, /\.mappa__dot\b/, 'lo script non cerca più i punti della mappa');
+  assert.match(code, /dataset\.dialog/, 'lo script non legge il collegamento al dialogo');
+  assert.match(code, /data-close/, 'lo script non lega il controllo Chiudi');
+  assert.match(code, /clientX[\s\S]*clientY/, 'lo script non chiude al clic fuori dal pannello');
 });
 
 /*
