@@ -6296,22 +6296,23 @@ test('i punti della Mappa fioriscono il proprio inchiostro, e la carta resta fer
   );
 
   /*
-   * The dots pause behind both surfaces. Once the map opens, the drawing and
-   * its dots leave the chapter for the map dialog, and a Cantina panel is a
-   * second surface over that dialog, not a descendant of it: the old
-   * chapter-only rule no longer reaches the dots. The pause therefore answers
-   * to the page (any open Cantina panel, wherever the dots now live) and to
-   * the map surface itself. No key handler and no third animation.
+   * The dots pause behind a Cantina panel only. Once the map opens, the
+   * drawing and its dots leave the chapter for the map dialog, and a panel
+   * opened from a dot stacks over that dialog rather than nesting inside it:
+   * the pause therefore answers to the page, wherever the dots now live.
+   * Inside the expanded map the dots are the surface's own hotspots and keep
+   * pulsing; the map being open is not itself a reason to stop them. No key
+   * handler and no third animation.
    */
   assert.match(
     motion,
     /body:has\(\s*dialog\.mappa__dialog\[open\]\s*\)\s+\.mappa__dot-mark::before\s*\{[^}]*animation-play-state:\s*paused/s,
     'i punti non tacciono quando un pannello è aperto sopra la Mappa',
   );
-  assert.match(
+  assert.doesNotMatch(
     motion,
-    /dialog\.mappa__map\[open\]\s+\.mappa__dot-mark::before\s*\{[^}]*animation-play-state:\s*paused/s,
-    'i punti non tacciono dentro la Mappa aperta',
+    /dialog\.mappa__map\[open\][^\{]*\.mappa__dot-mark::before\s*\{[^}]*animation-play-state:\s*paused/s,
+    'la Mappa aperta ferma da sola l’anello dei punti',
   );
   assert.doesNotMatch(
     motion,
@@ -7130,34 +7131,26 @@ test('tre quadrati di carta al piede del piano: Ingrandisci, Riduci e Vista inte
   assert.match(code, /\.style\.zoom\s*=/, 'lo script non posa lo zoom sul layer');
   assert.match(code, /disabled\s*=\s*i\s*===\s*3/, 'lo script non spegne Ingrandisci a 3×');
   assert.match(code, /disabled\s*=\s*i\s*===\s*0/, 'lo script non spegne Riduci e Vista intera a 1×');
-  assert.match(
-    code,
-    /addEventListener\(\s*['"]wheel['"]/,
-    'la rotella non muove lo zoom',
-  );
   assert.match(code, /addEventListener\(\s*['"]dblclick['"]/, 'il doppio clic non muove lo zoom');
-  assert.match(code, /preventDefault\s*\(/, 'la rotella continua a scorrere la pagina');
-  assert.match(code, /passive:\s*false/, 'la rotella non può fermare lo scorrimento predefinito');
   assert.match(code, /scrollLeft\s*\+=/, 'lo zoom non corregge il luogo orizzontale');
   assert.match(code, /scrollTop\s*\+=/, 'lo zoom non corregge il luogo verticale');
 
   /*
-   * The wheel and the double-click belong to the open map. While the map is
-   * closed the drawing is still the chapter's in-flow plan: the wheel must
-   * reach the page and a double-click must do nothing. The wheel returns
-   * before preventDefault while closed, so the old unguarded handler fails
-   * here, and the double-click is conditioned on `m.open` in the same way.
+   * The wheel is the browser's, at both surfaces: over the open map it
+   * scrolls the drawing's viewport, which is the plan's native pan, and over
+   * the chapter it scrolls the page. A wheel handler — even one guarded on
+   * `m.open` — would claim the gesture for the zoom and leave a trackpad
+   * reader no way to move a zoomed plan. The double-click carries the
+   * pointer-anchored zoom, and only inside the open map: while the map is
+   * closed the drawing is the chapter's in-flow plan, where the gesture must
+   * do nothing.
    */
-  const wheel =
-    code.match(
-      /addEventListener\(\s*['"]wheel['"][\s\S]*?preventDefault[\s\S]*?passive:\s*false/,
-    )?.[0] ?? '';
-  assert.ok(wheel, 'manca la rotella della Mappa');
-  assert.match(
-    wheel,
-    /if\s*\(\s*!m\.open[\s\S]*?preventDefault/,
-    'la rotella ferma la pagina anche a Mappa chiusa: il capitolo non scorre',
+  assert.doesNotMatch(
+    code,
+    /addEventListener\(\s*['"]wheel['"]/,
+    'la rotella non è più del browser: la Mappa non si sposta',
   );
+  assert.doesNotMatch(code, /preventDefault\s*\(/, 'lo script ferma un gesto del browser');
   const dblclick =
     code.match(/addEventListener\(\s*['"]dblclick['"][^\n]*/)?.[0] ?? '';
   assert.ok(dblclick, 'manca il doppio clic della Mappa');

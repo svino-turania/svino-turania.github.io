@@ -210,16 +210,17 @@ confirmed.
 
 The chapter adds one control: `Ingrandisci la Mappa` sits under the plan and
 opens the map in a near-full-viewport native dialog of its own. There the
-drawing becomes the frame's scroll viewport — one finger, the arrow keys and
-the scrollbar pan it natively — and one layer wrapping the plan, its labels and
-its dots scales as one picture at 1, 1.5, 2 and 3×, with three quiet paper
-squares at the frame's bottom right for `+`, `−` and the whole plan; a plain
-wheel or a double-click zooms toward the pointer, while Ctrl+wheel stays the
-browser's. The chapter remains one screen-high object at every width; the
-expanded view is a transient surface that owns nearly the whole screen while it
-is open, and closing it returns the plan to the chapter at fit. A dot inside
-the expanded map still opens its Cantina panel above it, and returns to the same
-view when the panel closes. Bordeaux stays the dots' alone.
+drawing becomes the frame's scroll viewport — one finger, the wheel (two
+fingers on a trackpad), the arrow keys and the scrollbar pan it natively — and
+one layer wrapping the plan, its labels and its dots scales as one picture at
+1, 1.5, 2 and 3×, with three quiet paper squares at the frame's bottom right
+for `+`, `−` and the whole plan; a double-click zooms toward the pointer, while
+Ctrl+wheel stays the browser's page zoom. The chapter remains one screen-high
+object at every width; the expanded view is a transient surface that owns nearly
+the whole screen while it is open, and closing it returns the plan to the
+chapter at fit. A dot inside the expanded map still opens its Cantina panel
+above it, and returns to the same view when the panel closes. Bordeaux stays
+the dots' alone.
 
 Without JavaScript the six dialogs flow under the plan and the expand control is
 not shown; on paper the plan and the six entries print in order and the control
@@ -334,10 +335,10 @@ squares re-ink their hairline on hover, and the panel's `Chiudi` is the visible
 way back. Each dot also keeps a slow bloom — a hairline ring of its own ink
 leaves the dot and thins out at the 44 px target's edge, the six staggered — so
 the plan says it can be opened even where nothing hovers. It is the page's one
-repeating motion, it pauses behind either surface — an open Cantina panel or the
-expanded Mappa — and it is absent under reduced motion. On a phone the browser's
-own blue tap flash is turned off and the panel wears no browser ring, so a touch
-answers in the page's ink.
+repeating motion, it pauses behind an open Cantina panel — in the chapter or
+over the expanded Mappa — and it is absent under reduced motion. On a phone the
+browser's own blue tap flash is turned off and the panel wears no browser ring,
+so a touch answers in the page's ink.
 The expanded Mappa and a Cantina's panel are the two surfaces that enter over
 the page. The map is simply there when it opens and gone when it closes, and its
 zoom jumps; the panel is laid on the page — it comes up a few pixels and inks in
@@ -360,11 +361,11 @@ are:
   there.
 - **Only the map's dots repeat.** The page has one ambient effect: the Mappa's
   dots bloom a ring of their ink so the plan reads as openable on a phone,
-  where nothing hovers. It is staggered by `--motion-bloom-step`, pauses while
-  either the expanded Mappa or a Cantina's panel is open, exists only on screen
-  with motion allowed, and is gone under `reduce` — the base stylesheet draws no
-  ring at all. Everything else runs once; sustained movement comes from scroll
-  position, never from a clock.
+  where nothing hovers. It is staggered by `--motion-bloom-step`, runs inside
+  the chapter and the expanded Mappa alike, pauses while a Cantina's panel is
+  open, exists only on screen with motion allowed, and is gone under `reduce` —
+  the base stylesheet draws no ring at all. Everything else runs once; sustained
+  movement comes from scroll position, never from a clock.
 - **The focus indicator appears at once.** The outline is the indicator and it
   is not animated; the link's colour and rule follow the same transition as
   hover. That is not motion that delays use.
@@ -688,9 +689,9 @@ the dialog's screen-scoped opening and closing — its motion tokens, the
 discrete `display` and `overlay`, the starting style and the fallback resets
 that keep the entries visible without JavaScript; the dots' ink bloom — the
 page's one allowed loop, its `--motion-bloom` tokens, the six staggered delays,
-the pause behind an open panel or the expanded map and the absence of the ring
-without motion; the inline script's dot-to-dialog binding and close handling
-under a size cap, and the counter as the last executable script. The expanded
+the pause behind an open panel and the absence of the ring without motion; the
+inline script's dot-to-dialog binding and close handling under a size cap, and
+the counter as the last executable script. The expanded
 map has its own narrow guards: the chapter's `Ingrandisci la Mappa` and its
 no-script hiding; the map dialog's name and close; the drawing as the scrolling
 viewport; the single `zoom` layer; and the three zoom squares with their

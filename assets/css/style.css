@@ -1500,9 +1500,9 @@
   }
 
   /*
-   * Dentro il dialogo il disegno è il riquadro che scorre: il dito, le frecce
-   * quando ha il focus e la barra muovono il piano con il browser; la rotella
-   * e il doppio clic avvicinano al puntatore. `overscroll-behavior` tiene il
+   * Dentro il dialogo il disegno è il riquadro che scorre: il dito, la rotella,
+   * le frecce quando ha il focus e la barra muovono il piano con il browser;
+   * il doppio clic avvicina al puntatore. `overscroll-behavior` tiene il
    * rimbalzo fuori dalla pagina, e la barra resta sottile e d'inchiostro. Il
    * rapporto del piano non governa più il riquadro: l'altezza è la riga che il
    * dialogo gli lascia.
@@ -2597,9 +2597,9 @@
        * thinning away at the 44 px target's edge, the six staggered by a step
        * so they read as a field rather than as one flash. This is the page's
        * one repeating motion. It carries no reading, it exists only on screen
-       * with motion allowed, and it pauses behind either surface — a Cantina's
-       * panel or the expanded map — so the surface being read is the only
-       * thing moving.
+       * with motion allowed, and it pauses behind an open Cantina panel — in
+       * the chapter or over the expanded map — so the panel being read is the
+       * only thing moving.
        */
       .mappa__dot-mark::before {
         content: "";
@@ -2640,13 +2640,10 @@
        * A Cantina's panel is a second surface, not a descendant of the map
        * dialog; once the map opens, the drawing and its dots leave the chapter
        * for that dialog. So the pause answers to the page — any open Cantina
-       * panel, wherever the dots now live — and to the map surface itself.
+       * panel, wherever the dots now live. Inside the expanded map the dots
+       * are that surface's own hotspots and keep pulsing.
        */
       body:has(dialog.mappa__dialog[open]) .mappa__dot-mark::before {
-        animation-play-state: paused;
-      }
-
-      dialog.mappa__map[open] .mappa__dot-mark::before {
         animation-play-state: paused;
       }
     }

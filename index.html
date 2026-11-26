@@ -1029,7 +1029,7 @@
       </div>
       <button type="button" class="mappa__map-close" data-close>Chiudi</button>
     </dialog>
-    <!-- MAPPA: ogni punto apre il suo dialogo in modale, Chiudi lo chiude e un clic fuori dal pannello lo chiude; Esc e il ritorno del focus al punto sono del browser. Dentro la Mappa lo stesso punto apre il pannello come secondo modale sopra di essa: Esc chiude solo la superficie in cima, chiudere il pannello dà la stessa vista e riporta il focus al punto, e un clic di tastiera (dettaglio 0) non è un clic fuori. Il comando Ingrandisci la Mappa apre il dialogo della Mappa e vi sposta il disegno; Chiudi, Esc, il clic fuori e il ritorno del focus sono del browser. Dentro, la rotella e il doppio clic avvicinano al puntatore, i tre comandi al centro del riquadro, e lo zoom salta: nessuna transizione. Fuori, a Mappa chiusa, la rotella scorre la pagina e il doppio clic non fa nulla. Alla chiusura luogo e zoom si gettano. Lo script resta uno e sotto il tetto di 2000 caratteri, per questo è scritto fitto. Il pannello dei punti è di ADR-0022 e ADR-0023; la Mappa in grande e lo zoom, di ADR-0025. -->
+    <!-- MAPPA: ogni punto apre il suo dialogo in modale, Chiudi lo chiude e un clic fuori dal pannello lo chiude; Esc e il ritorno del focus al punto sono del browser. Dentro la Mappa lo stesso punto apre il pannello come secondo modale sopra di essa: Esc chiude solo la superficie in cima, chiudere il pannello dà la stessa vista e riporta il focus al punto, e un clic di tastiera (dettaglio 0) non è un clic fuori. Il comando Ingrandisci la Mappa apre il dialogo della Mappa e vi sposta il disegno; Chiudi, Esc, il clic fuori e il ritorno del focus sono del browser. Dentro, la rotella scorre il piano come la pagina — due dita sul trackpad lo spostano — e il doppio clic avvicina al puntatore; i tre comandi al centro del riquadro, e lo zoom salta: nessuna transizione. Fuori, a Mappa chiusa, la rotella scorre la pagina e il doppio clic non fa nulla. Alla chiusura luogo e zoom si gettano. Lo script resta uno e sotto il tetto di 2000 caratteri, per questo è scritto fitto. Il pannello dei punti è di ADR-0022 e ADR-0023; la Mappa in grande e lo zoom, di ADR-0025. -->
     <script>
 const out = (d) => d.addEventListener('click', (e) => {
   if (!e.detail) return;
@@ -1064,11 +1064,6 @@ x.addEventListener('click', () => {
   m.showModal();
 });
 for (const [b, d] of [[up, 1], [down, -1], [one, 0]]) b.addEventListener('click', () => go(d ? i + d : 0));
-w.addEventListener('wheel', (e) => {
-  if (!m.open || e.ctrlKey) return;
-  e.preventDefault();
-  go(i + (e.deltaY < 0 ? 1 : -1), e.clientX, e.clientY);
-}, { passive: false });
 w.addEventListener('dblclick', (e) => m.open && go(i + 1, e.clientX, e.clientY));
 c.addEventListener('click', () => m.close());
 m.addEventListener('close', () => {

@@ -4,7 +4,7 @@
 - **Date:** 2026-11-26
 - **Supersedes in part:** ADR-0015 (the sentence "There is no ambient motion and
   no new UI")
-- **Amended by:** ADR-0025 (the dots also pause behind the expanded map; the
+- **Amended by:** ADR-0025 (the dots are also the expanded map's hotspots; the
   chapter's expand control and the view's zoom controls join the page's
   controls)
 - **Related:** ADR-0003, ADR-0010, ADR-0014, ADR-0015, ADR-0022, ADR-0023,
@@ -61,13 +61,12 @@ away, slowly and forever. It is the page's one repeating motion.**
   motion the element is never generated: the dots are the plain marks they
   were, and the page is the finished spread.
 - **The plan holds still behind a panel.** An open Cantina panel pauses the
-  ring through `body:has(dialog.mappa__dialog[open]) .mappa__dot-mark::before`,
-  and the expanded map pauses it through
-  `dialog.mappa__map[open] .mappa__dot-mark::before`. The pause answers to the
-  page because, once the map opens, the drawing and its dots leave the chapter
-  for the map dialog and a Cantina panel stacks over that dialog rather than
-  nesting inside it. While a Cantina panel or the expanded map is open, the
-  bloom stops. The pause is a property of the animation, not a script.
+  ring through `body:has(dialog.mappa__dialog[open]) .mappa__dot-mark::before`.
+  The pause answers to the page because a panel stacks over whichever surface
+  holds the dots — the chapter, or the expanded map whose drawing is the same
+  element. Inside the expanded map, with no panel over it, the dots are that
+  surface's own hotspots and keep pulsing: the map being open is not a reason
+  to stop them. The pause is a property of the animation, not a script.
 
 ## Consequences
 

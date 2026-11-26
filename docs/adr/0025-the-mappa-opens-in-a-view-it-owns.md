@@ -4,8 +4,8 @@
 - **Date:** 2026-11-26
 - **Amends:** ADR-0022 (the chapter gains one control and the map a second,
   transient surface; "one screen-high object at every width" now describes the
-  chapter, not every view of the map); ADR-0024 (the dots' bloom also pauses
-  behind the map's own surface)
+  chapter, not every view of the map); ADR-0024 (the dots are also the expanded
+  map's hotspots, and the chapter and the view each gain controls)
 - **Related:** ADR-0003, ADR-0014, ADR-0015, ADR-0019, ADR-0022, ADR-0023,
   ADR-0024, `GLOSSARY.md` (*Mappa del Borgo*, *Cantina*), README
   (*Composition*, *Motion*, *Tests*), `index.html`, `assets/css/style.css`,
@@ -93,11 +93,13 @@ scrolling and zooms uniformly to at most 3×, with three square controls.**
 
 - **The drawing becomes the scroll viewport.** Inside the dialog,
   `.mappa__drawing` scrolls its content instead of clipping it: one finger on
-  touch, the arrow keys when it has focus, the scrollbar. Panning is never
-  simulated by the script, so every input device has a native way to move the
-  plan and no key handler is needed. The plain wheel is the one exception: it
-  is claimed for the pointer-anchored zoom, so a mouse reader zooms with it and
-  pans with the scrollbar or the arrow keys; Ctrl+wheel is left to the browser.
+  touch, the wheel — which is how a trackpad reports two fingers — the arrow
+  keys when it has focus, and the scrollbar. Panning is never simulated by the
+  script, so every input device has a native way to move the plan and no key
+  handler is needed. The wheel is not claimed for the zoom: the same gesture
+  scrolls the page over the chapter, and claiming it would leave a trackpad
+  reader no way to move a zoomed plan. Ctrl+wheel, the shape a trackpad pinch
+  takes, stays the browser's page zoom.
 - **The scrollbars stay visible and quiet**: thin, in the page's ink, so a
   desktop reader can see that the plan continues past the frame. Hiding them
   was rejected as removing the only cue.
@@ -115,9 +117,12 @@ scrolling and zooms uniformly to at most 3×, with three square controls.**
   `−` step between them; `+` disables at 3×, while `−` and the reset disable at
   1×. The range stops at 3× because the dots are placeholders: 3× reads as
   *look closer*, deeper starts to read as *surveyed detail*.
-- **The wheel and a double-click zoom toward the pointer**; the buttons zoom
-  toward the centre of the frame. Each input keeps steady the thing the visitor
-  is looking at.
+- **A double-click zooms toward the pointer**; the buttons zoom toward the
+  centre of the frame. Each input keeps steady the thing the visitor is looking
+  at. The spec listed the wheel on both sides — among the panning inputs and
+  among the pointer-anchored zooms — and the wheel follows the panning list: a
+  surface that both scrolls and zooms on the same gesture can do neither
+  predictably.
 - **Three square controls sit at the frame's bottom right** — `+`, `−`, and a
   reset returning to fit — in paper squares with hairline rules, ink glyphs, no
   shadow and no rounding, each a 44 px target with an Italian accessible name
@@ -133,9 +138,9 @@ scrolling and zooms uniformly to at most 3×, with three square controls.**
 
 - **The map does not claim pinch.** `touch-action` is left alone, so two
   fingers over the map zoom the *page*, which magnifies the plan along with
-  everything else. The wheel handler leaves Ctrl+wheel to the browser, so the
-  pinch a trackpad reports as Ctrl+wheel stays the browser's page zoom too. The
-  map's own zoom levels are the controls and the plain wheel. Claiming pinch
+  everything else. The script has no wheel handler at all, so the pinch a
+  trackpad reports as Ctrl+wheel stays the browser's page zoom too. The map's
+  own zoom levels are the controls and the double-click. Claiming pinch
   would take page zoom away from every reader over the largest chapter of the
   page, and a hand-written pinch engine is the wrong first gesture code for
   this site.
@@ -144,7 +149,9 @@ scrolling and zooms uniformly to at most 3×, with three square controls.**
 
 - **A dot inside the map opens its Cantina panel over it**, as a second native
   modal. Esc closes the topmost surface only, closing the panel returns to the
-  map with its view intact, and the bloom pauses behind either surface.
+  map with its view intact, and the bloom pauses behind the panel, wherever the
+  dots live. Inside the map the dots themselves keep pulsing: there they are
+  the surface's own hotspots.
 - **The panel is unchanged**: same six dialogs, same heading, same inside line,
   same `Posizione indicativa`, same `Chiudi`.
 
@@ -160,7 +167,7 @@ scrolling and zooms uniformly to at most 3×, with three square controls.**
   browser prints the open view, with the moved plan in the dialog rather than
   in the chapter; CSS cannot move the drawing back.
 - **The map's script remains the page's one inline map script**, bound to the
-  same 2000-character cap (1,988 characters at this record), now also opening
+  same 2000-character cap (1,812 characters at this record), now also opening
   and closing the map dialog, moving the drawing, and stepping the zoom. No
   third script, no shipped `.js` file, no `on*` attribute, and still no key
   handling or focus stealing: Esc, the focus trap and the focus return are the
@@ -189,12 +196,13 @@ scrolling and zooms uniformly to at most 3×, with three square controls.**
 - **The chapter reflows behind the scrim.** While the map is open its drawing is
   out of the page, so the column shortens by the plan's height and returns on
   close, behind an inert background. Nothing a visitor can see or reach.
-- **The bloom's pause needs retargeting.** While the drawing is in the dialog,
-  the rule that pauses the dots must answer to the map surface as well as the
-  Cantina panel; the pause is still a property of the animation, not a script.
+- **The bloom pauses only behind a panel.** Inside the expanded map the dots
+  keep pulsing; because a panel opened from a dot stacks over that dialog
+  rather than nesting inside it, the pause answers to the page and covers
+  either surface. It remains a property of the animation, not a script.
 - **Pinch magnifies the page, not the plan.** On a phone, a reader who pinches
   over the map enlarges the whole surface through the browser, not the plan in
-  place. The map's own levels are the buttons, the wheel and the double-click.
+  place. The map's own levels are the buttons and the double-click.
 - **The plan remains indicative under magnification.** The dots stay
   placeholders, every panel keeps `Posizione indicativa`, and the 3× ceiling is
   deliberately below the range that would suggest surveyed detail.
@@ -219,6 +227,10 @@ scrolling and zooms uniformly to at most 3×, with three square controls.**
 - **A transform with pointer capture instead of scrolling.** Rejected: panning
   would stop being native, keyboard panning would need the key handlers the
   script contract forbids, and every edge case would be hand-built.
+- **The wheel claimed for the zoom.** Rejected: a trackpad reports two-finger
+  scrolling as the wheel, so claiming it would leave a zoomed plan with no
+  native pan on the desktop the view mainly serves; the double-click keeps the
+  pointer-anchored zoom and the wheel moves the plan as it moves the page.
 - **Clone the drawing into the dialog.** Rejected: the labels and dots would
   exist twice, the handlers would have to be rebound, and the served markup
   would carry two plans for assistive technology to reconcile.
