@@ -275,7 +275,7 @@
     /*
      * The Mappa's dots are the one motion that repeats: a hairline ring of
      * ink blooms out of each dot and thins away, slowly, so a plan with no
-     * hover still says it can be opened. The step staggers the six so they
+     * hover still says it can be opened. The step staggers the ten so they
      * read as a field rather than as one flash. It is the only loop on the
      * page and it carries no reading: under reduced motion it is absent.
      */
@@ -1188,10 +1188,10 @@
 
   /*
    * Il layer che scala il piano: immagine, le quattro etichette dei luoghi, le
-   * due Casse, il nord e i punti sono un solo quadro. `zoom` lo ingrandisce in
-   * blocco, così etichette, Casse, punti e i loro bersagli da 44 px crescono
-   * con il disegno; a 1× è il piano intero. Nel dialogo lo script alza lo zoom
-   * a 1.5, 2 e 3.
+   * due Casse, il nord e i dieci punti sono un solo quadro. `zoom` lo
+   * ingrandisce in blocco, così etichette, Casse, punti e i loro bersagli da
+   * 44 px crescono con il disegno; a 1× è il piano intero. Nel dialogo lo
+   * script alza lo zoom a 1.5, 2 e 3.
    */
   .mappa__zoom {
     position: relative;
@@ -2590,7 +2590,7 @@
      * on `display` and `overlay` keeps the native dialog drawn in the top layer
      * until its fade is done, which is the only way a `<dialog>` can animate
      * its closing without scripting. The whole thing is scoped to the screen:
-     * on paper the six entries are already in the flow and must not fade.
+     * on paper the ten entries are already in the flow and must not fade.
      * Browsers without these features open and close at once, with the panel
      * complete either way.
      */
@@ -2636,7 +2636,7 @@
       /*
        * The dots are the plan's hotspots, and a phone has no hover to say so:
        * each keeps a hairline ring of its own ink blooming out of it and
-       * thinning away at the 44 px target's edge, the six staggered by a step
+       * thinning away at the 44 px target's edge, the ten staggered by a step
        * so they read as a field rather than as one flash. This is the page's
        * one repeating motion. It carries no reading, it exists only on screen
        * with motion allowed, and it pauses behind an open Cantina panel — in
@@ -2676,6 +2676,22 @@
 
       .mappa__dot:nth-of-type(6) .mappa__dot-mark::before {
         animation-delay: calc(var(--motion-bloom-step) * 5);
+      }
+
+      .mappa__dot:nth-of-type(7) .mappa__dot-mark::before {
+        animation-delay: calc(var(--motion-bloom-step) * 6);
+      }
+
+      .mappa__dot:nth-of-type(8) .mappa__dot-mark::before {
+        animation-delay: calc(var(--motion-bloom-step) * 7);
+      }
+
+      .mappa__dot:nth-of-type(9) .mappa__dot-mark::before {
+        animation-delay: calc(var(--motion-bloom-step) * 8);
+      }
+
+      .mappa__dot:nth-of-type(10) .mappa__dot-mark::before {
+        animation-delay: calc(var(--motion-bloom-step) * 9);
       }
 
       /*
@@ -2833,11 +2849,11 @@
 }
 
 /*
- * On paper the Mappa is the plan and its six entries. A closed <dialog> is
+ * On paper the Mappa is the plan and its ten entries. A closed <dialog> is
  * display:none from the browser, so the print rule resets that and the
  * browser's positioning, as the no-script fallback does. Chiudi has no modal
  * to close on paper; the dots stay as marks on the plan. The entries are the
- * same six dialogs, not a second list.
+ * same ten dialogs, not a second list.
  */
 @media print {
   /* The scroll-driven reveal clips the label and the plan to their first
@@ -2883,7 +2899,7 @@
     display: none;
   }
 
-  /* Ingrandisci la Mappa is a screen control: the plan and the six entries
+  /* Ingrandisci la Mappa is a screen control: the plan and the ten entries
    * already print, so the button stays off the paper. */
   .mappa__expand {
     display: none;
