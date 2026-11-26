@@ -11,7 +11,10 @@
   ADR-0017 is amended in the same way
 - **Amended by:** ADR-0025 (the chapter keeps its one plan and gains one
   control; the expanded map is a transient second surface, and “one
-  screen-high object” now describes the chapter)
+  screen-high object” now describes the chapter); ADR-0026 (the rows become the
+  plan’s ten Cantine under their house titles, two Casse join them as gold
+  marks, the dots take the plan’s positions and the `Posizione indicativa`
+  caveat leaves the panels)
 - **Related:** ADR-0003, ADR-0010, ADR-0014, ADR-0019, `GLOSSARY.md` (*Mappa del
   Borgo*, *Cantina*), README (*Composition*, *Motion*, *Editor workflow*,
   *Search visibility*, *Content policy*, *Tests*), `index.html`,
