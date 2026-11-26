@@ -344,6 +344,17 @@
               <button type="button" class="mappa__dot" data-dialog="cantina-li-meroli-dialog" aria-controls="cantina-li-meroli-dialog" aria-labelledby="cantina-li-meroli-dialog-title" style="--x: 70%; --y: 74%">
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
+              <!-- LE DUE CASSE: segni d'oro, non voci della Mappa. Un anello
+                   cavo con il nome accanto; non si aprono, non si contano e
+                   non entrano nell'ordine di Tab. -->
+              <span class="mappa__cassa" style="--x: 24.45%; --y: 16.23%">
+                <span class="mappa__cassa-mark" aria-hidden="true"></span>
+                <span class="mappa__label mappa__label--cassa">Cassa</span>
+              </span>
+              <span class="mappa__cassa" style="--x: 46.57%; --y: 77.81%">
+                <span class="mappa__cassa-mark" aria-hidden="true"></span>
+                <span class="mappa__label mappa__label--cassa">Cassa</span>
+              </span>
             </div>
           </div>
           <!-- IL COMANDO: uno solo, sotto il disegno. Apre la Mappa in un
@@ -388,6 +399,11 @@
               border-block-start: 1px solid var(--rule);
             }
             .mappa__dot {
+              display: none;
+            }
+            /* La Cassa è un segno da schermo: senza script l'anello sparisce,
+               ma il nome resta sul piano. */
+            .mappa__cassa-mark {
               display: none;
             }
             .mappa__dialog-close {
