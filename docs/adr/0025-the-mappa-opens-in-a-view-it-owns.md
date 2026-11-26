@@ -71,12 +71,20 @@ scrolling and zooms uniformly to at most 3×, with three square controls.**
   Borgo</h3>` names it, `Chiudi` closes it, Esc and a click outside close it,
   and focus returns to `Ingrandisci la Mappa`. Paper, ink and a gold hairline;
   no shadow, no rounded corner, no new motion.
+- **A click outside is a pointer click.** The close-on-click guard ignores a
+  click whose `detail` is 0 — the shape a keyboard-generated click has — so a
+  panel or the map is dismissed only by a real pointer click outside it, never
+  by the Enter or Space that opened it.
 - **One object, moved rather than copied.** Opening moves the chapter's
   `.mappa__drawing` — the plan image, the four labels, the north mark and the
   six dots — into the dialog; closing returns it to its figure. The served
   markup therefore still holds one plan, one `Piazza Umberto I`, one set of
   labels and one set of dots, and the static guards keep their meaning. The
   expand control stays in the chapter and is not moved.
+- **The moved plan is already on its way.** Opening sets the plan image's
+  `loading` to `eager`, so a drawing the reader never scrolled into view still
+  loads as it is moved into the dialog and never opens blank. It is the same
+  URL the chapter already serves: no new request and no GoatCounter event.
 - **The view is fresh each time.** Closing the map discards its place and its
   zoom; reopening starts at fit. The view is kept only for the round-trip into
   a Cantina panel.
@@ -146,9 +154,13 @@ scrolling and zooms uniformly to at most 3×, with three square controls.**
   the dots, the six panels in flow under the plan. The map dialog keeps only its
   own chrome and no drawing, and the expand control is not shown, so the dialog
   is never opened.
-- **On paper** nothing changes: the plan and the six entries print under it.
+- **On paper** the closed chapter prints as it always has: the plan and the six
+  entries under it. The print rule describes that normal state and adds no
+  second layout. If a reader prints while the expanded view is open, the
+  browser prints the open view, with the moved plan in the dialog rather than
+  in the chapter; CSS cannot move the drawing back.
 - **The map's script remains the page's one inline map script**, bound to the
-  same 2000-character cap (1,994 characters at this record), now also opening
+  same 2000-character cap (1,988 characters at this record), now also opening
   and closing the map dialog, moving the drawing, and stepping the zoom. No
   third script, no shipped `.js` file, no `on*` attribute, and still no key
   handling or focus stealing: Esc, the focus trap and the focus return are the

@@ -6306,12 +6306,12 @@ test('i punti della Mappa fioriscono il proprio inchiostro, e la carta resta fer
   assert.match(
     motion,
     /body:has\(\s*dialog\.mappa__dialog\[open\]\s*\)\s+\.mappa__dot-mark::before\s*\{[^}]*animation-play-state:\s*paused/s,
-    'i punti continuano a respirare quando un pannello è aperto sopra la Mappa',
+    'i punti non tacciono quando un pannello è aperto sopra la Mappa',
   );
   assert.match(
     motion,
     /dialog\.mappa__map\[open\]\s+\.mappa__dot-mark::before\s*\{[^}]*animation-play-state:\s*paused/s,
-    'i punti continuano a respirare dentro la Mappa aperta',
+    'i punti non tacciono dentro la Mappa aperta',
   );
   assert.doesNotMatch(
     motion,
@@ -7140,6 +7140,32 @@ test('tre quadrati di carta al piede del piano: Ingrandisci, Riduci e Vista inte
   assert.match(code, /passive:\s*false/, 'la rotella non può fermare lo scorrimento predefinito');
   assert.match(code, /scrollLeft\s*\+=/, 'lo zoom non corregge il luogo orizzontale');
   assert.match(code, /scrollTop\s*\+=/, 'lo zoom non corregge il luogo verticale');
+
+  /*
+   * The wheel and the double-click belong to the open map. While the map is
+   * closed the drawing is still the chapter's in-flow plan: the wheel must
+   * reach the page and a double-click must do nothing. The wheel returns
+   * before preventDefault while closed, so the old unguarded handler fails
+   * here, and the double-click is conditioned on `m.open` in the same way.
+   */
+  const wheel =
+    code.match(
+      /addEventListener\(\s*['"]wheel['"][\s\S]*?preventDefault[\s\S]*?passive:\s*false/,
+    )?.[0] ?? '';
+  assert.ok(wheel, 'manca la rotella della Mappa');
+  assert.match(
+    wheel,
+    /if\s*\(\s*!m\.open[\s\S]*?preventDefault/,
+    'la rotella ferma la pagina anche a Mappa chiusa: il capitolo non scorre',
+  );
+  const dblclick =
+    code.match(/addEventListener\(\s*['"]dblclick['"][^\n]*/)?.[0] ?? '';
+  assert.ok(dblclick, 'manca il doppio clic della Mappa');
+  assert.match(
+    dblclick,
+    /m\.open\s*&&\s*go\s*\(/,
+    'il doppio clic ingrandisce il piano anche a Mappa chiusa',
+  );
 });
 
 test('chiudere la Mappa getta luogo e zoom: riaprendo si riparte dalla vista intera', () => {

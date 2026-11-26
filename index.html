@@ -1013,6 +1013,7 @@
       clic fuori dal riquadro lo chiude; il focus torna al comando che l'ha
       aperto. La carta, l'inchiostro e il filo d'oro sono quelli della pagina;
       dentro, il disegno è il riquadro che scorre, e il movimento è del browser.
+      Vedi ADR-0025.
     -->
     <dialog class="mappa__map" id="mappa-map" aria-labelledby="mappa-map-title">
       <h3 class="mappa__map-title" id="mappa-map-title">La Mappa del Borgo</h3>
@@ -1028,7 +1029,7 @@
       </div>
       <button type="button" class="mappa__map-close" data-close>Chiudi</button>
     </dialog>
-    <!-- MAPPA: ogni punto apre il suo dialogo in modale, Chiudi lo chiude e un clic fuori dal pannello lo chiude; Esc e il ritorno del focus al punto sono del browser. Dentro la Mappa lo stesso punto apre il pannello come secondo modale sopra di essa: Esc chiude solo la superficie in cima, chiudere il pannello dà la stessa vista e riporta il focus al punto, e un clic di tastiera (dettaglio 0) non è un clic fuori. Il comando Ingrandisci la Mappa apre il dialogo della Mappa e vi sposta il disegno; Chiudi, Esc, il clic fuori e il ritorno del focus sono del browser. Dentro, la rotella e il doppio clic avvicinano al puntatore, i tre comandi al centro del riquadro, e lo zoom salta: nessuna transizione. Alla chiusura luogo e zoom si gettano. Lo script resta uno e sotto il tetto di 2000 caratteri, per questo è scritto fitto. Vedi ADR-0022. -->
+    <!-- MAPPA: ogni punto apre il suo dialogo in modale, Chiudi lo chiude e un clic fuori dal pannello lo chiude; Esc e il ritorno del focus al punto sono del browser. Dentro la Mappa lo stesso punto apre il pannello come secondo modale sopra di essa: Esc chiude solo la superficie in cima, chiudere il pannello dà la stessa vista e riporta il focus al punto, e un clic di tastiera (dettaglio 0) non è un clic fuori. Il comando Ingrandisci la Mappa apre il dialogo della Mappa e vi sposta il disegno; Chiudi, Esc, il clic fuori e il ritorno del focus sono del browser. Dentro, la rotella e il doppio clic avvicinano al puntatore, i tre comandi al centro del riquadro, e lo zoom salta: nessuna transizione. Fuori, a Mappa chiusa, la rotella scorre la pagina e il doppio clic non fa nulla. Alla chiusura luogo e zoom si gettano. Lo script resta uno e sotto il tetto di 2000 caratteri, per questo è scritto fitto. Il pannello dei punti è di ADR-0022 e ADR-0023; la Mappa in grande e lo zoom, di ADR-0025. -->
     <script>
 const out = (d) => d.addEventListener('click', (e) => {
   if (!e.detail) return;
@@ -1050,12 +1051,12 @@ const go = (n, cx, cy) => {
   const b = w.getBoundingClientRect(), r = l.getBoundingClientRect();
   const px = cx ?? b.left + b.width / 2, py = cy ?? b.top + b.height / 2;
   const ux = (px - r.left) / z[i], uy = (py - r.top) / z[i];
-  i = n < 0 ? 0 : n > 3 ? 3 : n;
-  l.style.zoom = z[i];
+  i=n<0?0:n>3?3:n;
+  l.style.zoom=z[i];
   const r2 = l.getBoundingClientRect();
   w.scrollLeft += r2.left + ux * z[i] - px;
   w.scrollTop += r2.top + uy * z[i] - py;
-  up.disabled = i === 3; down.disabled = one.disabled = i === 0;
+  up.disabled=i===3;down.disabled=one.disabled=i===0;
 };
 x.addEventListener('click', () => {
   s.insertBefore(w, s.firstChild); w.tabIndex = 0;
@@ -1064,11 +1065,11 @@ x.addEventListener('click', () => {
 });
 for (const [b, d] of [[up, 1], [down, -1], [one, 0]]) b.addEventListener('click', () => go(d ? i + d : 0));
 w.addEventListener('wheel', (e) => {
-  if (e.ctrlKey) return;
+  if (!m.open || e.ctrlKey) return;
   e.preventDefault();
   go(i + (e.deltaY < 0 ? 1 : -1), e.clientX, e.clientY);
 }, { passive: false });
-w.addEventListener('dblclick', (e) => go(i + 1, e.clientX, e.clientY));
+w.addEventListener('dblclick', (e) => m.open && go(i + 1, e.clientX, e.clientY));
 c.addEventListener('click', () => m.close());
 m.addEventListener('close', () => {
   w.removeAttribute('tabindex');
