@@ -5743,17 +5743,17 @@ const MAPPA_ENTRIES = Object.freeze([
     id: 'cantina-casianu',
     name: 'Quissi de Casianu',
     inside: 'vino',
-    x: '41.47%',
-    y: '42.07%',
-    nudge: { dx: -16, dy: -8 },
+    x: '43.52%',
+    y: '43.19%',
+    nudge: { dx: 17, dy: 2 },
   },
   {
     id: 'cantina-enzo',
     name: 'Cantina di Enzo',
     inside: 'La Cortesia Home Restaurant — pasta e fagioli, trippa al sugo',
-    x: '43.52%',
-    y: '43.19%',
-    nudge: { dx: 17, dy: 2 },
+    x: '41.47%',
+    y: '42.07%',
+    nudge: { dx: -16, dy: -8 },
   },
   {
     id: 'cantina-callaru',
@@ -6755,10 +6755,10 @@ test('la Mappa non si scusa più per le posizioni: la cautela è uscita dal corp
  * e il criterio del pollice è raggiunto con l'area distinta degli anelli. Il
  * piazzale della chiesa cade nel punto più fitto della passeggiata, fra gli
  * anelli della piazza e la catena del sud: il suo anello, scostato in alto a
- * sinistra, lascia 28,33 px dal centro più vicino, Enzo, e i cerchi visibili da
- * 13 px restano a 15,33 px bordo a bordo, ancora separati. Le altre coppie
- * strette stanno poco sopra 41,38 px. Nessun nuovo scontro e il divario cresce
- * a ogni larghezza.
+ * sinistra, lascia 28,33 px dal centro più vicino, Casianu, e i cerchi
+ * visibili da 13 px restano a 15,33 px bordo a bordo, ancora separati. Le altre
+ * coppie strette stanno poco sopra 41,38 px. Nessun scontro nuovo e il divario
+ * cresce a ogni larghezza.
  */
 test('a 320 px i bersagli sono separati il più possibile e i divari crescono col disegno', () => {
   const document = loadSite();
@@ -6785,13 +6785,13 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
   const crowded = new Set(
     [
       ['cantina-casianu', 'cantina-enzo'],
-      ['cantina-casianu', 'cantina-gabriele'],
-      ['cantina-enzo', 'cantina-callaru'],
+      ['cantina-enzo', 'cantina-gabriele'],
+      ['cantina-casianu', 'cantina-callaru'],
       ['cantina-santuccella', 'cantina-macellaru'],
       ['cantina-macellaru', 'cantina-brunetto'],
       ['cantina-brunetto', 'cantina-ammazzatora'],
       ['cantina-ammazzatora', 'cantina-santu'],
-      ['piazzale-della-chiesa', 'cantina-enzo'],
+      ['piazzale-della-chiesa', 'cantina-casianu'],
       ['piazzale-della-chiesa', 'cantina-ammazzatora'],
       ['piazzale-della-chiesa', 'cantina-callaru'],
     ].map(([a, b]) => [a, b].sort().join('/')),
