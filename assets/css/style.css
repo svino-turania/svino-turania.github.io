@@ -273,6 +273,15 @@
     --motion-quick: 240ms;
     --motion-rule: 320ms;
     /*
+     * The Mappa's dots are the one motion that repeats: a hairline ring of
+     * ink blooms out of each dot and thins away, slowly, so a plan with no
+     * hover still says it can be opened. The step staggers the six so they
+     * read as a field rather than as one flash. It is the only loop on the
+     * page and it carries no reading: under reduced motion it is absent.
+     */
+    --motion-bloom: 3200ms;
+    --motion-bloom-step: 533ms;
+    /*
      * When each step of the entrance begins. The page prints in order: the
      * photograph is the paper, and the ink lands on it. The steps overlap, so
      * the sequence reads without the page ever waiting on itself. The date is
@@ -2345,6 +2354,54 @@
           opacity: 0;
         }
       }
+
+      /*
+       * The dots are the plan's hotspots, and a phone has no hover to say so:
+       * each keeps a hairline ring of its own ink blooming out of it and
+       * thinning away at the 44 px target's edge, the six staggered by a step
+       * so they read as a field rather than as one flash. This is the page's
+       * one repeating motion. It carries no reading, it exists only on screen
+       * with motion allowed, and it pauses while a Cantina's panel is open so
+       * the panel is the only thing moving.
+       */
+      .mappa__dot-mark::before {
+        content: "";
+        position: absolute;
+        inset-block-start: 50%;
+        inset-inline-start: 50%;
+        inline-size: 13px;
+        block-size: 13px;
+        transform: translate(-50%, -50%) scale(1);
+        border: 1.6px solid currentColor;
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        animation: ink-bloom var(--motion-bloom) var(--ease-set) infinite;
+      }
+
+      .mappa__dot:nth-of-type(2) .mappa__dot-mark::before {
+        animation-delay: calc(var(--motion-bloom-step) * 1);
+      }
+
+      .mappa__dot:nth-of-type(3) .mappa__dot-mark::before {
+        animation-delay: calc(var(--motion-bloom-step) * 2);
+      }
+
+      .mappa__dot:nth-of-type(4) .mappa__dot-mark::before {
+        animation-delay: calc(var(--motion-bloom-step) * 3);
+      }
+
+      .mappa__dot:nth-of-type(5) .mappa__dot-mark::before {
+        animation-delay: calc(var(--motion-bloom-step) * 4);
+      }
+
+      .mappa__dot:nth-of-type(6) .mappa__dot-mark::before {
+        animation-delay: calc(var(--motion-bloom-step) * 5);
+      }
+
+      section.mappa:has(.mappa__dialog[open]) .mappa__dot-mark::before {
+        animation-play-state: paused;
+      }
     }
   }
 
@@ -2458,6 +2515,26 @@
     }
     to {
       transform: rotate(var(--card-tilt));
+    }
+  }
+
+  /*
+   * The hotspot: a hairline ring leaves the dot's edge and thins out as it
+   * grows to the 44 px target, the dot itself never moving or changing
+   * colour. It starts and ends invisible, so the loop has no seam, and it is
+   * the one keyframe on the page that is meant to run again.
+   */
+  @keyframes ink-bloom {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    18% {
+      opacity: 0.4;
+    }
+    to {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(3.2);
     }
   }
 }

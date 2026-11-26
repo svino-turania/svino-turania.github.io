@@ -2823,6 +2823,8 @@ test('il foglio di stile isola i token e dichiara l’ordine dei layer', () => {
     'numeral',
     'quick',
     'rule',
+    'bloom',
+    'bloom-step',
     'scroll',
     'after-paper',
     'after-press',
@@ -5216,12 +5218,6 @@ test('il foglio di stile espone un indicatore di focus visibile sui link', () =>
 test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via per chi riduce il movimento', () => {
   const css = servedStylesheet();
 
-  assert.doesNotMatch(
-    css,
-    /\binfinite\b/i,
-    'il movimento non deve ripetersi senza fine',
-  );
-
   const noPreference = atRuleBlocks(
     css,
     '@media\\s*\\(prefers-reduced-motion:\\s*no-preference\\)',
@@ -5230,6 +5226,19 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
 
   const animations = [...css.matchAll(/(?:^|[;{\s])animation\s*:\s*([^;}]+)/g)];
   assert.ok(animations.length > 0, 'manca il movimento d’ingresso');
+
+  /*
+   * Motion repeats exactly once: the Mappa's dots bloom a ring of their ink,
+   * the one loop the page keeps, because the plan is read on a phone where
+   * nothing hovers to say it can be opened. Every other animation runs once.
+   */
+  const loops = animations.filter(([, value]) => /\binfinite\b/i.test(value));
+  assert.equal(loops.length, 1, 'solo i punti della Mappa si ripetono');
+  assert.match(
+    loops[0][1],
+    /ink-bloom/,
+    `il movimento che si ripete non è la fioritura dei punti: ${normalize(loops[0][1])}`,
+  );
 
   for (const animation of animations) {
     assert.ok(
@@ -6216,6 +6225,81 @@ test('il dialogo della Mappa si posa aprendosi e si ritira chiudendosi, e la car
     fallbackPanel,
     /transform:\s*none/,
     'senza JavaScript i sei dialoghi restano abbassati',
+  );
+});
+
+test('i punti della Mappa fioriscono il proprio inchiostro, e la carta resta ferma', () => {
+  const css = stripCssComments(servedStylesheet());
+  const noPreference = atRuleBlocks(
+    css,
+    '@media\\s*\\(prefers-reduced-motion:\\s*no-preference\\)',
+  );
+  const screen = atRuleBlocks(css, '@media\\s+screen\\s*\\{');
+  assert.equal(screen.length, 1, 'manca il blocco di movimento dello schermo');
+  const { start, end } = screen[0];
+  assert.ok(
+    noPreference.some((outer) => start > outer.start && end < outer.end),
+    'il battito dei punti sta fuori da no-preference',
+  );
+
+  /*
+   * The dot is a hotspot: a hairline ring of its own ink leaves the mark and
+   * thins out as it grows to the 44 px target, so the plan keeps saying it can
+   * be opened where nothing hovers. The dot itself never moves or changes
+   * colour, and the ring starts and ends invisible so the loop has no seam.
+   */
+  const motion = css.slice(start, end + 1);
+  const ring = ruleBodyFor(motion, '.mappa__dot-mark::before');
+  assert.match(ring, /content:\s*""/, 'il punto non ha il suo anello');
+  assert.match(ring, /inline-size:\s*13px/, 'l’anello non parte dal segno');
+  assert.match(ring, /border-radius:\s*50%/, 'l’anello non è tondo');
+  assert.match(ring, /pointer-events:\s*none/, 'l’anello intercetta il tocco');
+  assert.match(
+    ring,
+    /border:\s*[^;]*currentColor/,
+    'l’anello non è nell’inchiostro del punto',
+  );
+  assert.match(
+    ring,
+    /animation:\s*ink-bloom\s+var\(--motion-bloom\)[^;]*\binfinite\b/,
+    'il punto non respira',
+  );
+
+  const keyframes = atRuleBlocks(css, '@keyframes\\s+ink-bloom\\s*\\{');
+  assert.equal(keyframes.length, 1, 'manca la fioritura dei punti');
+  const bloom = css.slice(keyframes[0].start, keyframes[0].end);
+  assert.match(bloom, /scale\(3\.2\)/, 'l’anello non si allarga');
+  assert.doesNotMatch(
+    bloom,
+    /\b(?:color|background|border-color)\s*:/,
+    'la fioritura cambia colore invece di diradarsi',
+  );
+
+  const delays = [
+    ...motion.matchAll(
+      /animation-delay:\s*calc\(var\(--motion-bloom-step\)\s*\*\s*\d+\)/g,
+    ),
+  ];
+  assert.equal(delays.length, 5, 'i sei punti non sono sfalsati');
+
+  /*
+   * Nothing of the ring exists without motion: the base stylesheet has no
+   * pseudo, so under reduce and on paper the dots are the plain marks they
+   * were and the page is the finished spread.
+   */
+  const keyframeBlocks = atRuleBlocks(css, '@keyframes\\s+[\\w-]+\\s*\\{');
+  const base = withoutBlocks(css, [...noPreference, ...keyframeBlocks]);
+  assert.doesNotMatch(
+    base,
+    /\.mappa__dot-mark::before/,
+    'l’anello dei punti esiste anche senza movimento',
+  );
+
+  // While a panel is open, the plan behind it holds still.
+  assert.match(
+    motion,
+    /section\.mappa:has\(\.mappa__dialog\[open\]\)\s+\.mappa__dot-mark::before\s*\{[^}]*animation-play-state:\s*paused/s,
+    'il piano continua a respirare dietro il pannello',
   );
 });
 

@@ -202,7 +202,9 @@ piazza are in the served SVG; `Piazza Umberto I`, `la chiesa`, `SP 37` and
 grid, frame or caption. The confirmed Cantine are dots — the page's only
 bordeaux-filled marks — and each dot is a button that opens its own native
 dialog with the Cantina's name, what visitors find inside and the note
-`Posizione indicativa`. There is no list: the dialogs are the entries. The
+`Posizione indicativa`. Each dot also blooms a slow ring of its ink — the plan's
+only repeating motion — so the chapter reads as openable where nothing hovers.
+There is no list: the dialogs are the entries. The
 chapter states no count and no route, and names no Cantina the Comitato has not
 confirmed. Without JavaScript the six dialogs flow under the plan; on paper the
 plan and the six entries print in order. The plan is a generated asset: the
@@ -310,8 +312,13 @@ their rule from the left edge. The two typographic actions also lead their
 arrows by 2 px, as if the label were picked up. Each action settles 1 px while
 pressed. The Mappa's dots are the page's only other controls: a dot re-inks its
 ring on hover and focus, and opens its Cantina's dialog; the panel's `Chiudi`
-is the visible way back. On a phone the browser's own blue tap flash is turned
-off and the panel wears no browser ring, so a touch answers in the page's ink.
+is the visible way back. Each dot also keeps a slow bloom — a hairline ring of
+its own ink leaves the dot and thins out at the 44 px target's edge, the six
+staggered — so the plan says it can be opened even where nothing hovers. It is
+the page's one repeating motion, it pauses behind an open panel, and it is
+absent under reduced motion. On a phone the browser's own blue tap flash is
+turned off and the panel wears no browser ring, so a touch answers in the page's
+ink.
 The panel is laid on the page as it opens — it comes
 up a few pixels and inks in while the bordeaux scrim darkens — and settles
 back as it fades when it closes; under reduced motion it is simply there. The
@@ -326,9 +333,13 @@ depend on either. The rules are:
   complete and still. Nothing on the page starts invisible and nothing is
   shrunk; the one thing that enters is the Mappa's dialog, which opens over
   the page and is simply there under reduced motion.
-- **Nothing repeats.** There are no ambient effects, so no pause control is
-  needed and no new UI appears. Sustained movement comes from scroll position,
-  never from a clock.
+- **Only the map's dots repeat.** The page has one ambient effect: the Mappa's
+  dots bloom a ring of their ink so the plan reads as openable on a phone,
+  where nothing hovers. It is staggered by `--motion-bloom-step`, pauses while
+  a Cantina's panel is open, exists only on screen with motion allowed, and is
+  gone under `reduce` — the base stylesheet draws no ring at all. Everything
+  else runs once; sustained movement comes from scroll position, never from a
+  clock.
 - **The focus indicator appears at once.** The outline is the indicator and it
   is not animated; the link's colour and rule follow the same transition as
   hover. That is not motion that delays use.
@@ -341,7 +352,8 @@ depend on either. The rules are:
 - **Every duration, delay and easing comes from the motion tokens** in `:root`
   (`--motion-recede`, `--motion-press`, `--motion-ink`, `--motion-settle`,
   `--motion-date`, `--motion-numeral`, `--motion-quick`, `--motion-rule`,
-  `--motion-scroll`, the `--motion-after-*` entrance delays, and `--ease-press`
+  `--motion-bloom`, `--motion-bloom-step`, `--motion-scroll`, the
+  `--motion-after-*` entrance delays, and `--ease-press`
   / `--ease-set`), not from magic numbers. The press curve arrives fast and
   settles; the set curve reveals the date evenly.
 
@@ -360,7 +372,8 @@ borders precisely so they can be ruled; the extra 1px of padding keeps their
 rendered boxes identical. ADR-0019 records the walk and its two strong surfaces;
 ADR-0020 records the cartoline settle, the one keyframe that rotation adds to
 the vocabulary; ADR-0015 records the earlier scroll story, the
-cover drift and its stagger ranges. The motion itself is cheap to reverse.
+cover drift and its stagger ranges; ADR-0024 records the dots' bloom, the page's
+one loop. The motion itself is cheap to reverse.
 
 ## Editor workflow (Comitato)
 
@@ -646,9 +659,12 @@ dialogs under the plan and hides the dead dots and close controls, the print
 rule that prints the plan and the six entries with the close controls hidden,
 the dialog's screen-scoped opening and closing — its motion tokens, the
 discrete `display` and `overlay`, the starting style and the fallback resets
-that keep the entries visible without JavaScript — the inline script's
-dot-to-dialog binding and close handling under a size cap, and the counter as
-the last executable script. The old inline schematic is asserted absent.
+that keep the entries visible without JavaScript; the dots' ink bloom — the
+page's one allowed loop, its `--motion-bloom` tokens, the six staggered delays,
+the pause behind an open panel and the absence of the ring without motion; the
+inline script's dot-to-dialog binding and close handling under a size cap, and
+the counter as the last executable script. The old inline schematic is asserted
+absent.
 
 The suite is not a browser runner: the native dialog's open, Esc,
 click-outside and focus-return, the no-script render and the print view are
