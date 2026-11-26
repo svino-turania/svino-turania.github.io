@@ -89,7 +89,7 @@ print PDF; the two must never disagree.
 
 The page's picture of the walk: a real plan of the Borgo, exported from the
 cadastral base, north-up and in scale, with the piazza, the church and the two
-verified streets `SP 37` and `Via Turano` as labels. The Comitato-confirmed
+verified streets `Corso Trieste` and `Via Turano` as labels. The Comitato-confirmed
 Cantine are dots — the page's only bordeaux marks — and each dot is a button
 that opens the Cantina's panel, carrying its name and what visitors find inside.
 The dots are the map's entries: there is no list beside or beneath the drawing.

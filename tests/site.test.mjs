@@ -5712,8 +5712,8 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
  * Programma. The drawing is the real plan, served as an image, with the four
  * place labels and the dots as HTML over it. Only the six Comitato-confirmed
  * rows; no count, no numbered pins, no route line, no unconfirmed title or
- * provider; every dot and every entry share one id set. "SP 37" is a verified
- * street name and the chapter's only permitted digit.
+ * provider; every dot and every entry share one id set. The chapter carries no
+ * digit at all: no count and no numbered pin.
  */
 const MAPPA_ENTRIES = Object.freeze([
   {
@@ -6314,16 +6314,9 @@ test('la Mappa non conta, non disegna un percorso e non nomina ciò che non è c
   }
   const text = normalize(clone.textContent);
 
-  // "SP 37" è il nome verificato di una strada, l'unico numero ammesso nel
-  // capitolo: tolto quello, non resta alcuna cifra, né una conta né un numero
-  // di punto.
-  assert.equal(
-    (text.match(/SP\s*37/g) ?? []).length,
-    1,
-    'SP 37 non compare una sola volta come nome della strada',
-  );
+  // Il capitolo non porta alcuna cifra: né una conta né un numero di punto.
   assert.doesNotMatch(
-    text.replace(/SP\s*37/g, ''),
+    text,
     /\d/,
     'la Mappa porta un numero: una conta o un numero di punto',
   );
@@ -6385,7 +6378,7 @@ test('le etichette della Mappa sono testo HTML: la piazza una volta, le vie lung
   const labels = [...drawing.querySelectorAll('.mappa__label')];
   assert.deepEqual(
     labels.map((label) => normalize(label.textContent)),
-    ['Piazza Umberto I', 'la chiesa', 'SP 37', 'Via Turano'],
+    ['Piazza Umberto I', 'la chiesa', 'Corso Trieste', 'Via Turano'],
     'le etichette visibili non sono quelle del piano',
   );
   assert.ok(
@@ -6405,7 +6398,7 @@ test('le etichette della Mappa sono testo HTML: la piazza una volta, le vie lung
   );
   assert.deepEqual(
     streets.map((label) => normalize(label.textContent)),
-    ['SP 37', 'Via Turano'],
+    ['Corso Trieste', 'Via Turano'],
     'le due vie non portano il registro di strada',
   );
   assert.ok(

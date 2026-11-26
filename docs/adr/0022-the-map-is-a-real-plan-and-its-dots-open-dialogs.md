@@ -99,11 +99,11 @@ There is no list.**
 - **The visible labels are HTML text, not SVG text.** Over the plan:
   `Piazza Umberto I` (the page's one visible occurrence of the name, in the
   place label's register), `la chiesa`, and the two verified street names
-  `SP 37` and `Via Turano`, set along their streets. The comune is not
+  `Corso Trieste` and `Via Turano`, set along their streets. The comune is not
   labelled. The labels use the page's serif and sans registers with a cream
   halo. A discreet, `aria-hidden` `N` sits in the top-right; there is no scale
-  bar, no grid, no frame and no visible caption. `SP 37` is a verified name and
-  the chapter's only permitted digit.
+  bar, no grid, no frame and no visible caption. Both street names are verified,
+  and the chapter carries no digit at all.
 - **The alt describes the plan without a count or the piazza's name.** It says
   what the drawing contains and that the Cantine's positions are indicative;
   it states no number and does not name `Piazza Umberto I`.

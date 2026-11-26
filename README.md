@@ -197,8 +197,8 @@ paragraph carries the words.
 The Mappa del Borgo follows the prose as the walk's picture, before the
 Programma: the real plan of the borgo, exported from the cadastral base and
 drawn in the page's cream, gold and ink palette. The buildings, streets and
-piazza are in the served SVG; `Piazza Umberto I`, `la chiesa`, `SP 37` and
-`Via Turano` are HTML labels over it, with a discreet `N` and no scale bar,
+piazza are in the served SVG; `Piazza Umberto I`, `la chiesa`, `Corso Trieste`
+and `Via Turano` are HTML labels over it, with a discreet `N` and no scale bar,
 grid, frame or caption. The confirmed Cantine are dots — the page's only
 bordeaux-filled marks — and each dot is a button that opens its own native
 dialog with the Cantina's name, what visitors find inside and the note
@@ -445,11 +445,11 @@ The Mappa's Cantine are edited in one place each: one dot button in the plan
 and one `<dialog>` with the same `id`, carrying the Cantina's name, what
 visitors find inside and `Posizione indicativa`. A test requires one dot and
 one dialog per Comitato-confirmed Cantina and the same `id` set; it fails if the
-chapter carries a list, a number other than the verified street name `SP 37`, a
-number on a dot, a connecting route line, an unconfirmed Cantina or an
-unconfirmed title. Do not edit `assets/img/mappa-del-borgo.svg` by
-hand: the plan is exported outside this repository from the cadastral base, and
-a changed frame or palette is a new export. The dots' positions are percentage
+chapter carries a list, any digit at all (no count, no numbered pin), a
+connecting route line, an unconfirmed Cantina or an unconfirmed title. Do not
+edit `assets/img/mappa-del-borgo.svg` by hand: the plan is exported outside this
+repository from the cadastral base, and a changed frame or palette is a new
+export. The dots' positions are percentage
 placeholders until the Comitato supplies its sketch.
 
 To propose a change:
@@ -644,17 +644,17 @@ processor's privacy page. The pixel is the page's only external image request.
 The Mappa has its own guards. It pins the six Comitato-confirmed dialog entries
 and their copy; it requires one button dot and one dialog per Cantina, with the
 same `id` set, and fails if the chapter still has a list or a `<details>`. It
-fails on a digit in the chapter other than the verified street name `SP 37` (no
-count), on text inside a dot (no number), on a connecting route line, and on the
-unconfirmed rows and titles. It requires the plan to be an
-`<img>` pointing at the shipped SVG, lazy and asynchronous, with its intrinsic
-546 × 792 size and an `alt` that describes the plan without a count or the
-piazza's name; it also requires the four HTML labels, the north mark and the
-absent scale, grid, frame and caption. It reads the SVG as an image: well
-formed, with no text, script, external reference or embedded raster, the three
-layers `strade`, `piazza` and `fabbricati`, the baked palette, a transparent
-ground, and the comment that says it is generated from the cadastral base and
-must not be edited by hand. It pins the no-script style that flows the six
+fails on any digit in the chapter (no count, no numbered pin), on text inside a
+dot, on a connecting route line, and on the unconfirmed rows and titles. It
+requires the plan to be an `<img>` pointing at the shipped SVG, lazy and
+asynchronous, with its intrinsic 546 × 792 size and an `alt` that describes the
+plan without a count or the piazza's name; it also requires the four HTML
+labels, the north mark and the absent scale, grid, frame and caption. It reads
+the SVG as an image: well formed, with no text, script, external reference or
+embedded raster, the three layers `strade`, `piazza` and `fabbricati`, the baked
+palette, a transparent ground, and the comment that says it is generated from
+the cadastral base and must not be edited by hand. It pins the no-script style
+that flows the six
 dialogs under the plan and hides the dead dots and close controls, the print
 rule that prints the plan and the six entries with the close controls hidden,
 the dialog's screen-scoped opening and closing — its motion tokens, the
