@@ -6674,7 +6674,7 @@ test('la Mappa non conta, non disegna un percorso e non nomina ciò che non è c
   );
 });
 
-test('il piano della Mappa è un’immagine dichiarata, caricata con calma e descritta senza conta', () => {
+test('il piano della Mappa è un’immagine dichiarata, caricata con calma e descritta senza cifra', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
   const board = section.querySelector('figure.mappa__board');
