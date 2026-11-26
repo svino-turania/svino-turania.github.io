@@ -6554,17 +6554,36 @@ test('i punti della Mappa fioriscono il proprio inchiostro, e la carta resta fer
 
   /*
    * One step behind the last: the first dot has no delay and the other nine
-   * carry the multipliers from one to nine, so the ten read as one field.
+   * carry the multipliers from one to nine, so the ten read as one field. The
+   * multiplier is each dot's own `--bloom`, written in its markup, so adding a
+   * dot needs no stylesheet rule — only its place in the plan. One rule, not
+   * nine positional selectors.
    */
-  const delays = [
-    ...motion.matchAll(
-      /animation-delay:\s*calc\(var\(--motion-bloom-step\)\s*\*\s*(\d+)\)/g,
-    ),
-  ].map((match) => Number(match[1]));
+  assert.match(
+    motion,
+    /animation-delay:\s*calc\(\s*var\(--motion-bloom-step\)\s*\*\s*var\(--bloom(?:,\s*0)?\)\s*\)/,
+    'lo sfalsamento dei punti non moltiplica il proprio --bloom',
+  );
+  assert.equal(
+    [...motion.matchAll(/var\(--bloom\b/g)].length,
+    1,
+    'lo sfalsamento dei punti non è una regola sola',
+  );
+  assert.doesNotMatch(
+    motion,
+    /\.mappa__dot:nth-of-type\(\d+\)\s+\.mappa__dot-mark::before/,
+    'lo sfalsamento dei punti dipende ancora dalla posizione nel documento',
+  );
+  const document = loadSite();
+  const staggered = [...document.querySelectorAll('.mappa__zoom button.mappa__dot')];
+  assert.equal(staggered.length, MAPPA_ENTRIES.length, 'la Mappa non ha i dieci punti');
   assert.deepEqual(
-    delays,
-    [1, 2, 3, 4, 5, 6, 7, 8, 9],
-    'i dieci punti non sono sfalsati uno dopo l’altro',
+    staggered.map((dot) => {
+      const style = dot.getAttribute('style') ?? '';
+      return Number(style.match(/--bloom:\s*(\d+)/)?.[1]);
+    }),
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    'i dieci punti non portano, in ordine di piano, il proprio passo di fioritura',
   );
 
   /*

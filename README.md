@@ -366,7 +366,8 @@ are:
   there.
 - **Only the map's dots repeat.** The page has one ambient effect: the Mappa's
   dots bloom a ring of their ink so the plan reads as openable on a phone,
-  where nothing hovers. It is staggered by `--motion-bloom-step`, runs inside
+  where nothing hovers. It is staggered by `--motion-bloom-step` times each
+  dot's own `--bloom`, runs inside
   the chapter and the expanded Mappa alike, pauses while a Cantina's panel is
   open, exists only on screen with motion allowed, and is gone under `reduce` —
   the base stylesheet draws no ring at all. Everything else runs once; sustained
@@ -477,7 +478,9 @@ Comitato decides them.
 The Mappa's Cantine are edited in one place each: one dot button in the plan
 and one `<dialog>` with the same `id`, whose heading is the Cantina's house
 title and whose inside line carries what visitors find inside and who serves
-it. To add a Cantina, add one dot and one panel of the same `id`; to move one,
+it. To add a Cantina, add one dot and one panel of the same `id`, and give the
+dot its own `--bloom` — its place in the plan's order, from zero — so the
+stagger needs no stylesheet rule; to move one,
 change its two percentages, `--x` and `--y`, taken from the drawing box. A dot
 that steps aside for a thumb keeps its true position in `--nudge-x` /
 `--nudge-y` and a `span.mappa__leader` hairline, never more than 18 px. The two
