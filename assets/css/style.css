@@ -1196,8 +1196,8 @@
   /*
    * The labels are the page's text over the drawing: the piazza in the serif
    * register, the church and the two streets in the sans register. A cream
-   * halo keeps them legible over the plan without a plate of their own. The
-   * two street names run along their streets, bottom to top.
+   * halo keeps them legible over the plan without a plate of their own. All
+   * four labels sit level: a street name reads across its street, not along it.
    */
   .mappa__label {
     position: absolute;
@@ -1226,7 +1226,6 @@
   .mappa__label--street {
     font-weight: 700;
     letter-spacing: 0.14em;
-    transform: translate(-50%, -50%) rotate(-90deg);
   }
 
   /* The north mark is a quiet note in the top-right: no scale, no grid. */

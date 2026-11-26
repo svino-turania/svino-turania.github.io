@@ -99,7 +99,8 @@ There is no list.**
 - **The visible labels are HTML text, not SVG text.** Over the plan:
   `Piazza Umberto I` (the page's one visible occurrence of the name, in the
   place label's register), `la chiesa`, and the two verified street names
-  `Corso Trieste` and `Via Turano`, set along their streets. The comune is not
+  `Corso Trieste` and `Via Turano`. All four are set level: the street names
+  read across their streets, never rotated along them. The comune is not
   labelled. The labels use the page's serif and sans registers with a cream
   halo. A discreet, `aria-hidden` `N` sits in the top-right; there is no scale
   bar, no grid, no frame and no visible caption. Both street names are verified,

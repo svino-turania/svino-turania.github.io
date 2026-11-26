@@ -6369,7 +6369,7 @@ test('il piano della Mappa è un’immagine dichiarata, caricata con calma e des
   );
 });
 
-test('le etichette della Mappa sono testo HTML: la piazza una volta, le vie lungo le vie, il comune muto', () => {
+test('le etichette della Mappa sono testo HTML: la piazza una volta, le vie dritte, il comune muto', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
   const drawing = section.querySelector('.mappa__drawing');
@@ -6391,8 +6391,8 @@ test('le etichette della Mappa sono testo HTML: la piazza una volta, le vie lung
     'la piazza non compare una sola volta nel corpo visibile',
   );
 
-  // Le due vie portano il registro di strada e corrono lungo la loro via; la
-  // piazza e la chiesa restano dritte.
+  // Le due vie portano il registro di strada e restano dritte, come la piazza
+  // e la chiesa: nessuna etichetta si ruota sul piano.
   const streets = labels.filter((label) =>
     label.classList.contains('mappa__label--street'),
   );
@@ -6463,9 +6463,10 @@ test('il riquadro della Mappa ha il rapporto del piano, etichette con alone e pu
     'le etichette non hanno l’alone di crema',
   );
   assert.match(label, /pointer-events:\s*none/, 'le etichette intercettano i punti');
+  assert.doesNotMatch(label, /rotate\(/, 'le etichette sono ruotate invece di restare dritte');
 
   const street = ruleBodyFor(css, '.mappa__label--street');
-  assert.match(street, /rotate\(\s*-?90deg\s*\)/, 'le vie non corrono lungo la loro via');
+  assert.doesNotMatch(street, /rotate\(/, 'le vie sono ruotate invece di restare dritte');
 
   const dot = ruleBodyFor(css, '.mappa__dot');
   assert.match(dot, /position:\s*absolute/, 'i punti non sono posati sul piano');
