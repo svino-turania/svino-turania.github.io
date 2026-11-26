@@ -322,6 +322,22 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /*
+   * Un dialogo nativo è modale per i comandi, non per la rotella: aperto un
+   * pannello, la pagina dietro scorre ancora e la velatura si porta via il
+   * capitolo. Con un dialogo aperto la pagina si ferma — qualunque dialogo, il
+   * pannello di un punto o la Mappa in grande. `scrollbar-gutter` tiene il
+   * posto della barra mentre la barra sparisce, così la pagina non salta di
+   * lato all'apertura; il dialogo, che ha il suo `overflow`, continua a
+   * scorrere. In stampa il blocco stampa lo rilascia: le voci sono statiche, e
+   * una radice nascosta le taglierebbe. Senza JavaScript le voci non hanno
+   * `open` e restano nel flusso della pagina.
+   */
+  html:has(dialog[open]) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+
   body {
     margin: 0;
     background: var(--surface);
@@ -2870,6 +2886,12 @@
  * same dialogs, not a second list.
  */
 @media print {
+  /* Lo scorrimento della pagina si ferma solo sullo schermo: sulla carta le
+   * voci sono statiche sotto il piano, e una radice nascosta le taglierebbe. */
+  html:has(dialog[open]) {
+    overflow: visible;
+  }
+
   /* The scroll-driven reveal clips the label and the plan to their first
    * frame when the paper has no scroll; on paper they are simply shown. */
   .chapter.mappa > h2,

@@ -217,7 +217,9 @@ open nothing. The marks stand where the plan draws them; where a
 dot must step aside so a thumb can reach it, a short gold hairline joins it to
 its true position. Each dot also blooms a slow ring of its ink — the plan's only
 repeating motion — so the chapter reads as openable where nothing hovers, while
-the Casse carry no ring. There is no list: the dialogs are the entries. The
+the Casse carry no ring. There is no list: the dialogs are the entries. While a
+panel or the expanded map is open the page behind holds still: nothing scrolls
+it, and the bar's place is kept so nothing shifts sideways as it goes. The
 chapter states no count, no number, no route and no order, and names no Cantina
 the Comitato has not confirmed.
 
@@ -736,7 +738,8 @@ the dialog's screen-scoped opening and closing — its motion tokens, the
 discrete `display` and `overlay`, the starting style and the fallback resets
 that keep the entries visible without JavaScript; the dots' ink bloom — the
 page's one allowed loop, its `--motion-bloom` tokens, the staggered delays,
-the pause behind an open panel, the Casse with no ring, and the absence of the
+the pause behind an open panel, the page's scroll lock behind any open dialog
+released in print, the Casse with no ring, and the absence of the
 ring without motion; the
 inline script's dot-to-dialog binding and close handling under a size cap, and
 the counter as the last executable script. The expanded

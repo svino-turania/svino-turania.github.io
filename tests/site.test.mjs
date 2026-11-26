@@ -7341,6 +7341,48 @@ test('il dialogo della Mappa è carta di crema con filo d’oro, senza ombra né
   );
 });
 
+/*
+ * A native dialog is modal for the controls, not for the wheel: with a panel
+ * open the page behind still scrolls, and the scrim carries the chapter away
+ * under the panel. The lock answers to the page, as the dots' pause does: it
+ * holds for any open dialog — a Cantina's panel or the expanded map — and not
+ * for the no-script entries, which are closed dialogs and never carry `open`.
+ * `scrollbar-gutter` keeps the bar's place while the bar goes, so nothing
+ * shifts sideways as the panel opens; the dialog's own `overflow` still
+ * scrolls. The print block releases the lock, because on paper the entries are
+ * static and a hidden root would clip them: the page keeps its five media
+ * queries and its one screen block.
+ */
+test('mentre un pannello o la Mappa è aperto la pagina dietro non scorre', () => {
+  const css = stripCssComments(servedStylesheet());
+  const base = layerBlock(css, 'base');
+  const lock = ruleBodyFor(base, 'html:has(dialog[open])');
+  assert.match(lock, /overflow:\s*hidden/, 'la pagina dietro un dialogo aperto continua a scorrere');
+  assert.match(
+    lock,
+    /scrollbar-gutter:\s*stable/,
+    'la pagina salta di lato quando il dialogo le toglie la barra',
+  );
+
+  // The lock is the page's, not one class's: a panel opened from a dot and
+  // the map are both modal surfaces, and the guard pins the loose selector.
+  assert.doesNotMatch(
+    base,
+    /html:has\(\s*(?:\.mappa__dialog|dialog\.mappa__(?:dialog|map))\[open\]\s*\)\s*\{/s,
+    'il blocco dello scorrimento vale solo per una superficie',
+  );
+
+  // On paper the lock lets go: the print view reuses the dialogs as static
+  // entries, and an unlayered print rule outranks the base layer's.
+  const print = atRuleBlocks(css, '@media\\s+print')[0];
+  assert.ok(print, 'manca il blocco di stampa');
+  assert.match(
+    ruleBodyFor(css.slice(print.start, print.end + 1), 'html:has(dialog[open])'),
+    /overflow:\s*visible/,
+    'in stampa la pagina resta bloccata e le voci si tagliano',
+  );
+});
+
 test('il pannello della Mappa separa chi serve dalla frase, in due registri', () => {
   const css = stripCssComments(servedStylesheet());
 
