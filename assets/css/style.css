@@ -1187,10 +1187,11 @@
   }
 
   /*
-   * Il layer che scala il piano: immagine, quattro etichette, nord e sei punti
-   * sono un solo quadro. `zoom` lo ingrandisce in blocco, così etichette,
-   * punti e i loro bersagli da 44 px crescono con il disegno; a 1× è il piano
-   * intero. Nel dialogo lo script alza lo zoom a 1.5, 2 e 3.
+   * Il layer che scala il piano: immagine, le quattro etichette dei luoghi, le
+   * due Casse, il nord e i punti sono un solo quadro. `zoom` lo ingrandisce in
+   * blocco, così etichette, Casse, punti e i loro bersagli da 44 px crescono
+   * con il disegno; a 1× è il piano intero. Nel dialogo lo script alza lo zoom
+   * a 1.5, 2 e 3.
    */
   .mappa__zoom {
     position: relative;
@@ -1273,6 +1274,47 @@
   .mappa__label--street {
     font-weight: 700;
     letter-spacing: 0.14em;
+  }
+
+  /*
+   * Le Casse: segni d'oro, non voci. Ogni Cassa ancora il suo punto sul piano;
+   * l'anello cavo e il nome gli stanno accanto. Non apre nulla, non prende il
+   * focus e non fiorisce: il riempimento bordeaux resta alle cantine.
+   */
+  .mappa__cassa {
+    position: absolute;
+    inset-block-start: var(--y);
+    inset-inline-start: var(--x);
+    inline-size: 13px;
+    block-size: 13px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .mappa__cassa-mark {
+    position: absolute;
+    inset: 0;
+    display: block;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+  }
+
+  /*
+   * Il nome della Cassa nel registro dei valori piccoli: sans, gradino più
+   * piccolo, la spaziatura delle etichette stampate, l'inchiostro spento per
+   * leggersi sulla crema. Sta a destra dell'anello, sullo stesso punto.
+   */
+  .mappa__label--cassa {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: calc(100% + 4px);
+    transform: translateY(-50%);
+    color: var(--ink-muted);
+    font-family: var(--sans);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
   }
 
   /* The north mark is a quiet note in the top-right: no scale, no grid. */
@@ -2850,6 +2892,12 @@
   /* The dots are printed marks: keep the ink instead of dropping the fill. */
   .mappa__dot {
     display: block;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Le due Casse sono segni stampati: l'anello d'oro resta sulla carta. */
+  .mappa__cassa {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }

@@ -6037,6 +6037,19 @@ test('senza JavaScript i sei dialoghi scorrono sotto il piano, mentre Chiudi e i
     'senza JavaScript Chiudi resta in una voce che non è un dialogo',
   );
 
+  // The Cassa ring is a screen mark: without JavaScript the hollow gold ring
+  // goes, but the `Cassa` label stays with the plan.
+  assert.match(
+    ruleBodyFor(css, '.mappa__cassa-mark'),
+    /display:\s*none/,
+    'senza JavaScript l’anello della Cassa resta sul piano',
+  );
+  assert.doesNotMatch(
+    ruleBodyFor(css, '.mappa__cassa'),
+    /display:\s*none/,
+    'senza JavaScript la Cassa sparisce con il suo segno',
+  );
+
   // The fallback hides controls, not content: the plan and its labels stay.
   for (const selector of ['.mappa__plan', '.mappa__label', '.mappa__board']) {
     assert.doesNotMatch(
@@ -6092,6 +6105,23 @@ test('in stampa il piano e i sei dialoghi si seguono, Chiudi si nasconde e i pun
     block,
     /\.mappa__dot\s*\{[^}]*(?:-webkit-)?print-color-adjust:\s*exact/s,
     'in stampa i punti perdono il loro riempimento',
+  );
+
+  // Le due Casse sono segni stampati: l’anello resta e il colore non si perde.
+  assert.match(
+    block,
+    /\.mappa__cassa\s*\{[^}]*(?:-webkit-)?print-color-adjust:\s*exact/s,
+    'in stampa le Casse perdono il loro colore',
+  );
+  assert.doesNotMatch(
+    ruleBodyFor(block, '.mappa__cassa'),
+    /display:\s*none/,
+    'in stampa le Casse spariscono',
+  );
+  assert.equal(
+    section.querySelectorAll('.mappa__cassa').length,
+    2,
+    'la stampa non porta le due Casse',
   );
   assert.doesNotMatch(
     ruleBodyFor(block, '.mappa__plan'),
@@ -6396,8 +6426,8 @@ test('le etichette della Mappa sono testo HTML: la piazza una volta, le vie drit
   const labels = [...drawing.querySelectorAll('.mappa__label')];
   assert.deepEqual(
     labels.map((label) => normalize(label.textContent)),
-    ['Piazza Umberto I', 'la chiesa', 'Corso Trieste', 'Via Turano'],
-    'le etichette visibili non sono quelle del piano',
+    ['Piazza Umberto I', 'la chiesa', 'Corso Trieste', 'Via Turano', 'Cassa', 'Cassa'],
+    'le etichette visibili non sono quelle del piano e delle due Casse',
   );
   assert.ok(
     labels.every((label) => label.querySelector('svg, img, text') === null),
@@ -6450,6 +6480,85 @@ test('le etichette della Mappa sono testo HTML: la piazza una volta, le vie drit
     outsideDialogs.length,
     0,
     'la Mappa porta un testo visibile fuori dal piano e dai dialoghi',
+  );
+});
+
+test('le due Casse sono segni d’oro che si nominano: span senza comandi, un anello cavo nascosto e l’etichetta «Cassa»', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const layer = section.querySelector('.mappa__zoom');
+  assert.ok(layer, 'manca il layer che scala il piano');
+
+  const casse = [...layer.querySelectorAll('span.mappa__cassa')];
+  assert.equal(casse.length, 2, 'la Mappa non porta due Casse nel disegno');
+
+  const places = [
+    { x: '24.45%', y: '16.23%' },
+    { x: '46.57%', y: '77.81%' },
+  ];
+
+  casse.forEach((cassa, index) => {
+    const { x, y } = places[index];
+    const style = cassa.getAttribute('style') ?? '';
+    assert.equal(
+      style.match(/--x:\s*([\d.]+%)/)?.[1],
+      x,
+      `la Cassa ${index + 1} non è alla x del piano`,
+    );
+    assert.equal(
+      style.match(/--y:\s*([\d.]+%)/)?.[1],
+      y,
+      `la Cassa ${index + 1} non è alla y del piano`,
+    );
+
+    // Un segno, non una voce: nessun controllo, nessun dialogo, nessun focus.
+    assert.equal(cassa.hasAttribute('tabindex'), false, 'una Cassa si raggiunge con Tab');
+    assert.equal(cassa.hasAttribute('data-dialog'), false, 'una Cassa apre un dialogo');
+    assert.equal(cassa.hasAttribute('aria-controls'), false, 'una Cassa dichiara un dialogo');
+    assert.equal(
+      cassa.querySelector('button, a, [tabindex]'),
+      null,
+      'una Cassa porta un controllo o un elemento focalizzabile',
+    );
+
+    const marks = cassa.querySelectorAll('.mappa__cassa-mark');
+    assert.equal(marks.length, 1, 'una Cassa non ha un solo anello');
+    assert.equal(
+      marks[0].getAttribute('aria-hidden'),
+      'true',
+      'l’anello della Cassa non è nascosto a chi non vede',
+    );
+
+    const labels = cassa.querySelectorAll('.mappa__label--cassa');
+    assert.equal(labels.length, 1, 'una Cassa non ha una sola etichetta');
+    assert.equal(
+      normalize(labels[0].textContent),
+      'Cassa',
+      'l’etichetta della Cassa non dice «Cassa»',
+    );
+    assert.equal(
+      labels[0].getAttribute('aria-hidden'),
+      null,
+      'l’etichetta della Cassa è nascosta a chi legge',
+    );
+  });
+
+  // Le due etichette entrano nel gruppo delle etichette; le quattro dei luoghi restano.
+  const labels = [...layer.querySelectorAll('.mappa__label')];
+  assert.equal(labels.length, 6, 'il layer non tiene le quattro etichette e le due Casse');
+  assert.deepEqual(
+    labels
+      .filter((label) => !label.classList.contains('mappa__label--cassa'))
+      .map((label) => normalize(label.textContent)),
+    ['Piazza Umberto I', 'la chiesa', 'Corso Trieste', 'Via Turano'],
+    'le quattro etichette dei luoghi non sono più quelle del piano',
+  );
+
+  // I segni non sono voci della Mappa: nessuna Cassa ha un pannello da aprire.
+  assert.equal(
+    document.querySelectorAll('.mappa__cassa[data-dialog]').length,
+    0,
+    'una Cassa è legata a un dialogo',
   );
 });
 
@@ -6530,6 +6639,50 @@ test('il riquadro della Mappa ha il rapporto del piano, etichette con alone e pu
       `la Mappa proietta un’ombra o arrotonda: ${selector} non è una scheda`,
     );
   }
+});
+
+test('l’anello della Cassa è cavo in oro e la sua etichetta sta nel registro dei valori piccoli, senza fiorire', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  const cassa = ruleBodyFor(css, '.mappa__cassa');
+  assert.ok(cassa, 'manca la regola della Cassa');
+  assert.match(cassa, /position:\s*absolute/, 'la Cassa non è posata sul piano');
+  assert.match(cassa, /pointer-events:\s*none/, 'la Cassa intercetta i punti');
+
+  // L’anello è un filo d’oro cavo: il riempimento bordeaux resta alle cantine.
+  const mark = ruleBodyFor(css, '.mappa__cassa-mark');
+  assert.ok(mark, 'manca la regola dell’anello della Cassa');
+  assert.match(
+    mark,
+    /border:[^;]*\b1px\b[^;]*var\(--gold\)/,
+    'l’anello della Cassa non è un filo d’oro di un pixel',
+  );
+  assert.match(mark, /border-radius:\s*50%/, 'l’anello della Cassa non è tondo');
+  assert.doesNotMatch(mark, /background:\s*var\(--ink\)/, 'l’anello della Cassa è riempito di bordeaux');
+
+  // Il registro dei valori piccoli: sans, gradino più piccolo, spaziatura della pagina, inchiostro spento.
+  const label = ruleBodyFor(css, '.mappa__label--cassa');
+  assert.ok(label, 'manca la regola dell’etichetta della Cassa');
+  assert.match(label, /color:\s*var\(--ink-muted\)/, 'l’etichetta della Cassa non usa l’inchiostro spento');
+  assert.match(label, /font-family:\s*var\(--sans\)/, 'l’etichetta della Cassa non usa il sans');
+  assert.match(
+    label,
+    /font-size:\s*var\(--step--1\)/,
+    'l’etichetta della Cassa non usa il gradino più piccolo',
+  );
+  assert.match(
+    label,
+    /letter-spacing:\s*0\.16em/,
+    'l’etichetta della Cassa non usa la spaziatura della pagina',
+  );
+
+  // Le Casse non fioriscono: nessun anello animato e nessun prima.
+  assert.doesNotMatch(
+    css,
+    /\.mappa__cassa(?:-mark)?[^{]*\{[^}]*\banimation(?:-name)?\s*:/s,
+    'la Cassa porta un movimento che non le appartiene',
+  );
+  assert.doesNotMatch(css, /\.mappa__cassa[^{]*::before/s, 'la Cassa porta un anello che fiorisce');
 });
 
 test('il dialogo della Mappa è carta di crema con filo d’oro, senza ombra né angoli tondi, e il fondale è bordeaux', () => {
@@ -6845,8 +6998,8 @@ test('la Mappa servita tiene un solo disegno, e lo script lo sposta invece di co
   );
   assert.equal(
     document.querySelectorAll('.mappa__label').length,
-    4,
-    'la pagina serve più di quattro etichette',
+    6,
+    'la pagina serve più delle quattro etichette dei luoghi e delle due Casse',
   );
   assert.equal(
     document.querySelectorAll('.mappa__dot').length,
@@ -6976,7 +7129,8 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
     'il layer non è l’unico figlio del disegno',
   );
 
-  // One picture: the plan, its four labels, the north mark and the six dots.
+  // One picture: the plan, the four place labels, the two Cassa labels, the
+  // north mark and the six dots.
   assert.equal(
     layer.querySelectorAll('img.mappa__plan').length,
     1,
@@ -6984,8 +7138,8 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
   );
   assert.equal(
     layer.querySelectorAll('.mappa__label').length,
-    4,
-    'il layer non tiene le quattro etichette',
+    6,
+    'il layer non tiene le quattro etichette e le due Casse',
   );
   assert.equal(
     layer.querySelectorAll('.mappa__north').length,
@@ -6997,16 +7151,22 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
     MAPPA_ENTRIES.length,
     'il layer non tiene i sei punti delle cantine',
   );
+  assert.equal(
+    layer.querySelectorAll('.mappa__cassa').length,
+    2,
+    'il layer non tiene le due Casse',
+  );
 
-  // The served page still has one plan, one piazza, four labels and six dots.
+  // The served page still has one plan, one piazza, six labels and six dots.
   assert.equal(document.querySelectorAll('img.mappa__plan').length, 1);
-  assert.equal(document.querySelectorAll('.mappa__label').length, 4);
+  assert.equal(document.querySelectorAll('.mappa__label').length, 6);
   assert.equal(
     (normalize(document.body.textContent).match(/Piazza Umberto I/g) ?? []).length,
     1,
     'la piazza compare più di una volta nel markup servito',
   );
   assert.equal(document.querySelectorAll('.mappa__dot').length, MAPPA_ENTRIES.length);
+  assert.equal(document.querySelectorAll('.mappa__cassa').length, 2);
 
   // The layer is what carries the CSS zoom, at the plan's ratio.
   const css = stripCssComments(servedStylesheet());
