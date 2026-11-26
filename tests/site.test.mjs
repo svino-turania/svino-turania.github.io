@@ -5716,84 +5716,105 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
  * The chapter carries no digit at all: no count and no numbered pin.
  */
 /*
- * Le posizioni del piano, in percentuale del riquadro del disegno, nord in
- * alto, nell'ordine dei punti serviti. `nudge` è lo scostamento in pixel che
- * ogni anello fa per lasciare un bersaglio da 44 px al pollice: è scritto nel
- * markup, mai calcolato dallo script. Due punti — Medecu e Santuccella — non si
- * scostano e non portano il filo.
- */
-const MAPPA_POSITIONS = Object.freeze([
-  { x: '35.41%', y: '29.05%', nudge: [0, 0] },
-  { x: '41.47%', y: '42.07%', nudge: [-16, -8] },
-  { x: '43.52%', y: '43.19%', nudge: [17, 2] },
-  { x: '54.04%', y: '49.44%', nudge: [16, 7] },
-  { x: '61.21%', y: '75.24%', nudge: [0, 0] },
-  { x: '47.43%', y: '72.24%', nudge: [-5, 16] },
-  { x: '47.42%', y: '68.00%', nudge: [11, -5] },
-  { x: '45.18%', y: '60.06%', nudge: [3, -12] },
-  { x: '37.07%', y: '57.35%', nudge: [-16, 0] },
-  { x: '27.65%', y: '44.30%', nudge: [-11, 7] },
-]);
-
-/*
  * La descrizione del piano: la frase confermata, senza cifra e senza la
  * vecchia cautela sulle posizioni.
  */
 const MAPPA_ALT =
   'Pianta del borgo di Turania: i fabbricati, le strade e la piazza, con le cantine segnate in bordeaux e le due casse in oro.';
 
+/*
+ * Le voci del piano, nell'ordine servito. `x` e `y` sono la posizione vera in
+ * percentuale del riquadro del disegno, nord in alto; `nudge` è lo scostamento
+ * in pixel che ogni anello fa per lasciare un bersaglio da 44 px al pollice: è
+ * scritto nel markup, mai calcolato dallo script. Due punti — Medecu e
+ * Santuccella — non si scostano e non portano il filo.
+ */
 const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'cantina-medecu',
     name: 'Quissi de lu Medecu',
     inside: 'Pro Loco Civita — polpette al sugo',
+    x: '35.41%',
+    y: '29.05%',
+    nudge: { dx: 0, dy: 0 },
   },
   {
     id: 'cantina-casianu',
     name: 'Quissi de Casianu',
     inside: 'vino',
+    x: '41.47%',
+    y: '42.07%',
+    nudge: { dx: -16, dy: -8 },
   },
   {
     id: 'cantina-enzo',
     name: 'Cantina di Enzo',
     inside: 'La Cortesia Home Restaurant — pasta e fagioli, trippa al sugo',
+    x: '43.52%',
+    y: '43.19%',
+    nudge: { dx: 17, dy: 2 },
   },
   {
     id: 'cantina-callaru',
     name: 'Quissi de Callaru',
     inside: 'Settecapocce + Palaterra — ravioli al tartufo e birra artigianale',
+    x: '54.04%',
+    y: '49.44%',
+    nudge: { dx: 16, dy: 7 },
   },
   {
     id: 'cantina-santuccella',
     name: 'Quissi de Santuccella',
     inside: 'vino',
+    x: '61.21%',
+    y: '75.24%',
+    nudge: { dx: 0, dy: 0 },
   },
   {
     id: 'cantina-macellari',
     name: 'Quissi de lu Macellari',
     inside: 'vino',
+    x: '47.43%',
+    y: '72.24%',
+    nudge: { dx: -5, dy: 16 },
   },
   {
     id: 'cantina-brunetto',
     name: 'Quissi de Brunetto',
     inside: 'Tobia — gin e amari',
+    x: '47.42%',
+    y: '68.00%',
+    nudge: { dx: 11, dy: -5 },
   },
   {
     id: 'cantina-ammazzatora',
     name: 'L’ammazzatora',
     inside: 'Il Grembiule Bistrot — taglieri e dolci',
+    x: '45.18%',
+    y: '60.06%',
+    nudge: { dx: 3, dy: -12 },
   },
   {
     id: 'cantina-santu',
     name: 'Quissi de Santu',
     inside: 'La Cueva Home Restaurant — polenta',
+    x: '37.07%',
+    y: '57.35%',
+    nudge: { dx: -16, dy: 0 },
   },
   {
     id: 'cantina-gabriele',
     name: 'Quissi de Gabriele',
     inside: 'vino',
+    x: '27.65%',
+    y: '44.30%',
+    nudge: { dx: -11, dy: 7 },
   },
 ]);
+
+// Gli anelli scostati: quelli che portano uno scostamento scritto, e solo quelli.
+const displacedDots = () =>
+  MAPPA_ENTRIES.filter(({ nudge }) => nudge.dx !== 0 || nudge.dy !== 0);
 
 test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le dieci cantine del piano', () => {
   const document = loadSite();
@@ -5874,7 +5895,7 @@ test('la Mappa del Borgo sta fra la prosa e il Programma e pubblica le dieci can
   });
 });
 
-test('la Mappa nomina solo le dieci cantine del piano: nessuna riga dei padroni di casa resta', () => {
+test('le intestazioni e le righe del dentro della Mappa sono, in ordine, i dieci del piano', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
   const dialogs = [...section.querySelectorAll('dialog.mappa__dialog')];
@@ -5931,7 +5952,6 @@ test('ogni punto della Mappa è un pulsante che apre il suo dialogo e nessun pun
   const spots = [];
   pins.forEach((pin, index) => {
     const expected = MAPPA_ENTRIES[index];
-    const position = MAPPA_POSITIONS[index];
     assert.equal(
       pin.getAttribute('type'),
       'button',
@@ -5979,9 +5999,9 @@ test('ogni punto della Mappa è un pulsante che apre il suo dialogo e nessun pun
     const style = pin.getAttribute('style') ?? '';
     const x = style.match(/--x:\s*([\d.]+%)/)?.[1];
     const y = style.match(/--y:\s*([\d.]+%)/)?.[1];
-    assert.equal(x, position.x, `il punto ${expected.id} non è alla x del piano`);
-    assert.equal(y, position.y, `il punto ${expected.id} non è alla y del piano`);
-    const [nx, ny] = position.nudge;
+    assert.equal(x, expected.x, `il punto ${expected.id} non è alla x del piano`);
+    assert.equal(y, expected.y, `il punto ${expected.id} non è alla y del piano`);
+    const { dx: nx, dy: ny } = expected.nudge;
     const authoredX = style.match(/--nudge-x:\s*(-?\d+)/)?.[1];
     const authoredY = style.match(/--nudge-y:\s*(-?\d+)/)?.[1];
     if (nx === 0 && ny === 0) {
@@ -6036,11 +6056,11 @@ test('ogni anello scostato è legato al suo punto vero da un filo, e solo lui', 
   const dots = [...layer.querySelectorAll('button.mappa__dot')];
   assert.equal(dots.length, MAPPA_ENTRIES.length, 'la Mappa non ha un punto per cantina');
 
-  const displaced = MAPPA_POSITIONS.filter(({ nudge }) => nudge[0] !== 0 || nudge[1] !== 0);
+  const displaced = displacedDots();
 
   dots.forEach((dot, index) => {
     const expected = MAPPA_ENTRIES[index];
-    const [nx, ny] = MAPPA_POSITIONS[index].nudge;
+    const { dx: nx, dy: ny } = expected.nudge;
     const leaders = [...dot.querySelectorAll('.mappa__leader')];
     if (nx === 0 && ny === 0) {
       assert.equal(
@@ -6361,7 +6381,7 @@ test('in stampa il piano e i dieci dialoghi si seguono, Chiudi si nasconde e i p
   // l'oro del filo va sulla carta con l'anello.
   assert.equal(
     section.querySelectorAll('.mappa__leader').length,
-    MAPPA_POSITIONS.filter(({ nudge }) => nudge[0] !== 0 || nudge[1] !== 0).length,
+    displacedDots().length,
     'la stampa non porta il filo di ogni anello scostato',
   );
   assert.ok(
@@ -6554,17 +6574,36 @@ test('i punti della Mappa fioriscono il proprio inchiostro, e la carta resta fer
 
   /*
    * One step behind the last: the first dot has no delay and the other nine
-   * carry the multipliers from one to nine, so the ten read as one field.
+   * carry the multipliers from one to nine, so the ten read as one field. The
+   * multiplier is each dot's own `--bloom`, written in its markup, so adding a
+   * dot needs no stylesheet rule — only its place in the plan. One rule, not
+   * nine positional selectors.
    */
-  const delays = [
-    ...motion.matchAll(
-      /animation-delay:\s*calc\(var\(--motion-bloom-step\)\s*\*\s*(\d+)\)/g,
-    ),
-  ].map((match) => Number(match[1]));
+  assert.match(
+    motion,
+    /animation-delay:\s*calc\(\s*var\(--motion-bloom-step\)\s*\*\s*var\(--bloom(?:,\s*0)?\)\s*\)/,
+    'lo sfalsamento dei punti non moltiplica il proprio --bloom',
+  );
+  assert.equal(
+    [...motion.matchAll(/var\(--bloom\b/g)].length,
+    1,
+    'lo sfalsamento dei punti non è una regola sola',
+  );
+  assert.doesNotMatch(
+    motion,
+    /\.mappa__dot:nth-of-type\(\d+\)\s+\.mappa__dot-mark::before/,
+    'lo sfalsamento dei punti dipende ancora dalla posizione nel documento',
+  );
+  const document = loadSite();
+  const staggered = [...document.querySelectorAll('.mappa__zoom button.mappa__dot')];
+  assert.equal(staggered.length, MAPPA_ENTRIES.length, 'la Mappa non ha i dieci punti');
   assert.deepEqual(
-    delays,
-    [1, 2, 3, 4, 5, 6, 7, 8, 9],
-    'i dieci punti non sono sfalsati uno dopo l’altro',
+    staggered.map((dot) => {
+      const style = dot.getAttribute('style') ?? '';
+      return Number(style.match(/--bloom:\s*(\d+)/)?.[1]);
+    }),
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    'i dieci punti non portano, in ordine di piano, il proprio passo di fioritura',
   );
 
   /*
@@ -6698,31 +6737,37 @@ test('la Mappa non si scusa più per le posizioni: la cautela è uscita dal corp
 });
 
 /*
- * La resa del pollice, coi numeri. A 320 px di viewport il capitolo ha 20 px
- * di margine per lato e il piano è largo 280 px; a 350, 640 e 728 px il
- * disegno cresce. I bersagli sono cerchi da 44 px: due sono separabili quando
- * i centri distano almeno 44 px. Lo scostamento è in pixel fissi, quindi il
- * divario cresce con il disegno.
- *
- * La catena della piazza — Casianu, Enzo, Callaru — è quasi allineata, con
- * Enzo in mezzo, e quella del sud ha lo stesso nodo a Brunetto. Con un tetto
- * di 18 px per anello quei divari non arrivano a 44: Casianu–Enzo parte da
- * 7,32 px e al massimo guadagna 36 px (due anelli da 18), cioè 43,32. Questo
- * test fissa il massimo raggiunto — nessun nuovo scontro e i sette divari
- * stretti portati tutti oltre 41 px — e la crescita del divario a ogni
- * larghezza. Non è una resa al ribasso: è il limite della geometria.
+ * La resa del pollice, coi numeri veri. A 320 px di viewport il capitolo ha
+ * 20 px di margine per lato e il piano è largo 280 px; a 350, 640 e 728 px il
+ * disegno cresce. I bersagli sarebbero cerchi da 44 px, ma qui due cerchi pieni
+ * da 44 px non possono essere disgiunti: Casianu ed Enzo partono a 7,32 px di
+ * centro e il tetto di 18 px per anello ne guadagna al massimo 36, cioè 43,32
+ * px, sotto i 44. Il tetto è rispettato — nessun anello si sposta oltre 18 px —
+ * e il criterio del pollice è raggiunto con l'area distinta degli anelli: i
+ * centri restano a 41,38 px nel punto più stretto, e i cerchi visibili da 13 px
+ * non scendono sotto 28 px di distanza bordo a bordo, così ognuno resta
+ * separato. Nessun nuovo scontro e il divario cresce a ogni larghezza.
  */
 test('a 320 px i bersagli sono separati il più possibile e i divari crescono col disegno', () => {
   const document = loadSite();
   const layer = document.querySelector('.mappa__zoom');
   const dots = [...layer.querySelectorAll('button.mappa__dot')];
-  assert.equal(dots.length, MAPPA_POSITIONS.length, 'la Mappa non ha i dieci punti');
+  assert.equal(dots.length, MAPPA_ENTRIES.length, 'la Mappa non ha i dieci punti');
 
-  const centres = MAPPA_POSITIONS.map(({ x, y, nudge }) => ({
+  // (a) Il tetto è 18 px per anello, e nessuno lo supera.
+  const displacement = Math.max(
+    ...MAPPA_ENTRIES.map(({ nudge }) => Math.hypot(nudge.dx, nudge.dy)),
+  );
+  assert.ok(
+    displacement <= 18,
+    `un anello si scosta di ${displacement.toFixed(2)} px: oltre il tetto di 18`,
+  );
+
+  const centres = MAPPA_ENTRIES.map(({ x, y, nudge }) => ({
     x: Number.parseFloat(x) / 100,
     y: Number.parseFloat(y) / 100,
-    dx: nudge[0],
-    dy: nudge[1],
+    dx: nudge.dx,
+    dy: nudge.dy,
   }));
   const pairOf = (a, b) => [MAPPA_ENTRIES[a].id, MAPPA_ENTRIES[b].id].sort().join('/');
   const crowded = new Set(
@@ -6749,15 +6794,13 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
   };
 
   const collidingAtNarrowest = [];
+  let narrowest = Infinity;
   for (let a = 0; a < centres.length; a += 1) {
     for (let b = a + 1; b < centres.length; b += 1) {
       const name = pairOf(a, b);
       const gap = distance(a, b, widths[0]);
+      if (gap < narrowest) narrowest = gap;
       if (gap < 44) collidingAtNarrowest.push(name);
-      assert.ok(
-        gap >= 41,
-        `${name} ha i bersagli a ${gap.toFixed(2)} px: sotto il pollice`,
-      );
       // Nessuno scontro nuovo: chi stava fuori dai 44 px ci resta fuori.
       if (!crowded.has(name)) {
         assert.ok(
@@ -6775,6 +6818,19 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
       }
     }
   }
+
+  // (b) A 280 px il divario minimo fra due centri, misurato, è 41,38 px.
+  assert.ok(
+    Math.abs(narrowest - 41.38) < 0.01,
+    `il divario minimo fra due centri a 280 px è ${narrowest.toFixed(2)} px, non 41,38`,
+  );
+
+  // (c) Gli anelli da 13 px restano separati: almeno 28 px bordo a bordo.
+  assert.ok(
+    narrowest - 13 >= 28,
+    `gli anelli da 13 px si avvicinano a ${(narrowest - 13).toFixed(2)} px bordo a bordo: meno di 28`,
+  );
+
   assert.deepEqual(
     [...collidingAtNarrowest].sort(),
     [...crowded].sort(),
@@ -7525,7 +7581,7 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
   );
   assert.equal(
     layer.querySelectorAll('.mappa__leader').length,
-    MAPPA_POSITIONS.filter(({ nudge }) => nudge[0] !== 0 || nudge[1] !== 0).length,
+    displacedDots().length,
     'il layer non tiene il filo di ogni anello scostato',
   );
 
@@ -7541,7 +7597,7 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
   assert.equal(document.querySelectorAll('.mappa__cassa').length, 2);
   assert.equal(
     document.querySelectorAll('.mappa__leader').length,
-    MAPPA_POSITIONS.filter(({ nudge }) => nudge[0] !== 0 || nudge[1] !== 0).length,
+    displacedDots().length,
     'la pagina non serve il filo di ogni anello scostato',
   );
 

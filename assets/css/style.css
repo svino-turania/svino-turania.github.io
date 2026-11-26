@@ -2658,11 +2658,13 @@
        * The dots are the plan's hotspots, and a phone has no hover to say so:
        * each keeps a hairline ring of its own ink blooming out of it and
        * thinning away at the 44 px target's edge, the ten staggered by a step
-       * so they read as a field rather than as one flash. This is the page's
-       * one repeating motion. It carries no reading, it exists only on screen
-       * with motion allowed, and it pauses behind an open Cantina panel — in
-       * the chapter or over the expanded map — so the panel being read is the
-       * only thing moving.
+       * so they read as a field rather than as one flash. The step is each
+       * dot's own `--bloom`, carried in its markup as its place in the plan,
+       * so a new dot needs no rule here. This is the page's one repeating
+       * motion. It carries no reading, it exists only on screen with motion
+       * allowed, and it pauses behind an open Cantina panel — in the chapter
+       * or over the expanded map — so the panel being read is the only thing
+       * moving.
        */
       .mappa__dot-mark::before {
         content: "";
@@ -2677,42 +2679,7 @@
         opacity: 0;
         pointer-events: none;
         animation: ink-bloom var(--motion-bloom) var(--ease-set) infinite;
-      }
-
-      .mappa__dot:nth-of-type(2) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 1);
-      }
-
-      .mappa__dot:nth-of-type(3) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 2);
-      }
-
-      .mappa__dot:nth-of-type(4) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 3);
-      }
-
-      .mappa__dot:nth-of-type(5) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 4);
-      }
-
-      .mappa__dot:nth-of-type(6) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 5);
-      }
-
-      .mappa__dot:nth-of-type(7) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 6);
-      }
-
-      .mappa__dot:nth-of-type(8) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 7);
-      }
-
-      .mappa__dot:nth-of-type(9) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 8);
-      }
-
-      .mappa__dot:nth-of-type(10) .mappa__dot-mark::before {
-        animation-delay: calc(var(--motion-bloom-step) * 9);
+        animation-delay: calc(var(--motion-bloom-step) * var(--bloom, 0));
       }
 
       /*

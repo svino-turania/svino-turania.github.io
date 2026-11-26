@@ -88,9 +88,10 @@ number, no count and no route.**
 
 - **No caveat.** `Posizione indicativa` and its element leave every panel, its
   stylesheet rule goes with it, and no other caveat replaces it.
-- **The description says what the drawing contains, without a count.** It names
-  the buildings, the streets and the piazza, the Cantine in bordeaux and the two
-  Casse in gold, and no other fact.
+- **The description says what the drawing contains, without a digit and
+  without a number of Cantine.** It names the buildings, the streets and the
+  piazza, the Cantine in bordeaux and the two Casse in gold — the spec's exact
+  sentence — and no other fact.
 
 ### The 3× ceiling
 

@@ -305,9 +305,11 @@
           COME SI SPOSTA UN PUNTO: --x e --y in percentuale sono il punto vero
           sul piano; --nudge-x e --nudge-y, in pixel, sono lo scostamento del
           bersaglio da 44 px quando due anelli si toccherebbero, e il filo
-          d'oro dentro il punto unisce l'anello al punto vero. COME SI AGGIUNGE
-          UNA CANTINA: un <button> qui con data-dialog="<id>-dialog" e un
-          <dialog> con lo stesso id; i dialoghi sono l'unica voce della Mappa.
+          d'oro dentro il punto unisce l'anello al punto vero. --bloom è il
+          passo della fioritura: il posto del punto nell'ordine del piano, da 0.
+          COME SI AGGIUNGE UNA CANTINA: un <button> qui con
+          data-dialog="<id>-dialog", il proprio --bloom e un <dialog> con lo
+          stesso id; i dialoghi sono l'unica voce della Mappa.
         -->
         <figure class="mappa__board">
           <div class="mappa__drawing">
@@ -345,41 +347,41 @@
                 i divari stretti si fermano poco sopra 41. Nessun punto si
                 muove più di 18 px.
               -->
-              <button type="button" class="mappa__dot" data-dialog="cantina-medecu-dialog" aria-controls="cantina-medecu-dialog" aria-labelledby="cantina-medecu-dialog-title" style="--x: 35.41%; --y: 29.05%">
+              <button type="button" class="mappa__dot" data-dialog="cantina-medecu-dialog" aria-controls="cantina-medecu-dialog" aria-labelledby="cantina-medecu-dialog-title" style="--x: 35.41%; --y: 29.05%; --bloom: 0">
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-casianu-dialog" aria-controls="cantina-casianu-dialog" aria-labelledby="cantina-casianu-dialog-title" style="--x: 41.47%; --y: 42.07%; --nudge-x: -16; --nudge-y: -8">
+              <button type="button" class="mappa__dot" data-dialog="cantina-casianu-dialog" aria-controls="cantina-casianu-dialog" aria-labelledby="cantina-casianu-dialog-title" style="--x: 41.47%; --y: 42.07%; --nudge-x: -16; --nudge-y: -8; --bloom: 1">
                 <span class="mappa__leader" aria-hidden="true"></span>
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-enzo-dialog" aria-controls="cantina-enzo-dialog" aria-labelledby="cantina-enzo-dialog-title" style="--x: 43.52%; --y: 43.19%; --nudge-x: 17; --nudge-y: 2">
+              <button type="button" class="mappa__dot" data-dialog="cantina-enzo-dialog" aria-controls="cantina-enzo-dialog" aria-labelledby="cantina-enzo-dialog-title" style="--x: 43.52%; --y: 43.19%; --nudge-x: 17; --nudge-y: 2; --bloom: 2">
                 <span class="mappa__leader" aria-hidden="true"></span>
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-callaru-dialog" aria-controls="cantina-callaru-dialog" aria-labelledby="cantina-callaru-dialog-title" style="--x: 54.04%; --y: 49.44%; --nudge-x: 16; --nudge-y: 7">
+              <button type="button" class="mappa__dot" data-dialog="cantina-callaru-dialog" aria-controls="cantina-callaru-dialog" aria-labelledby="cantina-callaru-dialog-title" style="--x: 54.04%; --y: 49.44%; --nudge-x: 16; --nudge-y: 7; --bloom: 3">
                 <span class="mappa__leader" aria-hidden="true"></span>
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-santuccella-dialog" aria-controls="cantina-santuccella-dialog" aria-labelledby="cantina-santuccella-dialog-title" style="--x: 61.21%; --y: 75.24%">
+              <button type="button" class="mappa__dot" data-dialog="cantina-santuccella-dialog" aria-controls="cantina-santuccella-dialog" aria-labelledby="cantina-santuccella-dialog-title" style="--x: 61.21%; --y: 75.24%; --bloom: 4">
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-macellari-dialog" aria-controls="cantina-macellari-dialog" aria-labelledby="cantina-macellari-dialog-title" style="--x: 47.43%; --y: 72.24%; --nudge-x: -5; --nudge-y: 16">
+              <button type="button" class="mappa__dot" data-dialog="cantina-macellari-dialog" aria-controls="cantina-macellari-dialog" aria-labelledby="cantina-macellari-dialog-title" style="--x: 47.43%; --y: 72.24%; --nudge-x: -5; --nudge-y: 16; --bloom: 5">
                 <span class="mappa__leader" aria-hidden="true"></span>
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-brunetto-dialog" aria-controls="cantina-brunetto-dialog" aria-labelledby="cantina-brunetto-dialog-title" style="--x: 47.42%; --y: 68.00%; --nudge-x: 11; --nudge-y: -5">
+              <button type="button" class="mappa__dot" data-dialog="cantina-brunetto-dialog" aria-controls="cantina-brunetto-dialog" aria-labelledby="cantina-brunetto-dialog-title" style="--x: 47.42%; --y: 68.00%; --nudge-x: 11; --nudge-y: -5; --bloom: 6">
                 <span class="mappa__leader" aria-hidden="true"></span>
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-ammazzatora-dialog" aria-controls="cantina-ammazzatora-dialog" aria-labelledby="cantina-ammazzatora-dialog-title" style="--x: 45.18%; --y: 60.06%; --nudge-x: 3; --nudge-y: -12">
+              <button type="button" class="mappa__dot" data-dialog="cantina-ammazzatora-dialog" aria-controls="cantina-ammazzatora-dialog" aria-labelledby="cantina-ammazzatora-dialog-title" style="--x: 45.18%; --y: 60.06%; --nudge-x: 3; --nudge-y: -12; --bloom: 7">
                 <span class="mappa__leader" aria-hidden="true"></span>
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-santu-dialog" aria-controls="cantina-santu-dialog" aria-labelledby="cantina-santu-dialog-title" style="--x: 37.07%; --y: 57.35%; --nudge-x: -16; --nudge-y: 0">
+              <button type="button" class="mappa__dot" data-dialog="cantina-santu-dialog" aria-controls="cantina-santu-dialog" aria-labelledby="cantina-santu-dialog-title" style="--x: 37.07%; --y: 57.35%; --nudge-x: -16; --nudge-y: 0; --bloom: 8">
                 <span class="mappa__leader" aria-hidden="true"></span>
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
-              <button type="button" class="mappa__dot" data-dialog="cantina-gabriele-dialog" aria-controls="cantina-gabriele-dialog" aria-labelledby="cantina-gabriele-dialog-title" style="--x: 27.65%; --y: 44.30%; --nudge-x: -11; --nudge-y: 7">
+              <button type="button" class="mappa__dot" data-dialog="cantina-gabriele-dialog" aria-controls="cantina-gabriele-dialog" aria-labelledby="cantina-gabriele-dialog-title" style="--x: 27.65%; --y: 44.30%; --nudge-x: -11; --nudge-y: 7; --bloom: 9">
                 <span class="mappa__leader" aria-hidden="true"></span>
                 <span class="mappa__dot-mark" aria-hidden="true"></span>
               </button>
