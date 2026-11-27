@@ -695,6 +695,16 @@ GitHub Pages serves from the Actions deployment, not from a branch folder, and
 the address is the one recorded in ADR-0001. The workflow does not run on pull
 requests, so preview a pull request locally before merging.
 
+GitHub Pages serves every file with `cache-control: max-age=600`, and it caches
+the page and its stylesheet as separate URLs. The page therefore links the
+stylesheet under a URL stamped with the sheet's content hash,
+`/assets/css/style.css?v=<hash>`: a browser that fetched the new page asks for a
+URL it has never cached, so the new markup cannot be paired with the previous
+stylesheet. The suite recomputes the hash, so after editing
+`assets/css/style.css` restamp the link or `npm test` fails. The Pages CDN
+ignores the query string in its own cache key, so the stamp protects the browser
+copy; the edge copy is refreshed by the deployment. See ADR-0029.
+
 ## Tests
 
 The test seam is the repository root, as a static server serves it. `npm test`
