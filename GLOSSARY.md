@@ -72,9 +72,9 @@ confirmed: `Bagno`, the two-figure WC sign at the church, and
 the facility's accessibility, not the person: the Comitato's plan writes
 `Bagno Disabili`, and the page's `Bagno accessibile` is the house style for the
 same facility. A facility mark stands on the building it serves, clear of the
-labels, and carries no hairline; only an entry's dot stands at the plan's
-measured point. The Mappa states nothing else about a Bagno — no provider, no
-price, no hours, no sentence and no count.
+labels; where it must step aside, a bronze hairline joins it back to its point,
+as a gold hairline joins a stepped-aside dot. The Mappa states nothing else
+about a Bagno — no provider, no price, no hours, no sentence and no count.
 
 ## Borgo
 
@@ -126,15 +126,16 @@ inside. Two Casse are gold marks that name themselves and open nothing. Two
 Bagni are the Mappa's third class: bronze pictograms — the two-figure WC sign
 and the wheelchair — that name themselves to a screen reader, carry no visible
 word, open nothing and bloom no ring; the church's sign steps aside so the
-`la chiesa` label stays readable. The dots are the map's entries: there is no
-list beside or beneath the drawing. The marks stand at the plan's real
-positions, and where a dot must step aside for a thumb a gold hairline joins it
-to its true position; the hairline is not a route and carries no arrow. A
-facility mark is the exception: it stands on the building it serves, clear of
-the labels, and carries no hairline. The Mappa claims places, not an order, and
-names no count, no number, no route and no entry the Comitato has not
-confirmed. Capitalise when naming the chapter (`la Mappa del Borgo`); the page
-prose does not use the term.
+`la chiesa` label stays readable, and a bronze hairline joins it back to its
+point. The dots are the map's entries: there is no list beside or beneath the
+drawing. The marks stand at the plan's real positions, and where a dot must
+step aside for a thumb a gold hairline joins it to its true position; the
+hairline is not a route and carries no arrow. A facility mark uses the same
+idiom in bronze: it stands on the building it serves, clear of the labels, and
+a hairline joins any displaced sign to its point. The Mappa claims places, not
+an order, and names no count, no number, no route and no entry the Comitato has
+not confirmed. Capitalise when naming the chapter (`la Mappa del Borgo`); the
+page prose does not use the term.
 
 ## Turania (RI)
 

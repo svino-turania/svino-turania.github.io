@@ -95,7 +95,7 @@
          accoppiarsi al foglio precedente che il browser tiene per dieci
          minuti. Dopo ogni modifica a style.css, ristampare qui: il test lo
          impone. Vedi ADR-0029. -->
-    <link rel="stylesheet" href="/assets/css/style.css?v=f814519c1a">
+    <link rel="stylesheet" href="/assets/css/style.css?v=b393c5f4f8">
   </head>
   <body>
     <!--
@@ -349,8 +349,9 @@
                 I DUE BAGNI: targhe di bronzo, non voci della Mappa. --x/--y
                 sono il punto vero sul piano; --sign-x/--sign-y, in pixel,
                 scostano la targa dal punto dove servono — la chiesa, per
-                lasciare leggibile l'etichetta `la chiesa` — e non c'è filo:
-                la targa sta sull'edificio che serve, non su un punto misurato.
+                lasciare leggibile l'etichetta `la chiesa`. La targa scostata
+                porta un filo di bronzo che torna al punto vero, come il filo
+                delle voci; il bagno accessibile sta sul suo punto e non ne ha.
                 Il pictogramma è decorativo; il nome accessibile sta sulla
                 targa. Non si aprono, non prendono il focus e non fioriscono.
               -->
@@ -361,6 +362,7 @@
                 (docs/licenses/Apache-2.0.txt).
               -->
               <span class="mappa__bagno" role="img" aria-label="Bagno" style="--x: 50.78%; --y: 47.44%; --sign-x: 14; --sign-y: -14">
+                <span class="mappa__leader" aria-hidden="true"></span>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false">
                   <path d="M5.5 22v-7.5H4V9c0-1.1.9-2 2-2h3c1.1 0 2 .9 2 2v5.5H9.5V22h-4zM18 22v-6h3l-2.54-7.63A2.01 2.01 0 0 0 16.56 7h-.12a2 2 0 0 0-1.9 1.37L12 16h3v6h3zM7.5 6c1.11 0 2-.89 2-2s-.89-2-2-2s-2 .89-2 2s.89 2 2 2zm9 0c1.11 0 2-.89 2-2s-.89-2-2-2s-2 .89-2 2s.89 2 2 2z"/>
                 </svg>

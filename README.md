@@ -222,10 +222,11 @@ wheelchair symbol at the plan's south — the Material Icons `wc` and
 halo — a glow of the page's own paper, not a cast shadow —
 opening nothing and blooming no ring. The church's sign
 steps 14 px right and up from its true point — the point falls inside the `la
-chiesa` label — and carries no hairline: a facility mark stands on the building
-it serves, clear of the labels, where an entry's dot stands at the plan's
-measured point. Each dot also blooms a slow ring of its ink — the plan's only
-repeating motion — so the chapter reads as openable where nothing hovers, while
+chiesa` label — and a short bronze hairline joins it back to that point, as a
+stepped-aside dot's gold hairline does. The accessible Bagno sits on its point
+and carries no hairline. Each dot also blooms a slow ring of its ink — the
+plan's only repeating motion — so the chapter reads as openable where nothing
+hovers, while
 the Casse carry no ring and the Bagni stay still. There is no list: the dialogs
 are the entries. While a panel or the expanded map is open the page behind
 holds still: nothing scrolls it, and the bar's place is kept so nothing shifts
@@ -458,7 +459,7 @@ a short comment beside it in the file:
 | Edition               | `II EDIZIONE`                  | the lockup beside the signature, the colophon and the metadata |
 | Opening image description | the approved Italian sentence | the `alt` attribute of the image in `.hero-photo`          |
 | Photograph description| the approved Italian sentence  | the `alt` attribute of the Cantina photograph                 |
-| Marks on the map      | ten Comitato-confirmed Cantine, the `Piazzale della chiesa`, two Casse and two Bagni | one dot button and one `<dialog>` with the same `id` per entry, the panel carrying the provider line and the sentence; two non-interactive gold marks, each with its `Cassa` label; two non-interactive bronze pictograms, `Bagno` and `Bagno accessibile`, with no visible word; no list |
+| Marks on the map      | ten Comitato-confirmed Cantine, the `Piazzale della chiesa`, two Casse and two Bagni | one dot button and one `<dialog>` with the same `id` per entry, the panel carrying the provider line and the sentence; two non-interactive gold marks, each with its `Cassa` label; two non-interactive bronze pictograms, `Bagno` and `Bagno accessibile`, the church's joined to its true point by a bronze hairline, with no visible word; no list |
 | Locandina download    | `assets/download/locandina-svino-ii-edizione.jpg` | the single link in the closing band, at every width |
 
 The date is the one value the page states in several forms. Change
@@ -532,10 +533,10 @@ the dots in the same drawing markup.
 The two Bagni are facility marks, not entries: a `span.mappa__bagno` with
 `role="img"` and its `aria-label`, its plan point in `--x`/`--y` and, only
 where the sign must clear a label, the pixel offset in `--sign-x`/`--sign-y`.
-To move a Bagno, change its point; the offset belongs to the sign, and the mark
-carries no hairline, opens nothing and takes no focus. The two live in the
-drawing layer after the place labels and before the dots, so the entries paint
-above them.
+To move a Bagno, change its point; the offset belongs to the sign, its hairline
+follows the offset in `--sign-x`/`--sign-y`, and the mark opens nothing and
+takes no focus. The two live in the drawing layer after the place labels and
+before the dots, so the entries paint above them.
 
 A test requires one dot and one dialog per
 Comitato-confirmed Cantina and the same `id` set; it fails if the chapter
@@ -766,7 +767,8 @@ palette, a transparent ground, and the comment that says it is generated from
 the cadastral base and must not be edited by hand. It pins the two Bagni as
 non-interactive `role="img"` marks at the Comitato's points, with the church
 sign's +14/−14 px offset, their accessible names, the decorative pictograms
-filled with the mark's `currentColor`, the bronze and the cream halo, and their
+filled with the mark's `currentColor`, the bronze and the cream halo, the church
+sign's bronze hairline and the accessible sign's absence of one, and their
 presence without JavaScript and in print; it measures the church sign's
 clearance from the nearest entry ring at 280 px — 2.83 px — and requires it to
 grow with the drawing. It pins the no-script style that flows the ten dialogs

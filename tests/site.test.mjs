@@ -6252,15 +6252,17 @@ test('ogni anello scostato è legato al suo punto vero da un filo, e solo lui', 
 
   // Il filo è solo di chi si scosta: nove anelli su undici.
   assert.equal(
-    document.querySelectorAll('.mappa__leader').length,
+    document.querySelectorAll('.mappa__dot .mappa__leader').length,
     displaced.length,
     'la pagina non porta un filo per ogni anello scostato',
   );
   assert.ok(
     [...document.querySelectorAll('.mappa__leader')].every(
-      (leader) => leader.closest('button.mappa__dot') !== null,
+      (leader) =>
+        leader.closest('button.mappa__dot') !== null ||
+        leader.closest('.mappa__bagno') !== null,
     ),
-    'un filo vive fuori dal punto che lo possiede',
+    'un filo vive fuori dal punto o dalla targa che lo possiede',
   );
 
   // Lo script non conosce né lo scostamento né il filo.
@@ -6612,15 +6614,17 @@ test('in stampa il piano e gli undici dialoghi si seguono, Chiudi si nasconde e 
   // Il filo è dentro il punto, e il punto dice di stampare il suo inchiostro:
   // l'oro del filo va sulla carta con l'anello.
   assert.equal(
-    section.querySelectorAll('.mappa__leader').length,
+    section.querySelectorAll('.mappa__dot .mappa__leader').length,
     displacedDots().length,
     'la stampa non porta il filo di ogni anello scostato',
   );
   assert.ok(
     [...section.querySelectorAll('.mappa__leader')].every(
-      (leader) => leader.closest('.mappa__dot') !== null,
+      (leader) =>
+        leader.closest('.mappa__dot') !== null ||
+        leader.closest('.mappa__bagno') !== null,
     ),
-    'in stampa un filo vive fuori dal punto che lo porta sulla carta',
+    'in stampa un filo vive fuori dal punto o dalla targa che lo porta sulla carta',
   );
   assert.doesNotMatch(
     ruleBodyFor(block, '.mappa__plan'),
@@ -7081,10 +7085,10 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
 
   /*
    * La targa del Bagno alla chiesa sta sul punto vero, scostata di +14/−14 px
-   * perché il punto cade dentro l'etichetta `la chiesa`. Non porta filo: la
-   * targa sta sull'edificio che serve, non su un punto misurato. A 280 px la
-   * targa da 16 px lascia 2,83 px di riquadro dall'anello più vicino, Casianu,
-   * e il divario cresce col disegno.
+   * perché il punto cade dentro l'etichetta `la chiesa`, e un filo di bronzo
+   * la riunisce al punto, come il filo delle voci scostate. A 280 px la targa
+   * da 16 px lascia 2,83 px di riquadro dall'anello più vicino, Casianu, e il
+   * divario cresce col disegno.
    */
   const churchSign = MAPPA_BAGNI.find(
     ({ sign }) => sign.dx !== 0 || sign.dy !== 0,
@@ -7294,11 +7298,33 @@ test('i due Bagni sono targhe di bronzo che si nominano: span senza comandi, pic
     );
   });
 
-  // Una targa non ha il filo d'oro: sta sull'edificio, non su un punto.
+  // Solo la targa scostata porta il filo: unisce il punto vero sul piano alla
+  // targa, come il filo d'oro delle voci. È un segno decorativo, non un comando.
+  const leaders = [
+    ...layer.querySelectorAll('.mappa__bagno .mappa__leader'),
+  ];
   assert.equal(
-    layer.querySelectorAll('.mappa__bagno .mappa__leader').length,
-    0,
-    'un Bagno porta un filo d’oro che la targa non ha',
+    leaders.length,
+    1,
+    'i Bagni non portano un solo filo, quello della targa scostata',
+  );
+  const offsetSign = bagni.find((bagno) =>
+    /--sign-[xy]:\s*(?!0\b)-?\d+/.test(bagno.getAttribute('style') ?? ''),
+  );
+  assert.ok(offsetSign, 'nessuna targa porta lo scostamento del segno');
+  assert.ok(
+    offsetSign.contains(leaders[0]),
+    'il filo non appartiene alla targa scostata',
+  );
+  assert.equal(
+    leaders[0].getAttribute('aria-hidden'),
+    'true',
+    'il filo della targa non è nascosto a chi non vede',
+  );
+  assert.equal(
+    leaders[0].tagName,
+    'SPAN',
+    'il filo della targa è un controllo invece di un segno',
   );
 
   // Nessun Bagno è una voce della Mappa o una Cassa: non apre pannelli e non
@@ -7361,6 +7387,36 @@ test('le targhe dei Bagni sono bronzo a sedici pixel, con alone di crema e senza
     ruleBodyFor(css, '.mappa__bagno svg'),
     /display:\s*block/,
     'il pictogramma della targa non riempie il suo riquadro',
+  );
+
+  // Il filo parte dal punto vero (il centro della targa meno lo scostamento),
+  // è lungo quanto lo scostamento e ne prende la direzione, come quello delle
+  // voci; è di bronzo, cioè del colore della targa.
+  const leader = ruleBodyFor(css, '.mappa__bagno .mappa__leader');
+  assert.match(
+    leader,
+    /inset-block-start:\s*calc\(50% - var\(--sign-y\)/,
+    'il filo della targa non parte dal punto vero in verticale',
+  );
+  assert.match(
+    leader,
+    /inset-inline-start:\s*calc\(50% - var\(--sign-x\)/,
+    'il filo della targa non parte dal punto vero in orizzontale',
+  );
+  assert.match(
+    leader,
+    /inline-size:\s*calc\(hypot\(var\(--sign-x\), var\(--sign-y\)\)/,
+    'il filo della targa non è lungo quanto lo scostamento',
+  );
+  assert.match(
+    leader,
+    /rotate\(atan2\(var\(--sign-y\), var\(--sign-x\)\)\)/,
+    'il filo della targa non prende la direzione dello scostamento',
+  );
+  assert.match(
+    leader,
+    /background:\s*currentColor/,
+    'il filo della targa non è del colore della targa',
   );
 
   // Nessun movimento, nessuna fioritura, nessun anello: la targa non è una voce.
@@ -8159,7 +8215,7 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
     'il layer non tiene le due Casse',
   );
   assert.equal(
-    layer.querySelectorAll('.mappa__leader').length,
+    layer.querySelectorAll('.mappa__dot .mappa__leader').length,
     displacedDots().length,
     'il layer non tiene il filo di ogni anello scostato',
   );
@@ -8175,7 +8231,7 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
   assert.equal(document.querySelectorAll('.mappa__dot').length, MAPPA_ENTRIES.length);
   assert.equal(document.querySelectorAll('.mappa__cassa').length, 2);
   assert.equal(
-    document.querySelectorAll('.mappa__leader').length,
+    document.querySelectorAll('.mappa__dot .mappa__leader').length,
     displacedDots().length,
     'la pagina non serve il filo di ogni anello scostato',
   );

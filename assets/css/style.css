@@ -1353,10 +1353,10 @@
    * I due Bagni: targhe di bronzo, non voci. Ogni targa ancora il punto vero
    * del piano; --sign-x/--sign-y, in pixel scritti nel markup, la scostano
    * dove il segno serve — sulla chiesa, fuori dall'etichetta `la chiesa` — e
-   * non c'è filo, perché la targa sta sull'edificio che serve, non su un punto
-   * misurato. Il pictogramma è linea in currentColor e l'alone di crema lo
-   * stacca dai fabbricati chiari e dalle strade. Non prende il tocco, non si
-   * apre, non prende il focus e non fiorisce.
+   * la targa scostata porta un filo di bronzo che torna al punto. Il
+   * pictogramma è riempito con currentColor e l'alone di crema lo stacca dai
+   * fabbricati chiari e dalle strade. Non prende il tocco, non si apre, non
+   * prende il focus e non fiorisce.
    */
   .mappa__bagno {
     position: absolute;
@@ -1433,6 +1433,20 @@
     transform: translateY(-50%) rotate(atan2(var(--nudge-y), var(--nudge-x)));
     background: var(--gold);
     pointer-events: none;
+  }
+
+  /*
+   * Il filo della targa scostata, nel bronzo della targa: parte dal punto vero
+   * (il centro della targa meno lo scostamento del segno), è lungo quanto lo
+   * scostamento e ne prende la direzione, come il filo d'oro delle voci. Non
+   * prende il tocco. Dentro il layer, cresce con il disegno.
+   */
+  .mappa__bagno .mappa__leader {
+    inset-block-start: calc(50% - var(--sign-y) * 1px);
+    inset-inline-start: calc(50% - var(--sign-x) * 1px);
+    inline-size: calc(hypot(var(--sign-x), var(--sign-y)) * 1px);
+    transform: translateY(-50%) rotate(atan2(var(--sign-y), var(--sign-x)));
+    background: currentColor;
   }
 
   .mappa__dot:focus-visible {

@@ -66,17 +66,24 @@ dialog, no number and no visible word, and add no count.**
   the page's own paper, casting nothing. The page's one cast shadow remains the
   cartoline's (ADR-0020).
 
-### The church sign and the hairline it does not have
+### The church sign and its hairline
 
 - **The sign steps aside; its point stays recorded.** The `Bagno`'s plan point
-  falls inside the `la chiesa` text box. A hairline from the true point to a
-  displaced sign would start inside the word and be swallowed by the label's
-  halo, so the sign takes a fixed `+14` / `−14` px offset — right and up — and
-  **no hairline**; `--x` and `--y` still carry the plan's true point.
+  falls inside the `la chiesa` text box, so the sign takes a fixed `+14` /
+  `−14` px offset — right and up — and a short bronze hairline joins it back
+  to the point, as the gold hairline joins a stepped-aside dot. `--x` and `--y`
+  still carry the plan's true point.
+- **The hairline is the facility mark's, and it is bronze.** It takes its
+  length and direction from the same `--sign-x` / `--sign-y` the sign already
+  carries and its colour from the mark's `currentColor`, so it is the sign's
+  own ink, not a gold thread borrowed from the Casse. The sign and its
+  hairline paint above the labels: the point sits inside `la chiesa`'s box,
+  and the label's halo would otherwise swallow the line.
 - **The rule this records.** An entry's dot and a Cassa stand at the plan's
   positions; a facility mark stands on the building it serves, clear of the
-  labels. The `Bagno accessibile` sits at its point with no offset. The three
-  place labels are unchanged.
+  labels, and any displacement is joined back to the true point by its own
+  hairline. The `Bagno accessibile` sits at its point with no offset and no
+  hairline. The three place labels are unchanged.
 - **The clearance is measured.** At the narrowest chapter — a 280 px plan — the
   14 px offset clears the label by about 2.4 px and the nearest entry ring,
   Casianu, by 2.83 px of bounding box; the gap grows with the drawing. The
@@ -112,15 +119,17 @@ commits the Comitato to no provider, price, time or opening hours for a Bagno.
   without asking, and a visitor who uses a wheelchair sees which one is theirs,
   on screen, on paper and without JavaScript.
 - **The register gains a rule of placement.** An entry stands at its measured
-  point; a facility sign stands on the building it serves, and may step aside
-  without a hairline so a label stays readable. Adding or moving a Bagno is one
-  span: its two percentages and, where needed, its two pixel offsets.
+  point; a facility sign stands on the building it serves, and where it must
+  step aside so a label stays readable, a bronze hairline joins it back to the
+  point. Adding or moving a Bagno is one span: its two percentages and, where
+  needed, its two pixel offsets.
 - **The suite pins the marks.** It asserts the two spans as non-controls at
   their percentages and offsets, their accessible names, the decorative
-  pictograms filled with `currentColor`, the bronze and the halo, their
-  presence without JavaScript and in print, and the church sign's clearance
-  from the nearest ring at 280 px. The no-digit, no-route, no-list, no-count
-  and two-script guards pass unchanged.
+  pictograms filled with `currentColor`, the bronze and the halo, the church
+  sign's bronze hairline back to its point and no hairline on the accessible
+  one, their presence without JavaScript and in print, and the church sign's
+  clearance from the nearest ring at 280 px. The no-digit, no-route, no-list,
+  no-count and two-script guards pass unchanged.
 - **The glyphs carry their licence.** Material Icons is Apache 2.0: the source
   is named in a comment above the marks, and the licence text ships at
   `docs/licenses/Apache-2.0.txt`.
@@ -135,9 +144,11 @@ commits the Comitato to no provider, price, time or opening hours for a Bagno.
   the page's no-count rule refuses.
 - **Give the marks a visible word or a legend.** Rejected: the plan stays quiet,
   and the pictograms carry the meaning by shape for a colour-blind reader.
-- **Give the church sign a hairline back to its point.** Rejected: the point
-  falls inside `la chiesa`, so the hairline would start under the label's halo
-  and read as a stray mark. The sign stands on the building it serves.
+- **Leave the church sign with no hairline.** Tried first and set aside: without
+  the hairline the displaced sign reads as a mark on the building rather than
+  as the toilet at a measured point, and the two Bagni no longer use the same
+  idiom as the stepped-aside dots. The hairline is bronze and paints above the
+  label, so the label's halo does not swallow it.
 - **Move or drop the `la chiesa` label.** Rejected for this change: the label
   identifies the church. Dropping it remains the documented fallback if the
   churchyard looks too busy in review, and would be a separate change.
