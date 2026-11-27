@@ -4,6 +4,9 @@
 - **Date:** 2026-11-19
 - **Superseded in part by:** ADR-0019 (the Programma leaves `.cantina` and
   becomes the strong interlude; the plate, the paragraph and the label stand)
+- **Amended by:** ADR-0022 (the script allowance: the page runs two executable
+  scripts — the Mappa's inline binding and the counter; the rest of the
+  one-script constraint stands)
 - **Related:** ADR-0009, ADR-0012, ADR-0015, issue #70, `index.html`,
   `assets/css/style.css`, `tests/site.test.mjs`, `README.md`
 - **Prototype:** `prototype/programma-plate` (five variants; winner D · Largo)
@@ -19,7 +22,8 @@ The approved paragraph names four instruments — organetto, fisarmonica,
 chitarra, tamburo — and the reader asked that the paragraph be associated with
 music visually, not with a generic note. The page has no illustration at all:
 its vocabulary is photography, set type, gold rules and one bordeaux band. The
-constraints do not move: no build step, one script (the counter), no third-party
+constraints do not move: no build step, one script (the counter; ADR-0022
+amends the count to two), no third-party
 host, the fixed cream/bordeaux/gold palette and the SV Serif/SV Sans, no new
 image request, and reduced motion serving the finished page.
 
@@ -117,7 +121,8 @@ never becomes a generic music mark for the section.
   shadow, that the plate is right-aligned
   with the released max width, and that it inks between the label and the
   prose. The existing guards — one `<p>`, verbatim prose, one 64 rem block, no
-  max-width viewport query, the finished-page rule, the single script — stand.
+  max-width viewport query, the finished-page rule, the single script (amended
+  by ADR-0022 to two executable scripts) — stand.
 - **The README changes with the shipped page** (ADR-0005): *Composition*, *The
   Programma*, *Motion*, *Tests* and the manual review list describe the chapter,
   the plate and its geometry.
