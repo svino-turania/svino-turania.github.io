@@ -7,7 +7,9 @@
   chapter, not every view of the map); ADR-0024 (the dots are also the expanded
   map's hotspots, and the chapter and the view each gain controls)
 - **Amended by:** ADR-0026 (the 3× ceiling now rests on *the plan is a plan, not
-  a survey*, not on the positions being placeholders)
+  a survey*, not on the positions being placeholders); ADR-0028 (*Pinch stays
+  the browser's* no longer holds: the viewport refuses pinch-zoom on the whole
+  page, and the open view keeps its own declaration)
 - **Related:** ADR-0003, ADR-0014, ADR-0015, ADR-0019, ADR-0022, ADR-0023,
   ADR-0024, `GLOSSARY.md` (*Mappa del Borgo*, *Cantina*), README
   (*Composition*, *Motion*, *Tests*), `index.html`, `assets/css/style.css`,

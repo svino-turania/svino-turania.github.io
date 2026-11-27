@@ -1553,7 +1553,10 @@
    * movimento. Il dialogo aperto è una griglia di tre righe — titolo, piano,
    * Chiudi — e la riga centrale è quella che resta e scorre. Nel markup servito
    * il disegno non c'è: lo script lo sposta qui all'apertura e lo riporta alla
-   * chiusura.
+   * chiusura. La pagina rifiuta il pizzico su tutto il documento con il
+   * viewport (ADR-0028); qui la stessa dichiarazione lo tiene anche dove un
+   * browser ignorasse il viewport: due dita spostano e scorrono il piano, non
+   * allargano ciò che sta dietro.
    */
   .mappa__map {
     inline-size: 96vw;
@@ -1563,6 +1566,7 @@
     margin: auto;
     padding: var(--space-3);
     overflow: hidden;
+    touch-action: pan-x pan-y;
     border: 1px solid var(--rule);
     border-radius: 0;
     background: var(--surface);

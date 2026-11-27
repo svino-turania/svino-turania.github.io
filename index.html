@@ -2,7 +2,14 @@
 <html lang="it">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- VIEWPORT: la pagina rifiuta lo zoom del pizzico su tutto il documento,
+         perché è una composizione e non un testo da rifluire: ingrandita taglia
+         le fotografie a filo e il piano invece di mostrarne di più. Il testo si
+         ingrandisce ancora con la dimensione impostata nel browser. iOS Safari
+         ignora `user-scalable=no` da iOS 10 e lascia il pizzico; chiuderlo
+         vorrebbe un terzo script, che il contratto dei due rifiuta. Vedi
+         ADR-0028. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="google-site-verification" content="v6C9_jVo2_mcqU-TtVFoIi9oQlLX8pIoog-sE6YBVC4">
     <!-- TITOLO E DESCRIZIONE: ripetono edizione, data e luogo; aggiornarli con i valori della pagina. -->
     <title>sVino — II EDIZIONE · festa del vino a Turania (RI) · 6 dicembre 2026</title>

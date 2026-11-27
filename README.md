@@ -230,7 +230,9 @@ fingers on a trackpad), the arrow keys and the scrollbar pan it natively — and
 one layer wrapping the plan, its labels, its dots and the two Casse scales as
 one picture at 1, 1.5, 2 and 3×, with three quiet paper squares at the frame's
 bottom right for `+`, `−` and the whole plan; a double-click zooms toward the
-pointer, while Ctrl+wheel stays the browser's page zoom. The chapter remains one
+pointer, while Ctrl+wheel stays the browser's page zoom. A pinch does not zoom
+the page anywhere — the viewport refuses it (ADR-0028) — and inside the open
+view the same gesture pans and scrolls the plan. The chapter remains one
 screen-high object at every width; the expanded view is a transient surface that
 owns nearly the whole screen while it is open, and closing it returns the plan
 to the chapter at fit. A dot inside the expanded map still opens its Cantina
@@ -247,7 +249,8 @@ provenance, the dialogs and the two-script contract, and supersedes ADR-0021;
 ADR-0025 records the expanded map; ADR-0026 records the plan's rows and real
 positions, the two Casse, the piazzale and the removed position caveat;
 ADR-0027 records the panel's provider line, the derived sentences and the
-wine-list promise.
+wine-list promise; ADR-0028 records the page's refusal of pinch-zoom, its
+limits on iOS Safari and the accessibility it costs.
 
 The Programma follows as the second illustrated chapter and as the page's
 mid-walk strong surface: a full-bleed bordeaux interlude with the printed label — sans, the

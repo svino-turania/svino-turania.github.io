@@ -1874,6 +1874,28 @@ test('la pagina ha titolo, descrizione e indirizzo canonico in italiano', () => 
   assert.equal(canonical.getAttribute('href'), `${SITE_ORIGIN}/`);
 });
 
+test('la pagina rifiuta lo zoom del pizzico su tutto il documento', () => {
+  const document = loadSite();
+  const viewport = metaContent(document, 'name', 'viewport');
+
+  assert.match(
+    viewport,
+    /width=device-width/,
+    'il viewport non segue la larghezza dello schermo',
+  );
+  assert.match(viewport, /initial-scale=1/, 'il viewport non parte dalla scala intera');
+  assert.match(
+    viewport,
+    /user-scalable=no/,
+    'un pizzico può ancora allargare la pagina',
+  );
+  assert.match(
+    viewport,
+    /maximum-scale=1/,
+    'la scala massima lascia spazio al pizzico',
+  );
+});
+
 test('robots.txt e sitemap.xml sono pubblicati e coerenti con l’URL canonico', () => {
   const robots = readFileSync(join(SITE, 'robots.txt'), 'utf8');
   assert.match(robots, /^User-agent: \*$/m);
@@ -7753,6 +7775,14 @@ test('dentro il dialogo il disegno è il riquadro che scorre, con barre sottili 
     map,
     /\b(?:transition|animation)\s*:/,
     'il dialogo della Mappa aggiunge movimento',
+  );
+
+  // A pinch inside the open view pans and scrolls it; it never zooms the page,
+  // which would magnify the dialog's chrome along with the plan.
+  assert.match(
+    map,
+    /touch-action:\s*pan-x\s+pan-y/,
+    'il pizzico dentro il dialogo allarga la pagina invece del piano',
   );
 
   // The open dialog is a grid whose middle row is the scroll frame.
