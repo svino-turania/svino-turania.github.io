@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
 import { inflateSync } from 'node:zlib';
@@ -4951,6 +4952,29 @@ test('la testata riporta la firma come tracciato inline con nome accessibile e i
       `la firma è distribuita come risorsa invece che inline: ${source}`,
     );
   }
+});
+
+/*
+ * The stylesheet URL carries the sheet's own hash. GitHub Pages serves every
+ * file with `max-age=600`, and the page and the sheet are separate cache
+ * entries: a browser can fetch the new page and still hold the previous sheet
+ * under the same URL, which is how the Mappa lost its styles after a deploy on
+ * 2026-11-27 (ADR-0029). With the hash in the URL the new page asks for a URL
+ * the browser has never cached, so the two arrive together. Recomputing the
+ * hash here means editing the sheet without restamping the link fails the
+ * suite, and the message names the value to paste.
+ */
+test('il collegamento al foglio di stile porta l’impronta del foglio', () => {
+  const sheet = readFileSync(join(SITE, 'assets', 'css', 'style.css'));
+  const stamp = createHash('sha256').update(sheet).digest('hex').slice(0, 10);
+  const links = [...loadSite().querySelectorAll('link[rel~="stylesheet"]')];
+
+  assert.equal(links.length, 1, 'la pagina collega un solo foglio di stile');
+  assert.equal(
+    links[0].getAttribute('href'),
+    `/assets/css/style.css?v=${stamp}`,
+    `il collegamento al foglio di stile non porta l’impronta corrente (${stamp}): aggiorna href in index.html`,
+  );
 });
 
 test('i font auto-ospitati sono WOFF2 dello stesso sito', () => {

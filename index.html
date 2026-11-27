@@ -90,7 +90,12 @@
     <link rel="icon" type="image/png" sizes="256x256" href="/assets/icons/favicon-256.png">
     <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
     <meta name="theme-color" content="#5c1a24">
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <!-- FOGLIO DI STILE: l'URL porta l'impronta del foglio (i primi dieci
+         caratteri dello SHA-256), così una pagina appena scaricata non può
+         accoppiarsi al foglio precedente che il browser tiene per dieci
+         minuti. Dopo ogni modifica a style.css, ristampare qui: il test lo
+         impone. Vedi ADR-0029. -->
+    <link rel="stylesheet" href="/assets/css/style.css?v=adca820901">
   </head>
   <body>
     <!--
