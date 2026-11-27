@@ -217,8 +217,9 @@ open nothing. The entries and the Casse stand where the plan draws them; where
 a dot must step aside so a thumb can reach it, a short gold hairline joins it
 to its true position. Two Bagni are bronze signs that name themselves to a
 screen reader alone: the two-figure WC pictogram at the church and the
-wheelchair symbol at the plan's south, 16 px line art in the ink-muted bronze
-with a cream halo — a glow of the page's own paper, not a cast shadow —
+wheelchair symbol at the plan's south — the Material Icons `wc` and
+`accessible` glyphs, recoloured in the ink-muted bronze at 16 px, with a cream
+halo — a glow of the page's own paper, not a cast shadow —
 opening nothing and blooming no ring. The church's sign
 steps 14 px right and up from its true point — the point falls inside the `la
 chiesa` label — and carries no hairline: a facility mark stands on the building
@@ -764,12 +765,12 @@ embedded raster, the three layers `strade`, `piazza` and `fabbricati`, the baked
 palette, a transparent ground, and the comment that says it is generated from
 the cadastral base and must not be edited by hand. It pins the two Bagni as
 non-interactive `role="img"` marks at the Comitato's points, with the church
-sign's +14/−14 px offset, their accessible names, the decorative 16 px
-pictograms, the bronze and the cream halo, and their presence without
-JavaScript and in print; it measures the church sign's clearance from the
-nearest entry ring at 280 px — 2.83 px — and requires it to grow with the
-drawing. It pins the no-script style that flows the ten dialogs under the plan
-and hides the dead dots and close controls, the print rule that prints the
+sign's +14/−14 px offset, their accessible names, the decorative pictograms
+filled with the mark's `currentColor`, the bronze and the cream halo, and their
+presence without JavaScript and in print; it measures the church sign's
+clearance from the nearest entry ring at 280 px — 2.83 px — and requires it to
+grow with the drawing. It pins the no-script style that flows the ten dialogs
+under the plan and hides the dead dots and close controls, the print rule that prints the
 plan, the entries, the two Cassa marks and the two Bagni with the close
 controls hidden, the dialog's screen-scoped opening and closing — its motion
 tokens, the discrete `display` and `overlay`, the starting style and the
@@ -936,6 +937,15 @@ SIL Open Font License. They are self-hosted as subsets, renamed SV Serif and
 SV Sans under the OFL Reserved Font Name condition and accompanied by the full
 licence text; they are never requested from a third-party host. The signature
 is the one exception delivered as a path.
+
+## The Bagni pictograms
+
+The two pictograms on the Mappa are Google's Material Icons `wc` and
+`accessible`, taken unaltered and recoloured with `currentColor`: colour is the
+only change to the artwork. They are inlined in `index.html`, so the page
+requests no icon host at runtime, and the Apache License 2.0 that covers them
+ships with the repository at `docs/licenses/Apache-2.0.txt`. The comment above
+the marks names the source.
 
 ## Derived assets and the print master
 

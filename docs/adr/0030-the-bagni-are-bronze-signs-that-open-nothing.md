@@ -8,7 +8,7 @@
 - **Related:** ADR-0022, ADR-0023, ADR-0024, ADR-0025, ADR-0026, ADR-0027,
   `GLOSSARY.md` (*Bagno*, *Mappa del Borgo*), README (*Composition*, *Content
   table*, *Editor workflow*, *Tests*), `index.html`, `assets/css/style.css`,
-  `tests/site.test.mjs`
+  `tests/site.test.mjs`, `docs/licenses/Apache-2.0.txt`
 
 ## Context
 
@@ -37,7 +37,7 @@ dialog, no number and no visible word, and add no count.**
   focusable child. It opens no panel and enters neither the entries nor the
   Casse.
 - **Colour stays spoken for.** Bordeaux is the entries' alone and gold the
-  Casse's alone; a facility mark is `--ink-muted` — bronze — line art.
+  Casse's alone; a facility mark is `--ink-muted` — bronze — and filled.
   Shape and weight, not colour, separate it from the bordeaux dots and the gold
   rings, so a colour-blind visitor reads it too.
 - **It carries a name and no word.** The span is `role="img"` with
@@ -53,14 +53,16 @@ dialog, no number and no visible word, and add no count.**
   sentence case. The Comitato's legend writes `Bagno Disabili`; the page names
   the facility's accessibility, not the person, and the wheelchair symbol
   carries it. `WC` is not the term.
-- **The pictograms are line art in the social icons' hand.** A 1.4 px stroke in
-  a 16 px box: the classic two-figure WC and the ISO wheelchair, drawn in
+- **The pictograms are the signs the world already uses.** The two-figure WC
+  and the ISO wheelchair are Material Icons' `wc` and `accessible` (Google,
+  Apache License 2.0 — `docs/licenses/Apache-2.0.txt`), inlined so the page
+  requests nothing and changed in colour alone: a 24-unit drawing filled with
   `currentColor`. The mark is 16 px on the plan and scales with the drawing —
   48 px at 3×.
 - **Bronze with a cream halo.** `--ink-muted` reads 6.30:1 on cream and 3.46:1
   on the building fill, above the 3:1 non-text floor; a drop shadow of
   `--surface` lifts its edges on both the tan buildings and the cream streets.
-  The halo is the labels' `text-shadow` idiom applied to line art: a glow of
+  The halo is the labels' `text-shadow` idiom applied to a pictogram: a glow of
   the page's own paper, casting nothing. The page's one cast shadow remains the
   cartoline's (ADR-0020).
 
@@ -115,9 +117,13 @@ commits the Comitato to no provider, price, time or opening hours for a Bagno.
   span: its two percentages and, where needed, its two pixel offsets.
 - **The suite pins the marks.** It asserts the two spans as non-controls at
   their percentages and offsets, their accessible names, the decorative
-  pictograms, the bronze and the halo, their presence without JavaScript and in
-  print, and the church sign's clearance from the nearest ring at 280 px. The
-  no-digit, no-route, no-list, no-count and two-script guards pass unchanged.
+  pictograms filled with `currentColor`, the bronze and the halo, their
+  presence without JavaScript and in print, and the church sign's clearance
+  from the nearest ring at 280 px. The no-digit, no-route, no-list, no-count
+  and two-script guards pass unchanged.
+- **The glyphs carry their licence.** Material Icons is Apache 2.0: the source
+  is named in a comment above the marks, and the licence text ships at
+  `docs/licenses/Apache-2.0.txt`.
 - **The glossary and README follow.** `Bagno` is a term; the `Mappa del Borgo`
   entry names the third class; the Composition, Content table, Editor workflow
   and Tests sections describe the signs.
@@ -135,6 +141,10 @@ commits the Comitato to no provider, price, time or opening hours for a Bagno.
 - **Move or drop the `la chiesa` label.** Rejected for this change: the label
   identifies the church. Dropping it remains the documented fallback if the
   churchyard looks too busy in review, and would be a separate change.
+- **Draw the pictograms by hand.** Tried and rejected: the first hand-drawn
+  pair read as this page's drawing rather than as the signs a visitor already
+  knows. The canonical glyphs are recognised before they are read, and using
+  them is less code than redrawing them.
 - **Draw the Bagni into the SVG asset.** Rejected: the asset is generated
   outside the repository and must not be hand-edited; the marks are page
   content and belong to the markup the suite reads.

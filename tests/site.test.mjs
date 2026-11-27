@@ -7260,20 +7260,27 @@ test('i due Bagni sono targhe di bronzo che si nominano: span senza comandi, pic
       'false',
       'il pictogramma del Bagno prende il focus',
     );
+    // Il disegno è l'icona scaricata, riempita col colore della targa: nessuna
+    // forma ridisegnata e nessun colore proprio.
     assert.equal(
       icon.getAttribute('viewBox'),
-      '0 0 16 16',
-      'il pictogramma del Bagno non è nel riquadro da sedici pixel',
+      '0 0 24 24',
+      'il pictogramma del Bagno non è nel riquadro da ventiquattro unità',
     );
-    const strokes = [...icon.querySelectorAll('[stroke]')];
-    assert.ok(strokes.length > 0, 'il pictogramma del Bagno non ha tratti');
+    assert.equal(
+      icon.getAttribute('fill'),
+      'currentColor',
+      'il pictogramma del Bagno non si riempie col colore della targa',
+    );
+    const paints = [...icon.querySelectorAll('[fill], [stroke]')].flatMap((node) =>
+      ['fill', 'stroke'].flatMap((attribute) => {
+        const value = node.getAttribute(attribute);
+        return value === null ? [] : [value];
+      }),
+    );
     assert.ok(
-      strokes.every((node) => node.getAttribute('stroke') === 'currentColor'),
+      paints.every((value) => value === 'currentColor' || value === 'none'),
       'il pictogramma del Bagno ha un colore proprio invece di currentColor',
-    );
-    assert.ok(
-      strokes.every((node) => node.getAttribute('stroke-width') === '1.4'),
-      'il pictogramma del Bagno non ha il tratto di 1,4 px',
     );
     assert.equal(
       icon.querySelector('text, image'),
