@@ -1350,6 +1350,39 @@
   }
 
   /*
+   * I due Bagni: targhe di bronzo, non voci. Ogni targa ancora il punto vero
+   * del piano; --sign-x/--sign-y, in pixel scritti nel markup, la scostano
+   * dove il segno serve — sulla chiesa, fuori dall'etichetta `la chiesa` — e
+   * non c'è filo, perché la targa sta sull'edificio che serve, non su un punto
+   * misurato. Il pictogramma è linea in currentColor e l'alone di crema lo
+   * stacca dai fabbricati chiari e dalle strade. Non prende il tocco, non si
+   * apre, non prende il focus e non fiorisce.
+   */
+  .mappa__bagno {
+    position: absolute;
+    inset-block-start: var(--y);
+    inset-inline-start: var(--x);
+    display: block;
+    inline-size: 16px;
+    block-size: 16px;
+    transform: translate(
+      calc(-50% + var(--sign-x, 0) * 1px),
+      calc(-50% + var(--sign-y, 0) * 1px)
+    );
+    color: var(--ink-muted);
+    filter:
+      drop-shadow(0 0 2px var(--surface))
+      drop-shadow(0 0 4px var(--surface));
+    pointer-events: none;
+  }
+
+  .mappa__bagno svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  /*
    * The dots are the page's only filled marks and its controls that open the
    * Cantina's dialog. The button's browser face is reset, so only the ring
    * and the dot show. The 44 px target is transparent and generous, so it
@@ -2965,6 +2998,12 @@
 
   /* Le due Casse sono segni stampati: l'anello d'oro resta sulla carta. */
   .mappa__cassa {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Le due targhe dei Bagni si stampano col piano e tengono il bronzo. */
+  .mappa__bagno {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }

@@ -5790,7 +5790,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
  * vecchia cautela sulle posizioni.
  */
 const MAPPA_ALT =
-  'Pianta del borgo di Turania: i fabbricati, le strade e la piazza, con le cantine e il piazzale della chiesa segnati in bordeaux e le due casse in oro.';
+  'Pianta del borgo di Turania: i fabbricati, le strade e la piazza, con le cantine e il piazzale della chiesa segnati in bordeaux, le due casse in oro e i due bagni in bronzo.';
 
 /*
  * Le voci del piano, nell'ordine servito. `x` e `y` sono la posizione vera in
@@ -5905,6 +5905,17 @@ const MAPPA_ENTRIES = Object.freeze([
     y: '53.50%',
     nudge: { dx: -11, dy: -14 },
   },
+]);
+
+/*
+ * I due Bagni del piano, con i punti del Comitato — dots 13 e 14 — e lo
+ * scostamento del segno, in pixel: `dx`/`dy` spostano la targa dalla chiesa di
+ * quanto basta a lasciare leggibile l'etichetta `la chiesa`, a destra e in
+ * alto. Il bagno accessibile sta al suo punto, senza scostamento.
+ */
+const MAPPA_BAGNI = Object.freeze([
+  { label: 'Bagno', x: '50.78%', y: '47.44%', sign: { dx: 14, dy: -14 } },
+  { label: 'Bagno accessibile', x: '72.33%', y: '82.53%', sign: { dx: 0, dy: 0 } },
 ]);
 
 /*
@@ -6513,6 +6524,15 @@ test('senza JavaScript gli undici dialoghi scorrono sotto il piano, mentre Chiud
     );
   }
 
+  // Anche i due Bagni sono contenuto, non comandi: il ripiego non li nasconde.
+  for (const selector of ['.mappa__bagno', '.mappa__bagno svg']) {
+    assert.doesNotMatch(
+      ruleBodyFor(css, selector),
+      /display:\s*none/,
+      `senza JavaScript il piano perde la targa ${selector}`,
+    );
+  }
+
   // The dialogs follow the plan, and they are the same entries: the
   // fallback reuses their content instead of adding a second list.
   const order = [
@@ -6571,6 +6591,18 @@ test('in stampa il piano e gli undici dialoghi si seguono, Chiudi si nasconde e 
     ruleBodyFor(block, '.mappa__cassa'),
     /display:\s*none/,
     'in stampa le Casse spariscono',
+  );
+
+  // Le due targhe dei Bagni sono segni stampati: restano e tengono il bronzo.
+  assert.match(
+    block,
+    /\.mappa__bagno\s*\{[^}]*(?:-webkit-)?print-color-adjust:\s*exact/s,
+    'in stampa i Bagni perdono il loro colore',
+  );
+  assert.doesNotMatch(
+    ruleBodyFor(block, '.mappa__bagno'),
+    /display:\s*none/,
+    'in stampa i Bagni spariscono',
   );
   assert.equal(
     section.querySelectorAll('.mappa__cassa').length,
@@ -6898,6 +6930,7 @@ test('il piano della Mappa è un’immagine dichiarata, caricata con calma e des
   const alt = normalize(image.getAttribute('alt') ?? '');
   assert.equal(alt, MAPPA_ALT, 'l’alt del piano non è la frase confermata');
   assert.doesNotMatch(alt, /\d/, 'l’alt del piano porta un numero');
+  assert.match(alt, /e i due bagni in bronzo/, 'l’alt non nomina i due bagni');
   assert.doesNotMatch(alt, /Piazza Umberto I/i, 'l’alt nomina la piazza');
   assert.match(alt, /\bpiazza\b/i, 'l’alt non descrive la piazza');
   assert.doesNotMatch(
@@ -7045,6 +7078,57 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
     [...crowded].sort(),
     'le coppie strette non sono più quelle del piano, o ne è comparsa una nuova',
   );
+
+  /*
+   * La targa del Bagno alla chiesa sta sul punto vero, scostata di +14/−14 px
+   * perché il punto cade dentro l'etichetta `la chiesa`. Non porta filo: la
+   * targa sta sull'edificio che serve, non su un punto misurato. A 280 px la
+   * targa da 16 px lascia 2,83 px di riquadro dall'anello più vicino, Casianu,
+   * e il divario cresce col disegno.
+   */
+  const churchSign = MAPPA_BAGNI.find(
+    ({ sign }) => sign.dx !== 0 || sign.dy !== 0,
+  );
+  assert.ok(churchSign, 'manca la targa del Bagno scostata dalla chiesa');
+
+  const signBox = (width) => {
+    const height = (width * 396) / 273;
+    const x =
+      (Number.parseFloat(churchSign.x) / 100) * width + churchSign.sign.dx;
+    const y =
+      (Number.parseFloat(churchSign.y) / 100) * height + churchSign.sign.dy;
+    return { x0: x - 8, x1: x + 8, y0: y - 8, y1: y + 8 };
+  };
+  const ringBox = (entry, width) => {
+    const height = (width * 396) / 273;
+    const x = (Number.parseFloat(entry.x) / 100) * width + entry.nudge.dx;
+    const y = (Number.parseFloat(entry.y) / 100) * height + entry.nudge.dy;
+    return { x0: x - 6.5, x1: x + 6.5, y0: y - 6.5, y1: y + 6.5 };
+  };
+  const boxGap = (a, b) =>
+    Math.hypot(
+      Math.max(a.x0 - b.x1, b.x0 - a.x1, 0),
+      Math.max(a.y0 - b.y1, b.y0 - a.y1, 0),
+    );
+  const ringClearance = (width) =>
+    Math.min(
+      ...MAPPA_ENTRIES.map((entry) => boxGap(signBox(width), ringBox(entry, width))),
+    );
+
+  // Il divario misurato a 280 px è 2,83 px.
+  assert.ok(
+    Math.abs(ringClearance(280) - 2.83) < 0.01,
+    `la targa del Bagno lascia ${ringClearance(280).toFixed(2)} px dall’anello più vicino a 280 px, non 2,83`,
+  );
+
+  // Il divario non torna mai indietro quando il disegno si allarga.
+  const clearances = widths.map((width) => ringClearance(width));
+  for (let index = 1; index < clearances.length; index += 1) {
+    assert.ok(
+      clearances[index] > clearances[index - 1],
+      `la targa del Bagno si riavvicina agli anelli a ${widths[index]} px invece di allontanarsi`,
+    );
+  }
 });
 
 test('le etichette della Mappa sono testo HTML: la piazza una volta, la via dritta, il comune muto', () => {
@@ -7110,6 +7194,173 @@ test('le etichette della Mappa sono testo HTML: la piazza una volta, la via drit
     outsideDialogs.length,
     0,
     'la Mappa porta un testo visibile fuori dal piano e dai dialoghi',
+  );
+});
+
+test('i due Bagni sono targhe di bronzo che si nominano: span senza comandi, pictogrammi decorativi alle posizioni del piano', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const layer = section.querySelector('.mappa__zoom');
+  assert.ok(layer, 'manca il layer che scala il piano');
+
+  const bagni = [...layer.querySelectorAll('span.mappa__bagno')];
+  assert.deepEqual(
+    bagni.map((bagno) => accessibleName(document, bagno)),
+    MAPPA_BAGNI.map(({ label }) => label),
+    'i due Bagni non sono nominati `Bagno` e `Bagno accessibile`',
+  );
+
+  bagni.forEach((bagno, index) => {
+    const { x, y, sign } = MAPPA_BAGNI[index];
+    const style = bagno.getAttribute('style') ?? '';
+    assert.equal(
+      style.match(/--x:\s*([\d.]+%)/)?.[1],
+      x,
+      `il Bagno ${index + 1} non è alla x del piano`,
+    );
+    assert.equal(
+      style.match(/--y:\s*([\d.]+%)/)?.[1],
+      y,
+      `il Bagno ${index + 1} non è alla y del piano`,
+    );
+    assert.equal(
+      style.match(/--sign-x:\s*(-?[\d.]+)/)?.[1] ?? '0',
+      String(sign.dx),
+      `il Bagno ${index + 1} non porta lo scostamento del segno in orizzontale`,
+    );
+    assert.equal(
+      style.match(/--sign-y:\s*(-?[\d.]+)/)?.[1] ?? '0',
+      String(sign.dy),
+      `il Bagno ${index + 1} non porta lo scostamento del segno in verticale`,
+    );
+
+    // Un segno, non una voce né un comando: nessun dialogo, nessun focus.
+    assert.equal(bagno.tagName, 'SPAN', 'un Bagno è un controllo invece di una targa');
+    assert.equal(bagno.getAttribute('role'), 'img', 'un Bagno non si annuncia come immagine');
+    assert.equal(bagno.hasAttribute('tabindex'), false, 'un Bagno si raggiunge con Tab');
+    assert.equal(bagno.hasAttribute('data-dialog'), false, 'un Bagno apre un dialogo');
+    assert.equal(bagno.hasAttribute('aria-controls'), false, 'un Bagno dichiara un dialogo');
+    assert.equal(
+      bagno.querySelector('button, a, [tabindex]'),
+      null,
+      'un Bagno porta un controllo o un elemento focalizzabile',
+    );
+
+    // Il pictogramma è decorativo: il nome sta sulla targa, non nel disegno.
+    const icons = bagno.querySelectorAll('svg');
+    assert.equal(icons.length, 1, 'un Bagno non ha un solo pictogramma');
+    const [icon] = icons;
+    assert.equal(
+      icon.getAttribute('aria-hidden'),
+      'true',
+      'il pictogramma del Bagno non è nascosto a chi non vede',
+    );
+    assert.equal(
+      icon.getAttribute('focusable'),
+      'false',
+      'il pictogramma del Bagno prende il focus',
+    );
+    assert.equal(
+      icon.getAttribute('viewBox'),
+      '0 0 16 16',
+      'il pictogramma del Bagno non è nel riquadro da sedici pixel',
+    );
+    const strokes = [...icon.querySelectorAll('[stroke]')];
+    assert.ok(strokes.length > 0, 'il pictogramma del Bagno non ha tratti');
+    assert.ok(
+      strokes.every((node) => node.getAttribute('stroke') === 'currentColor'),
+      'il pictogramma del Bagno ha un colore proprio invece di currentColor',
+    );
+    assert.ok(
+      strokes.every((node) => node.getAttribute('stroke-width') === '1.4'),
+      'il pictogramma del Bagno non ha il tratto di 1,4 px',
+    );
+    assert.equal(
+      icon.querySelector('text, image'),
+      null,
+      'il pictogramma del Bagno porta testo o un’immagine',
+    );
+    assert.equal(
+      normalize(bagno.textContent),
+      '',
+      'un Bagno porta una parola visibile: è solo un segno',
+    );
+  });
+
+  // Una targa non ha il filo d'oro: sta sull'edificio, non su un punto.
+  assert.equal(
+    layer.querySelectorAll('.mappa__bagno .mappa__leader').length,
+    0,
+    'un Bagno porta un filo d’oro che la targa non ha',
+  );
+
+  // Nessun Bagno è una voce della Mappa o una Cassa: non apre pannelli e non
+  // entra nell'ordine della fioritura.
+  assert.equal(
+    layer.querySelectorAll('.mappa__dot .mappa__bagno, .mappa__cassa .mappa__bagno').length,
+    0,
+    'un Bagno vive dentro un punto o una Cassa',
+  );
+  assert.equal(
+    document.querySelectorAll('.mappa__bagno[data-dialog], .mappa__bagno[style*="--bloom"]').length,
+    0,
+    'un Bagno è legato a un dialogo o alla fioritura',
+  );
+
+  // I segni stanno nel layer dopo le etichette e prima delle voci, così le
+  // voci si dipingono sopra e i Bagni crescono con il piano.
+  const children = [...layer.children];
+  const firstDot = layer.querySelector('button.mappa__dot');
+  const lastLabel = [...layer.querySelectorAll('.mappa__label, .mappa__north')].at(-1);
+  for (const bagno of bagni) {
+    assert.ok(
+      children.indexOf(bagno) > children.indexOf(lastLabel),
+      'un Bagno precede le etichette dei luoghi',
+    );
+    assert.ok(
+      children.indexOf(bagno) < children.indexOf(firstDot),
+      'un Bagno segue le voci della Mappa',
+    );
+  }
+});
+
+test('le targhe dei Bagni sono bronzo a sedici pixel, con alone di crema e senza movimento', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  const mark = ruleBodyFor(css, '.mappa__bagno');
+  assert.match(mark, /position:\s*absolute/, 'una targa non è posata sul piano');
+  assert.match(mark, /inset-block-start:\s*var\(--y\)/, 'una targa non sta alla y del piano');
+  assert.match(
+    mark,
+    /inset-inline-start:\s*var\(--x\)/,
+    'una targa non sta alla x del piano',
+  );
+  assert.match(mark, /inline-size:\s*16px/, 'la targa non misura sedici pixel');
+  assert.match(mark, /block-size:\s*16px/, 'la targa non misura sedici pixel');
+  assert.match(mark, /color:\s*var\(--ink-muted\)/, 'la targa non è bronzo');
+  assert.match(mark, /pointer-events:\s*none/, 'la targa prende il tocco');
+  assert.match(mark, /transform:\s*translate\(/, 'la targa non è centrata sul suo segno');
+  assert.match(mark, /var\(--sign-x/, 'la targa non porta lo scostamento orizzontale');
+  assert.match(mark, /var\(--sign-y/, 'la targa non porta lo scostamento verticale');
+  assert.match(
+    mark,
+    /filter:[^;]*var\(--surface\)/s,
+    'la targa non porta l’alone di crema',
+  );
+  assert.doesNotMatch(mark, /animation|transition/, 'la targa si muove');
+
+  // Il pictogramma è disegnato col colore della targa, non con un colore suo.
+  assert.match(
+    ruleBodyFor(css, '.mappa__bagno svg'),
+    /display:\s*block/,
+    'il pictogramma della targa non riempie il suo riquadro',
+  );
+
+  // Nessun movimento, nessuna fioritura, nessun anello: la targa non è una voce.
+  assert.doesNotMatch(
+    css,
+    /\.mappa__bagno[^{]*\{[^}]*(?:animation|transition)/s,
+    'una targa dei Bagni porta un movimento suo',
   );
 });
 

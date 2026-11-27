@@ -213,44 +213,54 @@ line is simply absent. The sentence speaks in the page's `voi` voice and adds
 no fact the Comitato has not confirmed; the four Cantine that serve only wine
 share one sentence promising that the list of wines will arrive on this page.
 Two Casse are quiet gold marks that name themselves with the word `Cassa` and
-open nothing. The marks stand where the plan draws them; where a
-dot must step aside so a thumb can reach it, a short gold hairline joins it to
-its true position. Each dot also blooms a slow ring of its ink — the plan's only
+open nothing. The entries and the Casse stand where the plan draws them; where
+a dot must step aside so a thumb can reach it, a short gold hairline joins it
+to its true position. Two Bagni are bronze signs that name themselves to a
+screen reader alone: the two-figure WC pictogram at the church and the
+wheelchair symbol at the plan's south, 16 px line art in the ink-muted bronze
+with a cream halo — a glow of the page's own paper, not a cast shadow —
+opening nothing and blooming no ring. The church's sign
+steps 14 px right and up from its true point — the point falls inside the `la
+chiesa` label — and carries no hairline: a facility mark stands on the building
+it serves, clear of the labels, where an entry's dot stands at the plan's
+measured point. Each dot also blooms a slow ring of its ink — the plan's only
 repeating motion — so the chapter reads as openable where nothing hovers, while
-the Casse carry no ring. There is no list: the dialogs are the entries. While a
-panel or the expanded map is open the page behind holds still: nothing scrolls
-it, and the bar's place is kept so nothing shifts sideways as it goes. The
-chapter states no count, no number, no route and no order, and names no Cantina
-the Comitato has not confirmed.
+the Casse carry no ring and the Bagni stay still. There is no list: the dialogs
+are the entries. While a panel or the expanded map is open the page behind
+holds still: nothing scrolls it, and the bar's place is kept so nothing shifts
+sideways as it goes. The chapter states no count, no number, no route and no
+order, and names no Cantina the Comitato has not confirmed.
 
 The chapter adds one control: `Ingrandisci la Mappa` sits under the plan and
 opens the map in a near-full-viewport native dialog of its own. There the
 drawing becomes the frame's scroll viewport — one finger, the wheel (two
 fingers on a trackpad), the arrow keys and the scrollbar pan it natively — and
-one layer wrapping the plan, its labels, its dots and the two Casse scales as
-one picture at 1, 1.5, 2 and 3×, with three quiet paper squares at the frame's
-bottom right for `+`, `−` and the whole plan; a double-click zooms toward the
-pointer, while Ctrl+wheel stays the browser's page zoom. A pinch does not zoom
-the page anywhere — the viewport refuses it (ADR-0028) — and inside the open
-view the same gesture pans and scrolls the plan. The chapter remains one
-screen-high object at every width; the expanded view is a transient surface that
-owns nearly the whole screen while it is open, and closing it returns the plan
-to the chapter at fit. A dot inside the expanded map still opens its Cantina
+one layer wrapping the plan, its labels, its dots, its Bagni and the two Casse
+scales as one picture at 1, 1.5, 2 and 3×, with three quiet paper squares at the
+frame's bottom right for `+`, `−` and the whole plan; a double-click zooms
+toward the pointer, while Ctrl+wheel stays the browser's page zoom. A pinch
+does not zoom the page anywhere — the viewport refuses it (ADR-0028) — and
+inside the open view the same gesture pans and scrolls the plan. The chapter
+remains one screen-high object at every width; the expanded view is a transient
+surface that owns nearly the whole screen while it is open, and closing it
+returns the plan to the chapter at fit. A dot inside the expanded map still opens its Cantina
 panel above it, and returns to the same view when the panel closes. Bordeaux
 stays the entries' dots alone; the Casse are gold marks beside them.
 
 Without JavaScript the eleven dialogs flow under the plan and the expand control
-is not shown; on paper the plan, the entries and the Cassa marks print in order
-and the control is not printed. The plan is a generated asset: the
-permission to publish a derived plan, the source data and the export script
-stay outside this repository, and only the rendered SVG is committed, never
-edited by hand. ADR-0022 records the plan, its
+is not shown; on paper the plan, the entries, the Cassa marks and the two Bagni
+print in order and the control is not printed. The plan is a generated asset:
+the permission to publish a derived plan, the source data and the export
+script stay outside this repository, and only the rendered SVG is committed,
+never edited by hand. ADR-0022 records the plan, its
 provenance, the dialogs and the two-script contract, and supersedes ADR-0021;
 ADR-0025 records the expanded map; ADR-0026 records the plan's rows and real
 positions, the two Casse, the piazzale and the removed position caveat;
 ADR-0027 records the panel's provider line, the derived sentences and the
 wine-list promise; ADR-0028 records the page's refusal of pinch-zoom, its
-limits on iOS Safari and the accessibility it costs.
+limits on iOS Safari and the accessibility it costs; ADR-0030 records the two
+Bagni — the facility marks, their points and sign offsets, their pictograms,
+the no-script and print fallbacks and the plan's description.
 
 The Programma follows as the second illustrated chapter and as the page's
 mid-walk strong surface: a full-bleed bordeaux interlude with the printed label — sans, the
@@ -447,7 +457,7 @@ a short comment beside it in the file:
 | Edition               | `II EDIZIONE`                  | the lockup beside the signature, the colophon and the metadata |
 | Opening image description | the approved Italian sentence | the `alt` attribute of the image in `.hero-photo`          |
 | Photograph description| the approved Italian sentence  | the `alt` attribute of the Cantina photograph                 |
-| Entries on the map    | ten Comitato-confirmed Cantine, the `Piazzale della chiesa` and two Casse | one dot button and one `<dialog>` with the same `id` per entry, the panel carrying the provider line and the sentence; two non-interactive gold marks, each with its `Cassa` label; no list |
+| Marks on the map      | ten Comitato-confirmed Cantine, the `Piazzale della chiesa`, two Casse and two Bagni | one dot button and one `<dialog>` with the same `id` per entry, the panel carrying the provider line and the sentence; two non-interactive gold marks, each with its `Cassa` label; two non-interactive bronze pictograms, `Bagno` and `Bagno accessibile`, with no visible word; no list |
 | Locandina download    | `assets/download/locandina-svino-ii-edizione.jpg` | the single link in the closing band, at every width |
 
 The date is the one value the page states in several forms. Change
@@ -477,9 +487,9 @@ Mappa del Borgo's label over the plan; the plan's `alt` says `la piazza` without
 the name; the Petescia card's `alt` quotes the lettering printed inside that
 photograph, and the structured `Event` location repeats the name in data only.
 The Mappa's `alt` and its dialogs carry no digit and no number of entries, no
-route and no order; the `alt` names the bordeaux entries and the plan's two gold
-marks, and it follows the spec's sentence. No structured data is added for
-individual entries.
+route and no order; the `alt` names the bordeaux entries, the plan's two gold
+marks and the two bronze Bagni, and it follows the spec's sentence. No
+structured data is added for individual entries.
 
 The Locandina download is one anchor, in the closing bordeaux band. It is
 present at every width, with no second copy and no rule that hides it, so
@@ -516,7 +526,17 @@ needs no stylesheet rule; to move one, change its two percentages, `--x` and
 `--y`, taken from the drawing box. A dot that steps aside for a thumb keeps its
 true position in `--nudge-x` / `--nudge-y` and a `span.mappa__leader` hairline,
 never more than 18 px. The two Cassa marks and their `Cassa` labels live beside
-the dots in the same drawing markup. A test requires one dot and one dialog per
+the dots in the same drawing markup.
+
+The two Bagni are facility marks, not entries: a `span.mappa__bagno` with
+`role="img"` and its `aria-label`, its plan point in `--x`/`--y` and, only
+where the sign must clear a label, the pixel offset in `--sign-x`/`--sign-y`.
+To move a Bagno, change its point; the offset belongs to the sign, and the mark
+carries no hairline, opens nothing and takes no focus. The two live in the
+drawing layer after the place labels and before the dots, so the entries paint
+above them.
+
+A test requires one dot and one dialog per
 Comitato-confirmed Cantina and the same `id` set; it fails if the chapter
 carries a list, any digit at all
 (no count, no numbered pin), a connecting route line, an unconfirmed Cantina or
@@ -742,21 +762,25 @@ labels, the north mark and the absent scale, grid, frame and caption. It reads
 the SVG as an image: well formed, with no text, script, external reference or
 embedded raster, the three layers `strade`, `piazza` and `fabbricati`, the baked
 palette, a transparent ground, and the comment that says it is generated from
-the cadastral base and must not be edited by hand. It pins the no-script style
-that flows the ten
-dialogs under the plan and hides the dead dots and close controls, the print
-rule that prints the plan, the entries and the two Cassa marks with the
-close controls hidden,
-the dialog's screen-scoped opening and closing — its motion tokens, the
-discrete `display` and `overlay`, the starting style and the fallback resets
-that keep the entries visible without JavaScript; the dots' ink bloom — the
-page's one allowed loop, its `--motion-bloom` tokens, the staggered delays,
-the pause behind an open panel, the page's scroll lock behind any open dialog
-released in print, the Casse with no ring, and the absence of the
-ring without motion; the
-inline script's dot-to-dialog binding and close handling under a size cap, and
-the counter as the last executable script. The expanded
-map has its own narrow guards: the chapter's `Ingrandisci la Mappa` and its
+the cadastral base and must not be edited by hand. It pins the two Bagni as
+non-interactive `role="img"` marks at the Comitato's points, with the church
+sign's +14/−14 px offset, their accessible names, the decorative 16 px
+pictograms, the bronze and the cream halo, and their presence without
+JavaScript and in print; it measures the church sign's clearance from the
+nearest entry ring at 280 px — 2.83 px — and requires it to grow with the
+drawing. It pins the no-script style that flows the ten dialogs under the plan
+and hides the dead dots and close controls, the print rule that prints the
+plan, the entries, the two Cassa marks and the two Bagni with the close
+controls hidden, the dialog's screen-scoped opening and closing — its motion
+tokens, the discrete `display` and `overlay`, the starting style and the
+fallback resets that keep the entries visible without JavaScript; the dots'
+ink bloom — the page's one allowed loop, its `--motion-bloom` tokens, the
+staggered delays, the pause behind an open panel, the page's scroll lock behind
+any open dialog released in print, the Casse and the Bagni with no ring, and
+the absence of the ring without motion; the inline script's dot-to-dialog
+binding and close handling under a size cap, and the counter as the last
+executable script. The expanded map has its own narrow guards: the chapter's
+`Ingrandisci la Mappa` and its
 no-script hiding; the map dialog's name and close; the drawing as the scrolling
 viewport; the single `zoom` layer; and the three zoom squares with their
 disabled ends. The old inline schematic is asserted absent.
