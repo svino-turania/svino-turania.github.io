@@ -4,9 +4,6 @@
 - **Date:** 2026-11-20
 - **Superseded in part by:** ADR-0019 (the two illustrated chapters sit in one
   walk; the glass, its height, the 64 rem measure and the overlap stand)
-- **Amended by:** ADR-0022 (the script allowance: two executable scripts — the
-  Mappa's inline binding and the counter; the rest of the one-script constraint
-  stands)
 - **Related:** ADR-0009, ADR-0015, ADR-0016, `index.html`,
   `assets/css/style.css`, `tests/site.test.mjs`, `README.md`
 - **Supersedes in part:** ADR-0009 (the prose in two columns of `22rem`),
@@ -30,8 +27,7 @@ stretches the paragraph's box, collapses the two-column prose into one narrow
 column and runs down into the Programma. The drawing needs a stage of its own,
 and the page already has one: the Programma's chapter.
 
-The constraints do not move: no build step, one script (amended by ADR-0022 to
-two executable scripts), no third-party host, the
+The constraints do not move: no build step, one script, no third-party host, the
 fixed cream/bordeaux/gold palette and the SV Serif/SV Sans, no new image
 request, one viewport threshold at 64 rem, the approved prose verbatim, and
 reduced motion serving the finished page.

@@ -1,10 +1,6 @@
 # The policy is three narrow guards
 
-- **Status:** accepted, amended by ADR-0014 (the counter's one script) and
-  ADR-0022 (the Mappa's inline binding) — the "No JavaScript" guard now reads
-  exactly two executable scripts, the Mappa's binding before the counter, and
-  the counter last. The context and decision below record the rule as
-  accepted; ADR-0014 and ADR-0022 carry the current bound.
+- **Status:** accepted
 - **Date:** 2026-11-15
 - **Supersedes in part:** ADR-0005, ADR-0006, ADR-0007, ADR-0008 and ADR-0009 —
   the "no third-party hosts" element of their "The constraints do not move"
