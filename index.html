@@ -95,7 +95,7 @@
          accoppiarsi al foglio precedente che il browser tiene per dieci
          minuti. Dopo ogni modifica a style.css, ristampare qui: il test lo
          impone. Vedi ADR-0029. -->
-    <link rel="stylesheet" href="/assets/css/style.css?v=adca820901">
+    <link rel="stylesheet" href="/assets/css/style.css?v=a16f108c93">
   </head>
   <body>
     <!--
@@ -294,10 +294,10 @@
       <!--
         MAPPA DEL BORGO: la forma visiva della passeggiata, fra la prosa delle
         Cantine e il Programma. Il piano è quello reale del borgo, con la
-        piazza, la chiesa e la strada verificata come etichette; il comune non
-        è etichettato. Le voci sono punti, senza numero, perché il percorso
-        non è deciso: le posizioni sono quelle del piano. Dove due bersagli da
-        44 px si toccherebbero, l'anello si scosta di pochi pixel scritti nel
+        piazza, la chiesa, il comune e la strada verificata come etichette. Le
+        voci sono punti, senza numero, perché il percorso non è deciso: le
+        posizioni sono quelle del piano. Dove due bersagli da 44 px si
+        toccherebbero, l'anello si scosta di pochi pixel scritti nel
         markup e un filo d'oro lo riporta al punto vero. Il legame fra un punto
         e il suo dialogo è l'id della voce. Il capitolo pubblica solo le voci
         che il Comitato ha confermato — le cantine e il piazzale — senza numero
@@ -339,12 +339,45 @@
                 height="792"
                 loading="lazy"
                 decoding="async"
-                alt="Pianta del borgo di Turania: i fabbricati, le strade e la piazza, con le cantine e il piazzale della chiesa segnati in bordeaux e le due casse in oro."
+                alt="Pianta del borgo di Turania: i fabbricati, le strade e la piazza, con le cantine e il piazzale della chiesa segnati in bordeaux, le due casse in oro e i due bagni in bronzo."
               >
               <span class="mappa__label mappa__label--place" style="--x: 40.7%; --y: 37.9%">Piazza Umberto I</span>
               <span class="mappa__label" style="--x: 50.2%; --y: 48.4%">la chiesa</span>
               <span class="mappa__label mappa__label--street" style="--x: 15.0%; --y: 21.5%">Corso Trieste</span>
+              <span class="mappa__label" style="--x: 87%; --y: 82.4%">il comune</span>
               <span class="mappa__north" aria-hidden="true">N</span>
+              <!--
+                I DUE BAGNI: targhe di bronzo, non voci della Mappa. Ogni targa
+                è un cerchio di bronzo col pictogramma dentro. --x/--y sono il
+                punto vero sul piano; --sign-x/--sign-y, in pixel, scostano la
+                targa dal punto dove servono — la chiesa, per lasciare
+                leggibile l'etichetta `la chiesa`. Lo scostamento tiene il
+                bordo del cerchio dove stava quello della targa nuda, così la
+                distanza dagli anelli delle voci non cambia. La targa scostata
+                porta un filo di bronzo che torna al punto vero e si ferma sul
+                bordo del cerchio, come il filo delle voci; il bagno accessibile
+                sta sul suo punto e non ne ha. Il pictogramma è decorativo; il
+                nome accessibile sta sulla targa. Non si aprono, non prendono il
+                focus e non fioriscono.
+              -->
+              <!--
+                I due pictogrammi sono le icone Material `wc` e `accessible`
+                di Google, ricolorate con currentColor e per il resto
+                invariate: Material Icons, Apache License 2.0
+                (docs/licenses/Apache-2.0.txt).
+              -->
+              <span class="mappa__bagno" role="img" aria-label="Bagno" style="--x: 50.78%; --y: 47.44%; --sign-x: 17; --sign-y: -17">
+                <span class="mappa__leader" aria-hidden="true"></span>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false">
+                  <path d="M5.5 22v-7.5H4V9c0-1.1.9-2 2-2h3c1.1 0 2 .9 2 2v5.5H9.5V22h-4zM18 22v-6h3l-2.54-7.63A2.01 2.01 0 0 0 16.56 7h-.12a2 2 0 0 0-1.9 1.37L12 16h3v6h3zM7.5 6c1.11 0 2-.89 2-2s-.89-2-2-2s-2 .89-2 2s.89 2 2 2zm9 0c1.11 0 2-.89 2-2s-.89-2-2-2s-2 .89-2 2s.89 2 2 2z"/>
+                </svg>
+              </span>
+              <span class="mappa__bagno" role="img" aria-label="Bagno accessibile" style="--x: 72.33%; --y: 82.53%">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false">
+                  <circle cx="12" cy="4" r="2"/>
+                  <path d="M19 13v-2c-1.54.02-3.09-.75-4.07-1.83l-1.29-1.43c-.17-.19-.38-.34-.61-.45c-.01 0-.01-.01-.02-.01H13c-.35-.2-.75-.3-1.19-.26C10.76 7.11 10 8.04 10 9.09V15c0 1.1.9 2 2 2h5v5h2v-5.5c0-1.1-.9-2-2-2h-3v-3.45c1.29 1.07 3.25 1.94 5 1.95zm-6.17 5c-.41 1.16-1.52 2-2.83 2c-1.66 0-3-1.34-3-3c0-1.31.84-2.41 2-2.83V12.1a5 5 0 1 0 5.9 5.9h-2.07z"/>
+                </svg>
+              </span>
               <!--
                 I PUNTI E LO SCOSTAMENTO: --x/--y sono il punto vero sul piano;
                 --nudge-x/--nudge-y, in pixel, scostano il bersaglio da 44 px

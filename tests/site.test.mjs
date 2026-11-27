@@ -5790,7 +5790,7 @@ test('il movimento della pagina usa i token, lascia fermo l’eroe e ha una via 
  * vecchia cautela sulle posizioni.
  */
 const MAPPA_ALT =
-  'Pianta del borgo di Turania: i fabbricati, le strade e la piazza, con le cantine e il piazzale della chiesa segnati in bordeaux e le due casse in oro.';
+  'Pianta del borgo di Turania: i fabbricati, le strade e la piazza, con le cantine e il piazzale della chiesa segnati in bordeaux, le due casse in oro e i due bagni in bronzo.';
 
 /*
  * Le voci del piano, nell'ordine servito. `x` e `y` sono la posizione vera in
@@ -5905,6 +5905,20 @@ const MAPPA_ENTRIES = Object.freeze([
     y: '53.50%',
     nudge: { dx: -11, dy: -14 },
   },
+]);
+
+/*
+ * I due Bagni del piano, con i punti del Comitato — dots 13 e 14 — e lo
+ * scostamento del segno, in pixel: `dx`/`dy` spostano la targa dalla chiesa di
+ * quanto basta a lasciare leggibile l'etichetta `la chiesa`, a destra e in
+ * alto. La targa è un cerchio da 22 px: lo scostamento di 17 px tiene il suo
+ * bordo sinistro e quello inferiore dove stavano quelli della targa nuda da
+ * 16 px, così i 2,83 px dall'anello di Casianu non cambiano. Il bagno
+ * accessibile sta al suo punto, senza scostamento.
+ */
+const MAPPA_BAGNI = Object.freeze([
+  { label: 'Bagno', x: '50.78%', y: '47.44%', sign: { dx: 17, dy: -17 } },
+  { label: 'Bagno accessibile', x: '72.33%', y: '82.53%', sign: { dx: 0, dy: 0 } },
 ]);
 
 /*
@@ -6241,15 +6255,17 @@ test('ogni anello scostato è legato al suo punto vero da un filo, e solo lui', 
 
   // Il filo è solo di chi si scosta: nove anelli su undici.
   assert.equal(
-    document.querySelectorAll('.mappa__leader').length,
+    document.querySelectorAll('.mappa__dot .mappa__leader').length,
     displaced.length,
     'la pagina non porta un filo per ogni anello scostato',
   );
   assert.ok(
     [...document.querySelectorAll('.mappa__leader')].every(
-      (leader) => leader.closest('button.mappa__dot') !== null,
+      (leader) =>
+        leader.closest('button.mappa__dot') !== null ||
+        leader.closest('.mappa__bagno') !== null,
     ),
-    'un filo vive fuori dal punto che lo possiede',
+    'un filo vive fuori dal punto o dalla targa che lo possiede',
   );
 
   // Lo script non conosce né lo scostamento né il filo.
@@ -6513,6 +6529,15 @@ test('senza JavaScript gli undici dialoghi scorrono sotto il piano, mentre Chiud
     );
   }
 
+  // Anche i due Bagni sono contenuto, non comandi: il ripiego non li nasconde.
+  for (const selector of ['.mappa__bagno', '.mappa__bagno svg']) {
+    assert.doesNotMatch(
+      ruleBodyFor(css, selector),
+      /display:\s*none/,
+      `senza JavaScript il piano perde la targa ${selector}`,
+    );
+  }
+
   // The dialogs follow the plan, and they are the same entries: the
   // fallback reuses their content instead of adding a second list.
   const order = [
@@ -6572,6 +6597,18 @@ test('in stampa il piano e gli undici dialoghi si seguono, Chiudi si nasconde e 
     /display:\s*none/,
     'in stampa le Casse spariscono',
   );
+
+  // Le due targhe dei Bagni sono segni stampati: restano e tengono il bronzo.
+  assert.match(
+    block,
+    /\.mappa__bagno\s*\{[^}]*(?:-webkit-)?print-color-adjust:\s*exact/s,
+    'in stampa i Bagni perdono il loro colore',
+  );
+  assert.doesNotMatch(
+    ruleBodyFor(block, '.mappa__bagno'),
+    /display:\s*none/,
+    'in stampa i Bagni spariscono',
+  );
   assert.equal(
     section.querySelectorAll('.mappa__cassa').length,
     2,
@@ -6580,15 +6617,17 @@ test('in stampa il piano e gli undici dialoghi si seguono, Chiudi si nasconde e 
   // Il filo è dentro il punto, e il punto dice di stampare il suo inchiostro:
   // l'oro del filo va sulla carta con l'anello.
   assert.equal(
-    section.querySelectorAll('.mappa__leader').length,
+    section.querySelectorAll('.mappa__dot .mappa__leader').length,
     displacedDots().length,
     'la stampa non porta il filo di ogni anello scostato',
   );
   assert.ok(
     [...section.querySelectorAll('.mappa__leader')].every(
-      (leader) => leader.closest('.mappa__dot') !== null,
+      (leader) =>
+        leader.closest('.mappa__dot') !== null ||
+        leader.closest('.mappa__bagno') !== null,
     ),
-    'in stampa un filo vive fuori dal punto che lo porta sulla carta',
+    'in stampa un filo vive fuori dal punto o dalla targa che lo porta sulla carta',
   );
   assert.doesNotMatch(
     ruleBodyFor(block, '.mappa__plan'),
@@ -6898,6 +6937,7 @@ test('il piano della Mappa è un’immagine dichiarata, caricata con calma e des
   const alt = normalize(image.getAttribute('alt') ?? '');
   assert.equal(alt, MAPPA_ALT, 'l’alt del piano non è la frase confermata');
   assert.doesNotMatch(alt, /\d/, 'l’alt del piano porta un numero');
+  assert.match(alt, /e i due bagni in bronzo/, 'l’alt non nomina i due bagni');
   assert.doesNotMatch(alt, /Piazza Umberto I/i, 'l’alt nomina la piazza');
   assert.match(alt, /\bpiazza\b/i, 'l’alt non descrive la piazza');
   assert.doesNotMatch(
@@ -7045,9 +7085,60 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
     [...crowded].sort(),
     'le coppie strette non sono più quelle del piano, o ne è comparsa una nuova',
   );
+
+  /*
+   * La targa del Bagno alla chiesa sta sul punto vero, scostata di +17/−17 px
+   * perché il punto cade dentro l'etichetta `la chiesa`, e un filo di bronzo
+   * la riunisce al punto, come il filo delle voci scostate. A 280 px il
+   * cerchio da 22 px lascia 2,83 px di riquadro dall'anello più vicino,
+   * Casianu, e il divario cresce col disegno.
+   */
+  const churchSign = MAPPA_BAGNI.find(
+    ({ sign }) => sign.dx !== 0 || sign.dy !== 0,
+  );
+  assert.ok(churchSign, 'manca la targa del Bagno scostata dalla chiesa');
+
+  const signBox = (width) => {
+    const height = (width * 396) / 273;
+    const x =
+      (Number.parseFloat(churchSign.x) / 100) * width + churchSign.sign.dx;
+    const y =
+      (Number.parseFloat(churchSign.y) / 100) * height + churchSign.sign.dy;
+    return { x0: x - 11, x1: x + 11, y0: y - 11, y1: y + 11 };
+  };
+  const ringBox = (entry, width) => {
+    const height = (width * 396) / 273;
+    const x = (Number.parseFloat(entry.x) / 100) * width + entry.nudge.dx;
+    const y = (Number.parseFloat(entry.y) / 100) * height + entry.nudge.dy;
+    return { x0: x - 6.5, x1: x + 6.5, y0: y - 6.5, y1: y + 6.5 };
+  };
+  const boxGap = (a, b) =>
+    Math.hypot(
+      Math.max(a.x0 - b.x1, b.x0 - a.x1, 0),
+      Math.max(a.y0 - b.y1, b.y0 - a.y1, 0),
+    );
+  const ringClearance = (width) =>
+    Math.min(
+      ...MAPPA_ENTRIES.map((entry) => boxGap(signBox(width), ringBox(entry, width))),
+    );
+
+  // Il divario misurato a 280 px è 2,83 px.
+  assert.ok(
+    Math.abs(ringClearance(280) - 2.83) < 0.01,
+    `la targa del Bagno lascia ${ringClearance(280).toFixed(2)} px dall’anello più vicino a 280 px, non 2,83`,
+  );
+
+  // Il divario non torna mai indietro quando il disegno si allarga.
+  const clearances = widths.map((width) => ringClearance(width));
+  for (let index = 1; index < clearances.length; index += 1) {
+    assert.ok(
+      clearances[index] > clearances[index - 1],
+      `la targa del Bagno si riavvicina agli anelli a ${widths[index]} px invece di allontanarsi`,
+    );
+  }
 });
 
-test('le etichette della Mappa sono testo HTML: la piazza una volta, la via dritta, il comune muto', () => {
+test('le etichette della Mappa sono testo HTML: la piazza una volta, la via dritta, il comune fra i luoghi', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
   const drawing = section.querySelector('.mappa__drawing');
@@ -7056,8 +7147,8 @@ test('le etichette della Mappa sono testo HTML: la piazza una volta, la via drit
   const labels = [...drawing.querySelectorAll('.mappa__label')];
   assert.deepEqual(
     labels.map((label) => normalize(label.textContent)),
-    ['Piazza Umberto I', 'la chiesa', 'Corso Trieste', 'Cassa', 'Cassa'],
-    'le etichette visibili non sono quelle del piano e delle due Casse',
+    ['Piazza Umberto I', 'la chiesa', 'Corso Trieste', 'il comune', 'Cassa', 'Cassa'],
+    'le etichette visibili non sono quelle dei luoghi e delle due Casse',
   );
   assert.ok(
     labels.every((label) => label.querySelector('svg, img, text') === null),
@@ -7079,9 +7170,14 @@ test('le etichette della Mappa sono testo HTML: la piazza una volta, la via drit
     ['Corso Trieste'],
     'la via non porta il registro di strada',
   );
+  // Il comune è un'etichetta dei luoghi come la chiesa, e una sola volta: porta
+  // il registro semplice, non quello della piazza né quello della via.
+  const comuni = labels.filter((label) => normalize(label.textContent) === 'il comune');
+  assert.equal(comuni.length, 1, 'il comune non è etichettato una sola volta');
   assert.ok(
-    !normalize(section.textContent).includes('il comune'),
-    'la Mappa etichetta il comune',
+    !comuni[0].classList.contains('mappa__label--place') &&
+      !comuni[0].classList.contains('mappa__label--street'),
+    'l’etichetta del comune porta il registro della piazza o della via',
   );
 
   const north = drawing.querySelector('.mappa__north');
@@ -7110,6 +7206,246 @@ test('le etichette della Mappa sono testo HTML: la piazza una volta, la via drit
     outsideDialogs.length,
     0,
     'la Mappa porta un testo visibile fuori dal piano e dai dialoghi',
+  );
+});
+
+test('i due Bagni sono targhe di bronzo che si nominano: span senza comandi, pictogrammi decorativi alle posizioni del piano', () => {
+  const document = loadSite();
+  const section = document.querySelector('section.mappa');
+  const layer = section.querySelector('.mappa__zoom');
+  assert.ok(layer, 'manca il layer che scala il piano');
+
+  const bagni = [...layer.querySelectorAll('span.mappa__bagno')];
+  assert.deepEqual(
+    bagni.map((bagno) => accessibleName(document, bagno)),
+    MAPPA_BAGNI.map(({ label }) => label),
+    'i due Bagni non sono nominati `Bagno` e `Bagno accessibile`',
+  );
+
+  bagni.forEach((bagno, index) => {
+    const { x, y, sign } = MAPPA_BAGNI[index];
+    const style = bagno.getAttribute('style') ?? '';
+    assert.equal(
+      style.match(/--x:\s*([\d.]+%)/)?.[1],
+      x,
+      `il Bagno ${index + 1} non è alla x del piano`,
+    );
+    assert.equal(
+      style.match(/--y:\s*([\d.]+%)/)?.[1],
+      y,
+      `il Bagno ${index + 1} non è alla y del piano`,
+    );
+    assert.equal(
+      style.match(/--sign-x:\s*(-?[\d.]+)/)?.[1] ?? '0',
+      String(sign.dx),
+      `il Bagno ${index + 1} non porta lo scostamento del segno in orizzontale`,
+    );
+    assert.equal(
+      style.match(/--sign-y:\s*(-?[\d.]+)/)?.[1] ?? '0',
+      String(sign.dy),
+      `il Bagno ${index + 1} non porta lo scostamento del segno in verticale`,
+    );
+
+    // Un segno, non una voce né un comando: nessun dialogo, nessun focus.
+    assert.equal(bagno.tagName, 'SPAN', 'un Bagno è un controllo invece di una targa');
+    assert.equal(bagno.getAttribute('role'), 'img', 'un Bagno non si annuncia come immagine');
+    assert.equal(bagno.hasAttribute('tabindex'), false, 'un Bagno si raggiunge con Tab');
+    assert.equal(bagno.hasAttribute('data-dialog'), false, 'un Bagno apre un dialogo');
+    assert.equal(bagno.hasAttribute('aria-controls'), false, 'un Bagno dichiara un dialogo');
+    assert.equal(
+      bagno.querySelector('button, a, [tabindex]'),
+      null,
+      'un Bagno porta un controllo o un elemento focalizzabile',
+    );
+
+    // Il pictogramma è decorativo: il nome sta sulla targa, non nel disegno.
+    const icons = bagno.querySelectorAll('svg');
+    assert.equal(icons.length, 1, 'un Bagno non ha un solo pictogramma');
+    const [icon] = icons;
+    assert.equal(
+      icon.getAttribute('aria-hidden'),
+      'true',
+      'il pictogramma del Bagno non è nascosto a chi non vede',
+    );
+    assert.equal(
+      icon.getAttribute('focusable'),
+      'false',
+      'il pictogramma del Bagno prende il focus',
+    );
+    // Il disegno è l'icona scaricata, riempita col colore della targa: nessuna
+    // forma ridisegnata e nessun colore proprio.
+    assert.equal(
+      icon.getAttribute('viewBox'),
+      '0 0 24 24',
+      'il pictogramma del Bagno non è nel riquadro da ventiquattro unità',
+    );
+    assert.equal(
+      icon.getAttribute('fill'),
+      'currentColor',
+      'il pictogramma del Bagno non si riempie col colore della targa',
+    );
+    const paints = [...icon.querySelectorAll('[fill], [stroke]')].flatMap((node) =>
+      ['fill', 'stroke'].flatMap((attribute) => {
+        const value = node.getAttribute(attribute);
+        return value === null ? [] : [value];
+      }),
+    );
+    assert.ok(
+      paints.every((value) => value === 'currentColor' || value === 'none'),
+      'il pictogramma del Bagno ha un colore proprio invece di currentColor',
+    );
+    assert.equal(
+      icon.querySelector('text, image'),
+      null,
+      'il pictogramma del Bagno porta testo o un’immagine',
+    );
+    assert.equal(
+      normalize(bagno.textContent),
+      '',
+      'un Bagno porta una parola visibile: è solo un segno',
+    );
+  });
+
+  // Solo la targa scostata porta il filo: unisce il punto vero sul piano alla
+  // targa, come il filo d'oro delle voci. È un segno decorativo, non un comando.
+  const leaders = [
+    ...layer.querySelectorAll('.mappa__bagno .mappa__leader'),
+  ];
+  assert.equal(
+    leaders.length,
+    1,
+    'i Bagni non portano un solo filo, quello della targa scostata',
+  );
+  const offsetSign = bagni.find((bagno) =>
+    /--sign-[xy]:\s*(?!0\b)-?\d+/.test(bagno.getAttribute('style') ?? ''),
+  );
+  assert.ok(offsetSign, 'nessuna targa porta lo scostamento del segno');
+  assert.ok(
+    offsetSign.contains(leaders[0]),
+    'il filo non appartiene alla targa scostata',
+  );
+  assert.equal(
+    leaders[0].getAttribute('aria-hidden'),
+    'true',
+    'il filo della targa non è nascosto a chi non vede',
+  );
+  assert.equal(
+    leaders[0].tagName,
+    'SPAN',
+    'il filo della targa è un controllo invece di un segno',
+  );
+
+  // Nessun Bagno è una voce della Mappa o una Cassa: non apre pannelli e non
+  // entra nell'ordine della fioritura.
+  assert.equal(
+    layer.querySelectorAll('.mappa__dot .mappa__bagno, .mappa__cassa .mappa__bagno').length,
+    0,
+    'un Bagno vive dentro un punto o una Cassa',
+  );
+  assert.equal(
+    document.querySelectorAll('.mappa__bagno[data-dialog], .mappa__bagno[style*="--bloom"]').length,
+    0,
+    'un Bagno è legato a un dialogo o alla fioritura',
+  );
+
+  // I segni stanno nel layer dopo le etichette e prima delle voci, così le
+  // voci si dipingono sopra e i Bagni crescono con il piano.
+  const children = [...layer.children];
+  const firstDot = layer.querySelector('button.mappa__dot');
+  const lastLabel = [...layer.querySelectorAll('.mappa__label, .mappa__north')].at(-1);
+  for (const bagno of bagni) {
+    assert.ok(
+      children.indexOf(bagno) > children.indexOf(lastLabel),
+      'un Bagno precede le etichette dei luoghi',
+    );
+    assert.ok(
+      children.indexOf(bagno) < children.indexOf(firstDot),
+      'un Bagno segue le voci della Mappa',
+    );
+  }
+});
+
+test('le targhe dei Bagni sono cerchi di bronzo intorno al pictogramma, con alone di crema e senza movimento', () => {
+  const css = stripCssComments(servedStylesheet());
+
+  const mark = ruleBodyFor(css, '.mappa__bagno');
+  assert.match(mark, /position:\s*absolute/, 'una targa non è posata sul piano');
+  assert.match(mark, /inset-block-start:\s*var\(--y\)/, 'una targa non sta alla y del piano');
+  assert.match(
+    mark,
+    /inset-inline-start:\s*var\(--x\)/,
+    'una targa non sta alla x del piano',
+  );
+  // La targa è un cerchio di bronzo: il diametro è una variabile, perché il
+  // filo ne sottrae il raggio per fermarsi sul bordo.
+  assert.match(mark, /--bagno-size:\s*22px/, 'il cerchio della targa non misura ventidue pixel');
+  assert.match(
+    mark,
+    /inline-size:\s*var\(--bagno-size\)/,
+    'la targa non è larga quanto il suo cerchio',
+  );
+  assert.match(
+    mark,
+    /block-size:\s*var\(--bagno-size\)/,
+    'la targa non è alta quanto il suo cerchio',
+  );
+  assert.match(mark, /border:\s*1px solid currentColor/, 'la targa non ha il cerchio nel suo inchiostro');
+  assert.match(mark, /border-radius:\s*50%/, 'la targa non è un cerchio');
+  assert.match(mark, /padding:\s*2px/, 'il pictogramma riempie il cerchio invece di starci dentro');
+  assert.match(mark, /color:\s*var\(--ink-muted\)/, 'la targa non è bronzo');
+  assert.match(mark, /pointer-events:\s*none/, 'la targa prende il tocco');
+  assert.match(mark, /transform:\s*translate\(/, 'la targa non è centrata sul suo segno');
+  assert.match(mark, /var\(--sign-x/, 'la targa non porta lo scostamento orizzontale');
+  assert.match(mark, /var\(--sign-y/, 'la targa non porta lo scostamento verticale');
+  assert.match(
+    mark,
+    /filter:[^;]*var\(--surface\)/s,
+    'la targa non porta l’alone di crema',
+  );
+  assert.doesNotMatch(mark, /animation|transition/, 'la targa si muove');
+
+  // Il pictogramma è disegnato col colore della targa, non con un colore suo.
+  assert.match(
+    ruleBodyFor(css, '.mappa__bagno svg'),
+    /display:\s*block/,
+    'il pictogramma della targa non riempie il suo riquadro',
+  );
+
+  // Il filo parte dal punto vero (il centro della targa meno lo scostamento),
+  // ne prende la direzione, è di bronzo e si ferma sul bordo del cerchio:
+  // alla lunghezza dello scostamento toglie il raggio della targa.
+  const leader = ruleBodyFor(css, '.mappa__bagno .mappa__leader');
+  assert.match(
+    leader,
+    /inset-block-start:\s*calc\(50% - var\(--sign-y\)/,
+    'il filo della targa non parte dal punto vero in verticale',
+  );
+  assert.match(
+    leader,
+    /inset-inline-start:\s*calc\(50% - var\(--sign-x\)/,
+    'il filo della targa non parte dal punto vero in orizzontale',
+  );
+  assert.match(
+    leader,
+    /inline-size:\s*calc\(\s*hypot\(var\(--sign-x\), var\(--sign-y\)\)\s*\*\s*1px\s*-\s*var\(--bagno-size\)\s*\/\s*2\s*\)/,
+    'il filo della targa non si ferma sul bordo del cerchio',
+  );
+  assert.match(
+    leader,
+    /rotate\(atan2\(var\(--sign-y\), var\(--sign-x\)\)\)/,
+    'il filo della targa non prende la direzione dello scostamento',
+  );
+  assert.match(
+    leader,
+    /background:\s*currentColor/,
+    'il filo della targa non è del colore della targa',
+  );
+
+  // Nessun movimento, nessuna fioritura, nessun anello: la targa non è una voce.
+  assert.doesNotMatch(
+    css,
+    /\.mappa__bagno[^{]*\{[^}]*(?:animation|transition)/s,
+    'una targa dei Bagni porta un movimento suo',
   );
 });
 
@@ -7173,15 +7509,15 @@ test('le due Casse sono segni d’oro che si nominano: span senza comandi, un an
     );
   });
 
-  // Le due etichette entrano nel gruppo delle etichette; le tre dei luoghi restano.
+  // Le due etichette entrano nel gruppo delle etichette; le quattro dei luoghi restano.
   const labels = [...layer.querySelectorAll('.mappa__label')];
-  assert.equal(labels.length, 5, 'il layer non tiene le tre etichette e le due Casse');
+  assert.equal(labels.length, 6, 'il layer non tiene le quattro etichette e le due Casse');
   assert.deepEqual(
     labels
       .filter((label) => !label.classList.contains('mappa__label--cassa'))
       .map((label) => normalize(label.textContent)),
-    ['Piazza Umberto I', 'la chiesa', 'Corso Trieste'],
-    'le tre etichette dei luoghi non sono più quelle del piano',
+    ['Piazza Umberto I', 'la chiesa', 'Corso Trieste', 'il comune'],
+    'le quattro etichette dei luoghi non sono più quelle del piano',
   );
 
   // I segni non sono voci della Mappa: nessuna Cassa ha un pannello da aprire.
@@ -7734,8 +8070,8 @@ test('la Mappa servita tiene un solo disegno, e lo script lo sposta invece di co
   );
   assert.equal(
     document.querySelectorAll('.mappa__label').length,
-    5,
-    'la pagina serve più delle tre etichette dei luoghi e delle due Casse',
+    6,
+    'la pagina serve più delle quattro etichette dei luoghi e delle due Casse',
   );
   assert.equal(
     document.querySelectorAll('.mappa__dot').length,
@@ -7873,7 +8209,7 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
     'il layer non è l’unico figlio del disegno',
   );
 
-  // One picture: the plan, the three place labels, the two Cassa labels, the
+  // One picture: the plan, the four place labels, the two Cassa labels, the
   // north mark and the dots of the entries.
   assert.equal(
     layer.querySelectorAll('img.mappa__plan').length,
@@ -7882,8 +8218,8 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
   );
   assert.equal(
     layer.querySelectorAll('.mappa__label').length,
-    5,
-    'il layer non tiene le tre etichette e le due Casse',
+    6,
+    'il layer non tiene le quattro etichette e le due Casse',
   );
   assert.equal(
     layer.querySelectorAll('.mappa__north').length,
@@ -7901,14 +8237,14 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
     'il layer non tiene le due Casse',
   );
   assert.equal(
-    layer.querySelectorAll('.mappa__leader').length,
+    layer.querySelectorAll('.mappa__dot .mappa__leader').length,
     displacedDots().length,
     'il layer non tiene il filo di ogni anello scostato',
   );
 
-  // The served page still has one plan, one piazza, five labels and a dot per entry.
+  // The served page still has one plan, one piazza, six labels and a dot per entry.
   assert.equal(document.querySelectorAll('img.mappa__plan').length, 1);
-  assert.equal(document.querySelectorAll('.mappa__label').length, 5);
+  assert.equal(document.querySelectorAll('.mappa__label').length, 6);
   assert.equal(
     (normalize(document.body.textContent).match(/Piazza Umberto I/g) ?? []).length,
     1,
@@ -7917,7 +8253,7 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
   assert.equal(document.querySelectorAll('.mappa__dot').length, MAPPA_ENTRIES.length);
   assert.equal(document.querySelectorAll('.mappa__cassa').length, 2);
   assert.equal(
-    document.querySelectorAll('.mappa__leader').length,
+    document.querySelectorAll('.mappa__dot .mappa__leader').length,
     displacedDots().length,
     'la pagina non serve il filo di ogni anello scostato',
   );

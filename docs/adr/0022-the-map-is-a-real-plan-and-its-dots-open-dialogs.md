@@ -14,7 +14,8 @@
   screen-high object” now describes the chapter); ADR-0026 (the rows become the
   plan’s ten Cantine under their house titles, two Casse join them as gold
   marks, the dots take the plan’s positions and the `Posizione indicativa`
-  caveat leaves the panels)
+  caveat leaves the panels); ADR-0031 (the comune joins the plan’s place
+  labels)
 - **Related:** ADR-0003, ADR-0010, ADR-0014, ADR-0019, `GLOSSARY.md` (*Mappa del
   Borgo*, *Cantina*), README (*Composition*, *Motion*, *Editor workflow*,
   *Search visibility*, *Content policy*, *Tests*), `index.html`,

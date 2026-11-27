@@ -11,9 +11,11 @@
   on the positions being placeholders)
 - **Amended by:** ADR-0027 (the panel’s single inside line becomes a provider
   paragraph and a derived sentence; the heading, the dots, the positions, the
-  Casse, the labels and the fallbacks stand)
+  Casse, the labels and the fallbacks stand); ADR-0030 (the register gains two
+  bronze facility marks, `Bagno` and `Bagno accessibile`; the dots, the Casse,
+  the labels, the dialogs and the script contract stand)
 - **Related:** ADR-0003, ADR-0014, ADR-0022, ADR-0023, ADR-0024, ADR-0025,
-  `GLOSSARY.md` (*Mappa del Borgo*, *Cantina*, *Cassa*), README (*Composition*,
+  `GLOSSARY.md` (*Mappa del Borgo*, *Cantina*, *Cassa*, *Bagno*), README (*Composition*,
   *Content table*, *Content policy*, *Editor workflow*, *Tests*), `index.html`,
   `assets/css/style.css`, `assets/img/mappa-del-borgo.svg`, `tests/site.test.mjs`
 

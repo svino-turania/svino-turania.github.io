@@ -1257,9 +1257,10 @@
 
   /*
    * The labels are the page's text over the drawing: the piazza in the serif
-   * register, the church and the street in the sans register. A cream halo
-   * keeps them legible over the plan without a plate of their own. All three
-   * labels sit level: a street name reads across its street, not along it.
+   * register, the church, the comune and the street in the sans register. A
+   * cream halo keeps them legible over the plan without a plate of their own.
+   * All four labels sit level: a street name reads across its street, not
+   * along it.
    */
   .mappa__label {
     position: absolute;
@@ -1350,6 +1351,44 @@
   }
 
   /*
+   * I due Bagni: targhe di bronzo, non voci. Ogni targa è un cerchio di bronzo
+   * intorno al pictogramma e ancora il punto vero del piano; --sign-x/--sign-y,
+   * in pixel scritti nel markup, la scostano dove il segno serve — sulla
+   * chiesa, fuori dall'etichetta `la chiesa` — e la targa scostata porta un
+   * filo di bronzo che torna al punto e si ferma sul bordo del cerchio. Il
+   * pictogramma è riempito con currentColor e l'alone di crema stacca il
+   * cerchio dai fabbricati chiari e dalle strade. Non prende il tocco, non si
+   * apre, non prende il focus e non fiorisce.
+   */
+  .mappa__bagno {
+    position: absolute;
+    inset-block-start: var(--y);
+    inset-inline-start: var(--x);
+    display: block;
+    --bagno-size: 22px;
+    inline-size: var(--bagno-size);
+    block-size: var(--bagno-size);
+    padding: 2px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    transform: translate(
+      calc(-50% + var(--sign-x, 0) * 1px),
+      calc(-50% + var(--sign-y, 0) * 1px)
+    );
+    color: var(--ink-muted);
+    filter:
+      drop-shadow(0 0 2px var(--surface))
+      drop-shadow(0 0 4px var(--surface));
+    pointer-events: none;
+  }
+
+  .mappa__bagno svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  /*
    * The dots are the page's only filled marks and its controls that open the
    * Cantina's dialog. The button's browser face is reset, so only the ring
    * and the dot show. The 44 px target is transparent and generous, so it
@@ -1400,6 +1439,22 @@
     transform: translateY(-50%) rotate(atan2(var(--nudge-y), var(--nudge-x)));
     background: var(--gold);
     pointer-events: none;
+  }
+
+  /*
+   * Il filo della targa scostata, nel bronzo della targa: parte dal punto vero
+   * (il centro della targa meno lo scostamento del segno), ne prende la
+   * direzione e si ferma sul bordo del cerchio, come il filo d'oro delle voci.
+   * Non prende il tocco. Dentro il layer, cresce con il disegno.
+   */
+  .mappa__bagno .mappa__leader {
+    inset-block-start: calc(50% - var(--sign-y) * 1px);
+    inset-inline-start: calc(50% - var(--sign-x) * 1px);
+    inline-size: calc(
+      hypot(var(--sign-x), var(--sign-y)) * 1px - var(--bagno-size) / 2
+    );
+    transform: translateY(-50%) rotate(atan2(var(--sign-y), var(--sign-x)));
+    background: currentColor;
   }
 
   .mappa__dot:focus-visible {
@@ -2965,6 +3020,12 @@
 
   /* Le due Casse sono segni stampati: l'anello d'oro resta sulla carta. */
   .mappa__cassa {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Le due targhe dei Bagni si stampano col piano e tengono il bronzo. */
+  .mappa__bagno {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
