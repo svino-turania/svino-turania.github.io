@@ -1693,6 +1693,17 @@
     line-height: 1;
   }
 
+  /*
+   * Il segno è testo, e il testo sta sulla linea di base: la sua impronta cade
+   * qualche decimo sotto il centro del quadrato — con i segni di questa pagina,
+   * circa 0.08 em. Lo si solleva di quel tanto, in em perché segua la
+   * dimensione del testo invece di restare una misura fissa. Resta testo: il
+   * quadrato centra la riga, non l'inchiostro, e il segno si corregge da sé.
+   */
+  .mappa__zoom-sign {
+    transform: translateY(-0.08em);
+  }
+
   .mappa__zoom-button:hover {
     border-color: var(--link-hover);
   }

@@ -7979,6 +7979,17 @@ test('tre quadrati di carta al piede del piano: Ingrandisci, Riduci e Vista inte
   for (const control of controls) {
     assert.equal(control.tagName.toLowerCase(), 'button', 'un comando non è un pulsante');
     assert.equal(control.getAttribute('type'), 'button', 'un comando non è un pulsante esplicito');
+    assert.equal(control.childElementCount, 1, 'il comando non porta il segno da solo');
+    assert.equal(
+      control.firstElementChild.getAttribute('class'),
+      'mappa__zoom-sign',
+      'il segno non è avvolto dal proprio elemento',
+    );
+    assert.equal(
+      normalize(control.firstElementChild.textContent),
+      normalize(control.textContent),
+      'il comando porta altro testo oltre al segno',
+    );
   }
   assert.equal(controls[0].hasAttribute('disabled'), false, 'Ingrandisci parte spento');
   assert.equal(controls[1].hasAttribute('disabled'), true, 'Riduci parte acceso a 1×');
@@ -8000,6 +8011,16 @@ test('tre quadrati di carta al piede del piano: Ingrandisci, Riduci e Vista inte
   assert.match(button, /background:\s*var\(--surface\)/, 'un comando non è carta di crema');
   assert.match(button, /border-radius:\s*0/, 'un comando arrotonda gli angoli');
   assert.doesNotMatch(button, /\bbox-shadow\s*:/, 'un comando proietta un’ombra');
+
+  // The sign is text on its baseline, so its ink falls a little under the
+  // square's centre: the sign lifts by an em measure of its own.
+  const sign = ruleBodyFor(css, '.mappa__zoom-sign');
+  assert.ok(sign, 'manca la correzione del segno al centro del quadrato');
+  assert.match(
+    sign,
+    /transform:\s*translateY\(\s*-[0-9.]+em\s*\)/,
+    'il segno non è sollevato al centro del quadrato, in em',
+  );
   assert.doesNotMatch(
     css,
     /\.mappa__zoom-button:disabled\s*\{[^}]*\b(?:animation|transition)\s*:/s,
