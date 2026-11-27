@@ -1257,9 +1257,10 @@
 
   /*
    * The labels are the page's text over the drawing: the piazza in the serif
-   * register, the church and the street in the sans register. A cream halo
-   * keeps them legible over the plan without a plate of their own. All three
-   * labels sit level: a street name reads across its street, not along it.
+   * register, the church, the comune and the street in the sans register. A
+   * cream halo keeps them legible over the plan without a plate of their own.
+   * All four labels sit level: a street name reads across its street, not
+   * along it.
    */
   .mappa__label {
     position: absolute;

@@ -5,6 +5,8 @@
 - **Amends:** ADR-0026 (the register gains a third class, facility marks; the
   dots, the Casse, the labels, the dialogs, the positions and the script
   contract stand)
+- **Amended by:** ADR-0031 (the plan carries four place labels, not three; the
+  register, the circles, the offsets and the hairline stand)
 - **Related:** ADR-0022, ADR-0023, ADR-0024, ADR-0025, ADR-0026, ADR-0027,
   `GLOSSARY.md` (*Bagno*, *Mappa del Borgo*), README (*Composition*, *Content
   table*, *Editor workflow*, *Tests*), `index.html`, `assets/css/style.css`,

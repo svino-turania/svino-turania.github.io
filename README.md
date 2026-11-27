@@ -197,9 +197,9 @@ paragraph carries the words.
 The Mappa del Borgo follows the prose as the walk's picture, before the
 Programma: the real plan of the borgo, exported from the cadastral base and
 drawn in the page's cream, gold and ink palette. The buildings, streets and
-piazza are in the served SVG; `Piazza Umberto I`, `la chiesa` and `Corso
-Trieste` are HTML labels over it, all three set level, with a discreet `N` and
-no scale bar, grid, frame or caption. The Comitato-confirmed Cantine —
+piazza are in the served SVG; `Piazza Umberto I`, `la chiesa`, `il comune` and
+`Corso Trieste` are HTML labels over it, all four set level, with a discreet
+`N` and no scale bar, grid, frame or caption. The Comitato-confirmed Cantine —
 ten of them — and the `Piazzale della chiesa`, the Pro Loco's stand in the little
 square at the church's foot, are bordeaux dots, the page's only bordeaux-filled
 marks, and each dot is a button that opens its own native dialog. The panel is
@@ -217,14 +217,14 @@ open nothing. The entries and the Casse stand where the plan draws them; where
 a dot must step aside so a thumb can reach it, a short gold hairline joins it
 to its true position. Two Bagni are bronze signs that name themselves to a
 screen reader alone: the two-figure WC pictogram at the church and the
-wheelchair symbol at the plan's south — the Material Icons `wc` and
-`accessible` glyphs, recoloured in the ink-muted bronze, each set inside a
-22 px bronze circle with a cream halo — a glow of the page's own paper, not a
-cast shadow — opening nothing and blooming no ring. The church's sign
-steps 17 px right and up from its true point — the point falls inside the `la
-chiesa` label — and a short bronze hairline joins it back to that point and
-stops on the circle's border, as a stepped-aside dot's gold hairline does. The
-accessible Bagno sits on its point and carries no hairline. Each dot also
+wheelchair symbol on the comune's building at the plan's south — the Material
+Icons `wc` and `accessible` glyphs, recoloured in the ink-muted bronze, each
+set inside a 22 px bronze circle with a cream halo — a glow of the page's own
+paper, not a cast shadow — opening nothing and blooming no ring. The church's
+sign steps 17 px right and up from its true point — the point falls inside the
+`la chiesa` label — and a short bronze hairline joins it back to that point
+and stops on the circle's border, as a stepped-aside dot's gold hairline does.
+The accessible Bagno sits on its point and carries no hairline. Each dot also
 blooms a slow ring of its ink — the plan's only repeating motion — so the
 chapter reads as openable where nothing hovers, while the Casse carry no ring
 and the Bagni stay still. There is no list: the dialogs are the entries. While
@@ -528,7 +528,10 @@ needs no stylesheet rule; to move one, change its two percentages, `--x` and
 `--y`, taken from the drawing box. A dot that steps aside for a thumb keeps its
 true position in `--nudge-x` / `--nudge-y` and a `span.mappa__leader` hairline,
 never more than 18 px. The two Cassa marks and their `Cassa` labels live beside
-the dots in the same drawing markup.
+the dots in the same drawing markup, and so do the four place labels: a
+`span.mappa__label` at the plan's `--x`/`--y`, plain for `la chiesa` and
+`il comune`, `mappa__label--place` for the piazza and `mappa__label--street`
+for the street.
 
 The two Bagni are facility marks, not entries: a `span.mappa__bagno` with
 `role="img"` and its `aria-label`, its plan point in `--x`/`--y` and, only
@@ -761,7 +764,7 @@ fails on any digit in the chapter (no count, no numbered pin), on text inside a
 dot, on a connecting route line, and on the unconfirmed rows and titles. It
 requires the plan to be an `<img>` pointing at the shipped SVG, lazy and
 asynchronous, with its intrinsic 546 × 792 size and an `alt` that describes the
-plan without a digit or the piazza's name; it also requires the four HTML
+plan without a digit or the piazza's name; it also requires the four place
 labels, the north mark and the absent scale, grid, frame and caption. It reads
 the SVG as an image: well formed, with no text, script, external reference or
 embedded raster, the three layers `strade`, `piazza` and `fabbricati`, the baked

@@ -7138,7 +7138,7 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
   }
 });
 
-test('le etichette della Mappa sono testo HTML: la piazza una volta, la via dritta, il comune muto', () => {
+test('le etichette della Mappa sono testo HTML: la piazza una volta, la via dritta, il comune fra i luoghi', () => {
   const document = loadSite();
   const section = document.querySelector('section.mappa');
   const drawing = section.querySelector('.mappa__drawing');
@@ -7147,8 +7147,8 @@ test('le etichette della Mappa sono testo HTML: la piazza una volta, la via drit
   const labels = [...drawing.querySelectorAll('.mappa__label')];
   assert.deepEqual(
     labels.map((label) => normalize(label.textContent)),
-    ['Piazza Umberto I', 'la chiesa', 'Corso Trieste', 'Cassa', 'Cassa'],
-    'le etichette visibili non sono quelle del piano e delle due Casse',
+    ['Piazza Umberto I', 'la chiesa', 'Corso Trieste', 'il comune', 'Cassa', 'Cassa'],
+    'le etichette visibili non sono quelle dei luoghi e delle due Casse',
   );
   assert.ok(
     labels.every((label) => label.querySelector('svg, img, text') === null),
@@ -7170,9 +7170,14 @@ test('le etichette della Mappa sono testo HTML: la piazza una volta, la via drit
     ['Corso Trieste'],
     'la via non porta il registro di strada',
   );
+  // Il comune è un'etichetta dei luoghi come la chiesa, e una sola volta: porta
+  // il registro semplice, non quello della piazza né quello della via.
+  const comuni = labels.filter((label) => normalize(label.textContent) === 'il comune');
+  assert.equal(comuni.length, 1, 'il comune non è etichettato una sola volta');
   assert.ok(
-    !normalize(section.textContent).includes('il comune'),
-    'la Mappa etichetta il comune',
+    !comuni[0].classList.contains('mappa__label--place') &&
+      !comuni[0].classList.contains('mappa__label--street'),
+    'l’etichetta del comune porta il registro della piazza o della via',
   );
 
   const north = drawing.querySelector('.mappa__north');
@@ -7504,15 +7509,15 @@ test('le due Casse sono segni d’oro che si nominano: span senza comandi, un an
     );
   });
 
-  // Le due etichette entrano nel gruppo delle etichette; le tre dei luoghi restano.
+  // Le due etichette entrano nel gruppo delle etichette; le quattro dei luoghi restano.
   const labels = [...layer.querySelectorAll('.mappa__label')];
-  assert.equal(labels.length, 5, 'il layer non tiene le tre etichette e le due Casse');
+  assert.equal(labels.length, 6, 'il layer non tiene le quattro etichette e le due Casse');
   assert.deepEqual(
     labels
       .filter((label) => !label.classList.contains('mappa__label--cassa'))
       .map((label) => normalize(label.textContent)),
-    ['Piazza Umberto I', 'la chiesa', 'Corso Trieste'],
-    'le tre etichette dei luoghi non sono più quelle del piano',
+    ['Piazza Umberto I', 'la chiesa', 'Corso Trieste', 'il comune'],
+    'le quattro etichette dei luoghi non sono più quelle del piano',
   );
 
   // I segni non sono voci della Mappa: nessuna Cassa ha un pannello da aprire.
@@ -8065,8 +8070,8 @@ test('la Mappa servita tiene un solo disegno, e lo script lo sposta invece di co
   );
   assert.equal(
     document.querySelectorAll('.mappa__label').length,
-    5,
-    'la pagina serve più delle tre etichette dei luoghi e delle due Casse',
+    6,
+    'la pagina serve più delle quattro etichette dei luoghi e delle due Casse',
   );
   assert.equal(
     document.querySelectorAll('.mappa__dot').length,
@@ -8204,7 +8209,7 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
     'il layer non è l’unico figlio del disegno',
   );
 
-  // One picture: the plan, the three place labels, the two Cassa labels, the
+  // One picture: the plan, the four place labels, the two Cassa labels, the
   // north mark and the dots of the entries.
   assert.equal(
     layer.querySelectorAll('img.mappa__plan').length,
@@ -8213,8 +8218,8 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
   );
   assert.equal(
     layer.querySelectorAll('.mappa__label').length,
-    5,
-    'il layer non tiene le tre etichette e le due Casse',
+    6,
+    'il layer non tiene le quattro etichette e le due Casse',
   );
   assert.equal(
     layer.querySelectorAll('.mappa__north').length,
@@ -8237,9 +8242,9 @@ test('la Mappa ingrandita è una sola figura: un layer porta lo zoom e tiene pia
     'il layer non tiene il filo di ogni anello scostato',
   );
 
-  // The served page still has one plan, one piazza, five labels and a dot per entry.
+  // The served page still has one plan, one piazza, six labels and a dot per entry.
   assert.equal(document.querySelectorAll('img.mappa__plan').length, 1);
-  assert.equal(document.querySelectorAll('.mappa__label').length, 5);
+  assert.equal(document.querySelectorAll('.mappa__label').length, 6);
   assert.equal(
     (normalize(document.body.textContent).match(/Piazza Umberto I/g) ?? []).length,
     1,

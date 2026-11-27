@@ -68,12 +68,13 @@ A toilet on the Mappa del Borgo. A Bagno is a facility mark: a small bronze
 circle around a pictogram, not an entry and not a Cassa. It opens nothing,
 takes no focus, carries no number, no visible word and no count, and never
 blooms. Two are confirmed: `Bagno`, the two-figure WC sign at the church, and
-`Bagno accessibile`, the wheelchair symbol, at the plan's south. The page names
-the facility's accessibility, not the person: the Comitato's plan writes
-`Bagno Disabili`, and the page's `Bagno accessibile` is the house style for the
-same facility. A facility mark stands on the building it serves, clear of the
-labels; where it must step aside, a bronze hairline joins it back to its point
-and stops on the circle's border, as a gold hairline joins a stepped-aside dot.
+`Bagno accessibile`, the wheelchair symbol on the comune's building at the
+plan's south. The page names the facility's accessibility, not the person: the
+Comitato's plan writes `Bagno Disabili`, and the page's `Bagno accessibile` is
+the house style for the same facility. A facility mark stands on the building
+it serves, clear of the labels; where it must step aside, a bronze hairline
+joins it back to its point and stops on the circle's border, as a gold hairline
+joins a stepped-aside dot.
 The Mappa states nothing else about a Bagno — no provider, no price, no hours,
 no sentence and no count.
 
@@ -116,27 +117,28 @@ print PDF; the two must never disagree.
 ## Mappa del Borgo
 
 The page's picture of the walk: a real plan of the Borgo, exported from the
-cadastral base, north-up and in scale, with the piazza, the church and the
-verified street `Corso Trieste` as labels. The ten Comitato-confirmed Cantine
-and the `Piazzale della chiesa` — the little square at the church's foot, where
-the Pro Loco serves arrosticini, panini con salsiccia and hot dog — are bordeaux
-dots, the page's only bordeaux marks, and each dot is a button that opens the
-place's panel, carrying its name (a Cantina's house title, or the piazzale's),
-the provider where one is confirmed, and a sentence on what visitors find
-inside. Two Casse are gold marks that name themselves and open nothing. Two
-Bagni are the Mappa's third class: bronze circles around the two-figure WC sign
-and the wheelchair, pictograms that name themselves to a screen reader, carry
-no visible word, open nothing and bloom no ring; the church's sign steps aside
-so the `la chiesa` label stays readable, and a bronze hairline joins it back to
-its point, stopping on the circle's border. The dots are the map's entries:
-there is no list beside or beneath the drawing. The marks stand at the plan's
-real positions, and where a dot must step aside for a thumb a gold hairline
-joins it to its true position; the hairline is not a route and carries no
-arrow. A facility mark uses the same idiom in bronze: it stands on the building
-it serves, clear of the labels, and a hairline joins any displaced sign to its
-point. The Mappa claims places, not an order, and names no count, no number, no
-route and no entry the Comitato has not confirmed. Capitalise when naming the
-chapter (`la Mappa del Borgo`); the page prose does not use the term.
+cadastral base, north-up and in scale, with the piazza, the church, the comune
+and the verified street `Corso Trieste` as labels. The ten Comitato-confirmed
+Cantine and the `Piazzale della chiesa` — the little square at the church's
+foot, where the Pro Loco serves arrosticini, panini con salsiccia and hot
+dog — are bordeaux dots, the page's only bordeaux marks, and each dot is a
+button that opens the place's panel, carrying its name (a Cantina's house
+title, or the piazzale's), the provider where one is confirmed, and a
+sentence on what visitors find inside. Two Casse are gold marks that name
+themselves and open nothing. Two Bagni are the Mappa's third class: bronze
+circles around the two-figure WC sign and the wheelchair, pictograms that name
+themselves to a screen reader, carry no visible word, open nothing and bloom no
+ring; the church's sign steps aside so the `la chiesa` label stays readable,
+and a bronze hairline joins it back to its point, stopping on the circle's
+border. The dots are the map's entries: there is no list beside or beneath the
+drawing. The marks stand at the plan's real positions, and where a dot must
+step aside for a thumb a gold hairline joins it to its true position; the
+hairline is not a route and carries no arrow. A facility mark uses the same
+idiom in bronze: it stands on the building it serves, clear of the labels, and
+a hairline joins any displaced sign to its point. The Mappa claims places, not
+an order, and names no count, no number, no route and no entry the Comitato has
+not confirmed. Capitalise when naming the chapter (`la Mappa del Borgo`); the
+page prose does not use the term.
 
 ## Turania (RI)
 
