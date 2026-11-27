@@ -37,9 +37,9 @@ dialog, no number and no visible word, and add no count.**
   focusable child. It opens no panel and enters neither the entries nor the
   Casse.
 - **Colour stays spoken for.** Bordeaux is the entries' alone and gold the
-  Casse's alone; a facility mark is `--ink-muted` — bronze — and filled.
-  Shape and weight, not colour, separate it from the bordeaux dots and the gold
-  rings, so a colour-blind visitor reads it too.
+  Casse's alone; a facility mark is `--ink-muted` — bronze — ring and filled
+  pictogram both. Shape and weight, not colour, separate it from the bordeaux
+  dots and the gold rings, so a colour-blind visitor reads it too.
 - **It carries a name and no word.** The span is `role="img"` with
   `aria-label="Bagno"` or `"Bagno accessibile"`; the inner SVG is decorative
   (`aria-hidden="true"`, `focusable="false"`) and drawn in `currentColor`. No
@@ -57,22 +57,30 @@ dialog, no number and no visible word, and add no count.**
   and the ISO wheelchair are Material Icons' `wc` and `accessible` (Google,
   Apache License 2.0 — `docs/licenses/Apache-2.0.txt`), inlined so the page
   requests nothing and changed in colour alone: a 24-unit drawing filled with
-  `currentColor`. The mark is 16 px on the plan and scales with the drawing —
-  48 px at 3×.
+  `currentColor`.
+- **The mark is a circle with the pictogram inside it.** A 22 px bronze ring,
+  2 px of air and the 16 px glyph, so the sign reads as the sign a visitor
+  knows and not as a glyph floating on the plan; the hairline then has a
+  border to stop on. The circle is a ring, not a disc: the filled marks stay
+  the entries' alone, and the plan shows through both sign and ground. Circle
+  and pictogram scale together with the drawing — 66 px at 3×.
 - **Bronze with a cream halo.** `--ink-muted` reads 6.30:1 on cream and 3.46:1
   on the building fill, above the 3:1 non-text floor; a drop shadow of
   `--surface` lifts its edges on both the tan buildings and the cream streets.
-  The halo is the labels' `text-shadow` idiom applied to a pictogram: a glow of
+  The halo is the labels' `text-shadow` idiom applied to the mark: a glow of
   the page's own paper, casting nothing. The page's one cast shadow remains the
   cartoline's (ADR-0020).
 
 ### The church sign and its hairline
 
 - **The sign steps aside; its point stays recorded.** The `Bagno`'s plan point
-  falls inside the `la chiesa` text box, so the sign takes a fixed `+14` /
-  `−14` px offset — right and up — and a short bronze hairline joins it back
-  to the point, as the gold hairline joins a stepped-aside dot. `--x` and `--y`
-  still carry the plan's true point.
+  falls inside the `la chiesa` text box, so the sign takes a fixed `+17` /
+  `−17` px offset — right and up — and a short bronze hairline joins it back
+  to the point and stops on the circle's border, as the gold hairline joins a
+  stepped-aside dot. The three extra pixels are the circle's greater reach: a
+  radius of 11 px where the bare sign's half-width was 8, so the circle's left
+  and lower edges stand where the bare mark's stood. `--x` and `--y` still
+  carry the plan's true point.
 - **The hairline is the facility mark's, and it is bronze.** It takes its
   length and direction from the same `--sign-x` / `--sign-y` the sign already
   carries and its colour from the mark's `currentColor`, so it is the sign's
@@ -85,9 +93,11 @@ dialog, no number and no visible word, and add no count.**
   hairline. The `Bagno accessibile` sits at its point with no offset and no
   hairline. The three place labels are unchanged.
 - **The clearance is measured.** At the narrowest chapter — a 280 px plan — the
-  14 px offset clears the label by about 2.4 px and the nearest entry ring,
+  17 px offset clears the label by about 2.4 px and the nearest entry ring,
   Casianu, by 2.83 px of bounding box; the gap grows with the drawing. The
-  suite pins 2.83 px and the growth.
+  extra three pixels ride on the offset, so the circle stands no closer than
+  the bare sign did and both figures hold. The suite pins 2.83 px and the
+  growth.
 
 ### The layer and the drawing
 
@@ -125,11 +135,12 @@ commits the Comitato to no provider, price, time or opening hours for a Bagno.
   needed, its two pixel offsets.
 - **The suite pins the marks.** It asserts the two spans as non-controls at
   their percentages and offsets, their accessible names, the decorative
-  pictograms filled with `currentColor`, the bronze and the halo, the church
-  sign's bronze hairline back to its point and no hairline on the accessible
-  one, their presence without JavaScript and in print, and the church sign's
-  clearance from the nearest ring at 280 px. The no-digit, no-route, no-list,
-  no-count and two-script guards pass unchanged.
+  pictograms filled with `currentColor`, the bronze circles and the halo, the
+  church sign's bronze hairline back to its point and stopping on the circle's
+  border, and no hairline on the accessible one, their presence without
+  JavaScript and in print, and the church sign's clearance from the nearest
+  ring at 280 px. The no-digit, no-route, no-list, no-count and two-script
+  guards pass unchanged.
 - **The glyphs carry their licence.** Material Icons is Apache 2.0: the source
   is named in a comment above the marks, and the licence text ships at
   `docs/licenses/Apache-2.0.txt`.
@@ -144,6 +155,10 @@ commits the Comitato to no provider, price, time or opening hours for a Bagno.
   the page's no-count rule refuses.
 - **Give the marks a visible word or a legend.** Rejected: the plan stays quiet,
   and the pictograms carry the meaning by shape for a colour-blind reader.
+- **Leave the pictograms bare.** Tried first and set aside: a glyph alone
+  reads as a symbol floating on the plan, and the hairline had no edge to stop
+  on and ran under it. The circle makes the mark a sign and gives the hairline
+  its end.
 - **Leave the church sign with no hairline.** Tried first and set aside: without
   the hairline the displaced sign reads as a mark on the building rather than
   as the toilet at a measured point, and the two Bagni no longer use the same

@@ -1350,21 +1350,26 @@
   }
 
   /*
-   * I due Bagni: targhe di bronzo, non voci. Ogni targa ancora il punto vero
-   * del piano; --sign-x/--sign-y, in pixel scritti nel markup, la scostano
-   * dove il segno serve — sulla chiesa, fuori dall'etichetta `la chiesa` — e
-   * la targa scostata porta un filo di bronzo che torna al punto. Il
-   * pictogramma è riempito con currentColor e l'alone di crema lo stacca dai
-   * fabbricati chiari e dalle strade. Non prende il tocco, non si apre, non
-   * prende il focus e non fiorisce.
+   * I due Bagni: targhe di bronzo, non voci. Ogni targa è un cerchio di bronzo
+   * intorno al pictogramma e ancora il punto vero del piano; --sign-x/--sign-y,
+   * in pixel scritti nel markup, la scostano dove il segno serve — sulla
+   * chiesa, fuori dall'etichetta `la chiesa` — e la targa scostata porta un
+   * filo di bronzo che torna al punto e si ferma sul bordo del cerchio. Il
+   * pictogramma è riempito con currentColor e l'alone di crema stacca il
+   * cerchio dai fabbricati chiari e dalle strade. Non prende il tocco, non si
+   * apre, non prende il focus e non fiorisce.
    */
   .mappa__bagno {
     position: absolute;
     inset-block-start: var(--y);
     inset-inline-start: var(--x);
     display: block;
-    inline-size: 16px;
-    block-size: 16px;
+    --bagno-size: 22px;
+    inline-size: var(--bagno-size);
+    block-size: var(--bagno-size);
+    padding: 2px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
     transform: translate(
       calc(-50% + var(--sign-x, 0) * 1px),
       calc(-50% + var(--sign-y, 0) * 1px)
@@ -1437,14 +1442,16 @@
 
   /*
    * Il filo della targa scostata, nel bronzo della targa: parte dal punto vero
-   * (il centro della targa meno lo scostamento del segno), è lungo quanto lo
-   * scostamento e ne prende la direzione, come il filo d'oro delle voci. Non
-   * prende il tocco. Dentro il layer, cresce con il disegno.
+   * (il centro della targa meno lo scostamento del segno), ne prende la
+   * direzione e si ferma sul bordo del cerchio, come il filo d'oro delle voci.
+   * Non prende il tocco. Dentro il layer, cresce con il disegno.
    */
   .mappa__bagno .mappa__leader {
     inset-block-start: calc(50% - var(--sign-y) * 1px);
     inset-inline-start: calc(50% - var(--sign-x) * 1px);
-    inline-size: calc(hypot(var(--sign-x), var(--sign-y)) * 1px);
+    inline-size: calc(
+      hypot(var(--sign-x), var(--sign-y)) * 1px - var(--bagno-size) / 2
+    );
     transform: translateY(-50%) rotate(atan2(var(--sign-y), var(--sign-x)));
     background: currentColor;
   }

@@ -5911,10 +5911,13 @@ const MAPPA_ENTRIES = Object.freeze([
  * I due Bagni del piano, con i punti del Comitato — dots 13 e 14 — e lo
  * scostamento del segno, in pixel: `dx`/`dy` spostano la targa dalla chiesa di
  * quanto basta a lasciare leggibile l'etichetta `la chiesa`, a destra e in
- * alto. Il bagno accessibile sta al suo punto, senza scostamento.
+ * alto. La targa è un cerchio da 22 px: lo scostamento di 17 px tiene il suo
+ * bordo sinistro e quello inferiore dove stavano quelli della targa nuda da
+ * 16 px, così i 2,83 px dall'anello di Casianu non cambiano. Il bagno
+ * accessibile sta al suo punto, senza scostamento.
  */
 const MAPPA_BAGNI = Object.freeze([
-  { label: 'Bagno', x: '50.78%', y: '47.44%', sign: { dx: 14, dy: -14 } },
+  { label: 'Bagno', x: '50.78%', y: '47.44%', sign: { dx: 17, dy: -17 } },
   { label: 'Bagno accessibile', x: '72.33%', y: '82.53%', sign: { dx: 0, dy: 0 } },
 ]);
 
@@ -7084,11 +7087,11 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
   );
 
   /*
-   * La targa del Bagno alla chiesa sta sul punto vero, scostata di +14/−14 px
+   * La targa del Bagno alla chiesa sta sul punto vero, scostata di +17/−17 px
    * perché il punto cade dentro l'etichetta `la chiesa`, e un filo di bronzo
-   * la riunisce al punto, come il filo delle voci scostate. A 280 px la targa
-   * da 16 px lascia 2,83 px di riquadro dall'anello più vicino, Casianu, e il
-   * divario cresce col disegno.
+   * la riunisce al punto, come il filo delle voci scostate. A 280 px il
+   * cerchio da 22 px lascia 2,83 px di riquadro dall'anello più vicino,
+   * Casianu, e il divario cresce col disegno.
    */
   const churchSign = MAPPA_BAGNI.find(
     ({ sign }) => sign.dx !== 0 || sign.dy !== 0,
@@ -7101,7 +7104,7 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
       (Number.parseFloat(churchSign.x) / 100) * width + churchSign.sign.dx;
     const y =
       (Number.parseFloat(churchSign.y) / 100) * height + churchSign.sign.dy;
-    return { x0: x - 8, x1: x + 8, y0: y - 8, y1: y + 8 };
+    return { x0: x - 11, x1: x + 11, y0: y - 11, y1: y + 11 };
   };
   const ringBox = (entry, width) => {
     const height = (width * 396) / 273;
@@ -7357,7 +7360,7 @@ test('i due Bagni sono targhe di bronzo che si nominano: span senza comandi, pic
   }
 });
 
-test('le targhe dei Bagni sono bronzo a sedici pixel, con alone di crema e senza movimento', () => {
+test('le targhe dei Bagni sono cerchi di bronzo intorno al pictogramma, con alone di crema e senza movimento', () => {
   const css = stripCssComments(servedStylesheet());
 
   const mark = ruleBodyFor(css, '.mappa__bagno');
@@ -7368,8 +7371,22 @@ test('le targhe dei Bagni sono bronzo a sedici pixel, con alone di crema e senza
     /inset-inline-start:\s*var\(--x\)/,
     'una targa non sta alla x del piano',
   );
-  assert.match(mark, /inline-size:\s*16px/, 'la targa non misura sedici pixel');
-  assert.match(mark, /block-size:\s*16px/, 'la targa non misura sedici pixel');
+  // La targa è un cerchio di bronzo: il diametro è una variabile, perché il
+  // filo ne sottrae il raggio per fermarsi sul bordo.
+  assert.match(mark, /--bagno-size:\s*22px/, 'il cerchio della targa non misura ventidue pixel');
+  assert.match(
+    mark,
+    /inline-size:\s*var\(--bagno-size\)/,
+    'la targa non è larga quanto il suo cerchio',
+  );
+  assert.match(
+    mark,
+    /block-size:\s*var\(--bagno-size\)/,
+    'la targa non è alta quanto il suo cerchio',
+  );
+  assert.match(mark, /border:\s*1px solid currentColor/, 'la targa non ha il cerchio nel suo inchiostro');
+  assert.match(mark, /border-radius:\s*50%/, 'la targa non è un cerchio');
+  assert.match(mark, /padding:\s*2px/, 'il pictogramma riempie il cerchio invece di starci dentro');
   assert.match(mark, /color:\s*var\(--ink-muted\)/, 'la targa non è bronzo');
   assert.match(mark, /pointer-events:\s*none/, 'la targa prende il tocco');
   assert.match(mark, /transform:\s*translate\(/, 'la targa non è centrata sul suo segno');
@@ -7390,8 +7407,8 @@ test('le targhe dei Bagni sono bronzo a sedici pixel, con alone di crema e senza
   );
 
   // Il filo parte dal punto vero (il centro della targa meno lo scostamento),
-  // è lungo quanto lo scostamento e ne prende la direzione, come quello delle
-  // voci; è di bronzo, cioè del colore della targa.
+  // ne prende la direzione, è di bronzo e si ferma sul bordo del cerchio:
+  // alla lunghezza dello scostamento toglie il raggio della targa.
   const leader = ruleBodyFor(css, '.mappa__bagno .mappa__leader');
   assert.match(
     leader,
@@ -7405,8 +7422,8 @@ test('le targhe dei Bagni sono bronzo a sedici pixel, con alone di crema e senza
   );
   assert.match(
     leader,
-    /inline-size:\s*calc\(hypot\(var\(--sign-x\), var\(--sign-y\)\)/,
-    'il filo della targa non è lungo quanto lo scostamento',
+    /inline-size:\s*calc\(\s*hypot\(var\(--sign-x\), var\(--sign-y\)\)\s*\*\s*1px\s*-\s*var\(--bagno-size\)\s*\/\s*2\s*\)/,
+    'il filo della targa non si ferma sul bordo del cerchio',
   );
   assert.match(
     leader,
