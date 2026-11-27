@@ -2,6 +2,8 @@
 
 - **Status:** accepted, superseded in part by ADR-0018 (the two-click event set)
 - **Date:** 2026-11-16
+- **Superseded in part by:** ADR-0022 (the script allowance becomes two
+  executable scripts — the Mappa's inline binding and the counter, still last)
 - **Supersedes:** ADR-0013. Supersedes in part the no-JavaScript element of
   ADR-0005, ADR-0006, ADR-0007, ADR-0008, ADR-0009, ADR-0010 and ADR-0011.
 - **Related:** ADR-0003, ADR-0010, ADR-0013, README (*Motion*, *Tests*),
@@ -85,13 +87,15 @@ a no-JavaScript fallback**.
 - **The cutover is now.** The event is 6 December 2026, so the script and the
   events are deployed before the campaign's peak; the path `/` continues and
   nothing is backfilled.
-- **The no-JavaScript guard is narrowed, not dropped.** It becomes: exactly one
-  `<script>`, its `src` pinned to `gc.zgo.at/count.js` and its
-  `data-goatcounter` pinned to the account; no element carries an `on*`
-  attribute; no `.js` file is shipped. The denylist and font guards stand.
-  GoatCounter is permitted by this decision, not by its absence from the
-  denylist; the denylist is unchanged.
-- **The tests pin the new shape.** One script with its host, path, endpoint,
+- **The no-JavaScript guard is narrowed, not dropped.** It becomes: exactly two
+  executable `<script>` elements — the Mappa's small inline binding and the
+  counter's, with the counter last (ADR-0022 amends the one-script count); the
+  counter's `src` pinned to `gc.zgo.at/count.js` and its `data-goatcounter`
+  pinned to the account; no element carries an `on*` attribute; no `.js` file is
+  shipped. The denylist and font guards stand. GoatCounter is permitted by this
+  decision, not by its absence from the denylist; the denylist is unchanged.
+- **The tests pin the new shape.** Two executable scripts: the Mappa's inline
+  binding before the counter, and the counter with its host, path, endpoint,
   `async` and position at the end of `<body>`; one fallback pixel inside
   `<noscript>` with its privacy attributes; exactly two
   `data-goatcounter-click` attributes, on the map and the Locandina; the
@@ -123,9 +127,10 @@ a no-JavaScript fallback**.
   past hit gains a referrer, a region or an event; there is no backfill.
 - **The "one external request" claim ends.** The README and the colophon
   comment describe a script, a count request and a fallback pixel instead.
-- **The no-JavaScript contract is now a one-script contract.** Motion stays
+- **The no-JavaScript contract is now a two-script contract.** Motion stays
   CSS-only; no effect may depend on the counter script, and the guard test says
-  exactly one script is allowed, not that scripts are allowed.
+  exactly two executable scripts are allowed, not that scripts are allowed.
+  ADR-0022 adds the Mappa's inline binding and keeps the counter last.
 - **`GLOSSARY.md` is unchanged.** "Source", "region" and "event" are measurement
   terms, not terms of the event, as ADR-0013 said of "visit" and "page view".
 
