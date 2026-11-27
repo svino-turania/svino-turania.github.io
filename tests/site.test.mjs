@@ -5775,7 +5775,7 @@ const MAPPA_ENTRIES = Object.freeze([
   },
   {
     id: 'cantina-enzo',
-    name: 'Cantina di Enzo',
+    name: 'Quissi de Cacafino',
     providers: ['La Cortesia Home Restaurant'],
     sentence:
       'Trovate pasta e fagioli, trippa al sugo: piatti che sanno di casa.',
@@ -5786,7 +5786,7 @@ const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'cantina-callaru',
     name: 'Quissi de Callaru',
-    providers: ['Settecapocce', 'Palaterra'],
+    providers: ['La Forcella - 7 Capocce', 'Palaterra'],
     sentence:
       'Gustate ravioli al tartufo e birra artigianale, per una pausa che sa di festa.',
     x: '54.04%',
@@ -5804,7 +5804,7 @@ const MAPPA_ENTRIES = Object.freeze([
   },
   {
     id: 'cantina-macellaru',
-    name: 'Quissi de lu Macellaru',
+    name: 'Quissi de Santu',
     providers: [],
     sentence: WINE_LIST_SENTENCE,
     x: '47.43%',
@@ -5814,7 +5814,7 @@ const MAPPA_ENTRIES = Object.freeze([
   {
     id: 'cantina-brunetto',
     name: 'Quissi de Brunetto',
-    providers: ['Tobia'],
+    providers: ['Da Tobia'],
     sentence: 'Fermatevi per gin e amari.',
     x: '47.42%',
     y: '68.00%',
@@ -5832,7 +5832,7 @@ const MAPPA_ENTRIES = Object.freeze([
   },
   {
     id: 'cantina-santu',
-    name: 'Quissi de Santu',
+    name: 'La cantina a lu Puzzicò',
     providers: ['La Cueva Home Restaurant'],
     sentence:
       'Assaggiate la polenta, un piatto semplice.',
@@ -6810,9 +6810,11 @@ test('la Mappa non conta, non disegna un percorso e non nomina ciò che non è c
   }
   const text = normalize(clone.textContent);
 
-  // Il capitolo non porta alcuna cifra: né una conta né un numero di punto.
+  // Il capitolo non porta alcuna cifra: né una conta né un numero di punto —
+  // salvo la cifra che fa parte del nome confermato «La Forcella - 7 Capocce».
+  const withoutProviderDigit = text.replace('La Forcella - 7 Capocce', '');
   assert.doesNotMatch(
-    text,
+    withoutProviderDigit,
     /\d/,
     'la Mappa porta un numero: una conta o un numero di punto',
   );
