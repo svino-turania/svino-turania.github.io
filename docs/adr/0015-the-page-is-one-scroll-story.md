@@ -2,6 +2,9 @@
 
 - **Status:** accepted
 - **Date:** 2026-11-19
+- **Superseded in part by:** ADR-0024 (the Mappa's dots keep a slow bloom: the
+  page's one ambient motion; the scroll story, the tokens and the rest of the
+  motion law stand)
 - **Supersedes in part:** ADR-0012 (the one gallery reveal range and the "No new
   motion is introduced" clause) and ADR-0009's motion note (the motion
   previously had no ADR)
