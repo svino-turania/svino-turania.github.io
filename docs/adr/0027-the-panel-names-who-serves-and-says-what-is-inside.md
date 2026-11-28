@@ -5,6 +5,8 @@
 - **Amends:** ADR-0026 (the panel's single inside line becomes a provider
   paragraph and a sentence; the heading, the dots, the positions, the Casse,
   the labels, the fallbacks and the script contract stand)
+- **Amended by:** ADR-0032 (the four wine-list panels' dots become bordeaux
+  seals with a wine glass; the panels stand)
 - **Related:** ADR-0022, ADR-0023, ADR-0024, ADR-0025, ADR-0026, `GLOSSARY.md`
   (*Cantina*, *Mappa del Borgo*), README (*Composition*, *Editor workflow*,
   *Content policy*, *Tests*), `index.html`, `assets/css/style.css`,

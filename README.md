@@ -212,6 +212,13 @@ equal lines with no separator and no rank. Where no provider is confirmed the
 line is simply absent. The sentence speaks in the page's `voi` voice and adds
 no fact the Comitato has not confirmed; the four Cantine that serve only wine
 share one sentence promising that the list of wines will arrive on this page.
+Four of those dots — the Cantine whose panel confirms nothing but wine — are
+22 px bordeaux seals with the Material `wine_bar` glass knocked out in cream;
+the other seven keep the plain ring and dot. The pair reads *only wine* /
+*serves something besides wine*, so `Quissi de Brunetto`, confirmed with Da
+Tobia's gin and amari, stays honestly plain. The seal adds no word, no legend
+and no count: the panel's sentence is its explanation, and the dot still
+announces the place's name alone.
 Two Casse are quiet gold marks that name themselves with the word `Cassa` and
 open nothing. The entries and the Casse stand where the plan draws them; where
 a dot must step aside so a thumb can reach it, a short gold hairline joins it
@@ -262,7 +269,10 @@ ADR-0027 records the panel's provider line, the derived sentences and the
 wine-list promise; ADR-0028 records the page's refusal of pinch-zoom, its
 limits on iOS Safari and the accessibility it costs; ADR-0030 records the two
 Bagni — the facility marks, their points and sign offsets, their pictograms,
-the no-script and print fallbacks and the plan's description.
+the no-script and print fallbacks and the plan's description; ADR-0032 records
+the four wine seals — the rule derived from the panels, the disc and its cream
+glass, the ring that grows with the mark, and the print and no-script
+fallbacks.
 
 The Programma follows as the second illustrated chapter and as the page's
 mid-walk strong surface: a full-bleed bordeaux interlude with the printed label — sans, the
@@ -459,7 +469,7 @@ a short comment beside it in the file:
 | Edition               | `II EDIZIONE`                  | the lockup beside the signature, the colophon and the metadata |
 | Opening image description | the approved Italian sentence | the `alt` attribute of the image in `.hero-photo`          |
 | Photograph description| the approved Italian sentence  | the `alt` attribute of the Cantina photograph                 |
-| Marks on the map      | ten Comitato-confirmed Cantine, the `Piazzale della chiesa`, two Casse and two Bagni | one dot button and one `<dialog>` with the same `id` per entry, the panel carrying the provider line and the sentence; two non-interactive gold marks, each with its `Cassa` label; two non-interactive bronze circles around the `Bagno` and `Bagno accessibile` pictograms, the church's joined to its true point by a bronze hairline, with no visible word; no list |
+| Marks on the map      | ten Comitato-confirmed Cantine, the `Piazzale della chiesa`, two Casse and two Bagni | one dot button and one `<dialog>` with the same `id` per entry, the panel carrying the provider line and the sentence; four of the dots, those whose panel confirms only wine, wear `mappa__dot--seal` and the cream `wine_bar` glass on a bordeaux disc; two non-interactive gold marks, each with its `Cassa` label; two non-interactive bronze circles around the `Bagno` and `Bagno accessibile` pictograms, the church's joined to its true point by a bronze hairline, with no visible word; no list |
 | Locandina download    | `assets/download/locandina-svino-ii-edizione.jpg` | the single link in the closing band, at every width |
 
 The date is the one value the page states in several forms. Change
@@ -532,6 +542,14 @@ the dots in the same drawing markup, and so do the four place labels: a
 `span.mappa__label` at the plan's `--x`/`--y`, plain for `la chiesa` and
 `il comune`, `mappa__label--place` for the piazza and `mappa__label--street`
 for the street.
+
+A dot is a seal if and only if its panel has no provider and carries the
+wine-list sentence: give it `mappa__dot--seal` and the inlined, `aria-hidden`
+Material `wine_bar` glyph. The other entries keep the plain ring and dot, and
+`Quissi de Brunetto` stays plain because its provider serves something besides
+wine. The suite pins the four seal ids, so confirming a provider for one of
+them turns it back into a plain dot in the same edit that writes its provider
+line and sentence.
 
 The two Bagni are facility marks, not entries: a `span.mappa__bagno` with
 `role="img"` and its `aria-label`, its plan point in `--x`/`--y` and, only
@@ -762,10 +780,15 @@ requires one button dot and one dialog per entry, with the
 same `id` set, and fails if the chapter still has a list or a `<details>`. It
 fails on any digit in the chapter (no count, no numbered pin), on text inside a
 dot, on a connecting route line, and on the unconfirmed rows and titles. It
-requires the plan to be an `<img>` pointing at the shipped SVG, lazy and
-asynchronous, with its intrinsic 546 × 792 size and an `alt` that describes the
-plan without a digit or the piazza's name; it also requires the four place
-labels, the north mark and the absent scale, grid, frame and caption. It reads
+requires exactly the four wine seals — the entries whose panel has no provider
+and carries the wine-list sentence, and no others — each carrying the inlined
+Material `wine_bar` glyph hidden from a screen reader, and it pins the disc's
+fill, the cream glass, the 22 px bloom ring and the seal case on the same 44 px
+target as the plain dot. It requires the plan to be an `<img>` pointing at the
+shipped SVG, lazy and asynchronous, with its intrinsic 546 × 792 size and an
+`alt` that describes the plan without a digit or the piazza's name; it also
+requires the four place labels, the north mark and the absent scale, grid,
+frame and caption. It reads
 the SVG as an image: well formed, with no text, script, external reference or
 embedded raster, the three layers `strade`, `piazza` and `fabbricati`, the baked
 palette, a transparent ground, and the comment that says it is generated from
@@ -946,14 +969,15 @@ SV Sans under the OFL Reserved Font Name condition and accompanied by the full
 licence text; they are never requested from a third-party host. The signature
 is the one exception delivered as a path.
 
-## The Bagni pictograms
+## The Material pictograms
 
-The two pictograms on the Mappa are Google's Material Icons `wc` and
-`accessible`, taken unaltered and recoloured with `currentColor`: colour is the
-only change to the artwork. They are inlined in `index.html`, so the page
-requests no icon host at runtime, and the Apache License 2.0 that covers them
-ships with the repository at `docs/licenses/Apache-2.0.txt`. The comment above
-the marks names the source.
+The three pictograms on the Mappa are Google's Material Icons `wc`,
+`accessible` and `wine_bar`, taken unaltered and recoloured with
+`currentColor`: colour is the only change to the artwork. The first two are the
+Bagni's signs; `wine_bar` is the glass on the four wine seals. All three are
+inlined in `index.html`, so the page requests no icon host at runtime, and the
+Apache License 2.0 that covers them ships with the repository at
+`docs/licenses/Apache-2.0.txt`. The comments above the marks name the source.
 
 ## Derived assets and the print master
 

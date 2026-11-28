@@ -50,6 +50,16 @@ const MERCATINO_PARAGRAPH =
 const WINE_LIST_SENTENCE =
   'Assaggiate il vino: la lista dei vini arriverà su questa pagina.';
 
+/*
+ * Il bicchiere del sigillo è Google's Material Icons `wine_bar`, preso
+ * invariato e riempito con `currentColor`, come i due pictogrammi dei Bagni.
+ * Il `d` è quello dell'icona scaricata, con le virgole portate a spazi dalla
+ * sola riscrittura: nessuna forma ridisegnata a mano. La licenza Apache 2.0
+ * che lo copre è quella già in `docs/licenses/Apache-2.0.txt`.
+ */
+const WINE_BAR_PATH =
+  'M6 3l0 6c0 2.97 2.16 5.43 5 5.91V19H8v2h8v-2h-3v-4.09c2.84-.48 5-2.94 5-5.91l0-6H6z M16 8H8l0-3h8C16 5 16 8 16 8z';
+
 const PHOTO_ALT =
   "Interno di una cantina scavata nella roccia: soffitto e pareti di pietra grezza, una lampadina nuda appesa a un filo, damigiane di vetro anche dentro cesti di vimini, una botte coricata e un grande tino chiaro con il coperchio; un palo di legno regge la volta.";
 
@@ -5817,7 +5827,10 @@ const MAPPA_ENTRIES = Object.freeze([
     sentence: WINE_LIST_SENTENCE,
     x: '43.52%',
     y: '43.19%',
-    nudge: { dx: 17, dy: 2 },
+    // Il sigillo da 22 px, nella piazza, prende il passo più grande fra i
+    // sigilli: deve lasciare libero il Bagno della chiesa senza schiacciare
+    // l'anello di Enzo né il piazzale.
+    nudge: { dx: 12, dy: -13 },
   },
   {
     id: 'cantina-enzo',
@@ -5906,6 +5919,66 @@ const MAPPA_ENTRIES = Object.freeze([
     nudge: { dx: -11, dy: -14 },
   },
 ]);
+
+/*
+ * Il sigillo del vino è una regola, non un elenco: un punto è un sigillo se e
+ * solo se il suo pannello non nomina un provider e porta la promessa della
+ * lista dei vini. Il raggio del segno visibile è il disco da 22 px per un
+ * sigillo e l'anello da 13 px per ogni altro punto.
+ */
+const panelIsWineOnly = (document, id) => {
+  const panel = document.getElementById(`${id}-dialog`);
+  const provider = panel.querySelector('.mappa__dialog-provider');
+  const sentence = normalize(
+    panel.querySelector('.mappa__dialog-sentence')?.textContent ?? '',
+  );
+  return provider === null && sentence === WINE_LIST_SENTENCE;
+};
+const markRadius = (document, entry) =>
+  panelIsWineOnly(document, entry.id) ? 11 : 6.5;
+
+/*
+ * Un pictogramma Material: decorativo, riempito con currentColor, senza testo
+ * né immagini, nel riquadro da ventiquattro unità. Il nome accessibile non
+ * passa mai dal disegno. I Bagni e i sigilli del vino condividono il contratto.
+ */
+function assertMaterialGlyph(svg, label) {
+  assert.equal(
+    svg.getAttribute('aria-hidden'),
+    'true',
+    `${label}: il pictogramma non è nascosto a chi non vede`,
+  );
+  assert.equal(
+    svg.getAttribute('focusable'),
+    'false',
+    `${label}: il pictogramma prende il focus`,
+  );
+  assert.equal(
+    svg.getAttribute('viewBox'),
+    '0 0 24 24',
+    `${label}: il pictogramma non è nel riquadro da ventiquattro unità`,
+  );
+  assert.equal(
+    svg.getAttribute('fill'),
+    'currentColor',
+    `${label}: il pictogramma non si riempie con il colore del segno`,
+  );
+  const paints = [...svg.querySelectorAll('[fill], [stroke]')].flatMap((node) =>
+    ['fill', 'stroke'].flatMap((attribute) => {
+      const value = node.getAttribute(attribute);
+      return value === null ? [] : [value];
+    }),
+  );
+  assert.ok(
+    paints.every((value) => value === 'currentColor' || value === 'none'),
+    `${label}: il pictogramma ha un colore proprio invece di currentColor`,
+  );
+  assert.equal(
+    svg.querySelector('text, image'),
+    null,
+    `${label}: il pictogramma porta testo o un'immagine`,
+  );
+}
 
 /*
  * I due Bagni del piano, con i punti del Comitato — dots 13 e 14 — e lo
@@ -6145,6 +6218,50 @@ test('ogni punto della Mappa è un pulsante che apre il suo dialogo e nessun pun
       '',
       'un punto porta un numero o un testo: il percorso non è deciso',
     );
+    /*
+     * Il sigillo del vino: un punto è un sigillo se e solo se il suo pannello
+     * non nomina un provider e porta la promessa della lista dei vini. Il
+     * bicchiere è decorativo e riempito con currentColor, come i pictogrammi
+     * dei Bagni: non aggiunge una parola, un nome accessibile o un focus.
+     */
+    const isSeal = panelIsWineOnly(document, expected.id);
+    assert.ok(
+      pin.classList.contains('mappa__dot'),
+      `il punto ${expected.id} non è più un punto: il sigillo veste il segno, non cambia il comando`,
+    );
+    assert.equal(
+      pin.classList.contains('mappa__dot--seal'),
+      isSeal,
+      `il punto ${expected.id} non porta il sigillo che il suo pannello chiede`,
+    );
+    const glyphs = [...pin.querySelectorAll('svg')];
+    assert.equal(
+      glyphs.length,
+      isSeal ? 1 : 0,
+      isSeal
+        ? `il sigillo ${expected.id} non porta il bicchiere`
+        : `il punto ${expected.id} porta un bicchiere pur servendo altro`,
+    );
+    if (isSeal) {
+      const [glyph] = glyphs;
+      assert.equal(
+        glyph.closest('.mappa__dot-mark'),
+        pin.querySelector('.mappa__dot-mark'),
+        `il bicchiere di ${expected.id} non sta nel suo segno`,
+      );
+      assertMaterialGlyph(glyph, `il bicchiere di ${expected.id}`);
+      const paths = [...glyph.querySelectorAll('path')];
+      assert.equal(
+        paths.length,
+        1,
+        `il bicchiere di ${expected.id} non è l'icona Material wine_bar`,
+      );
+      assert.equal(
+        paths[0].getAttribute('d'),
+        WINE_BAR_PATH,
+        `il bicchiere di ${expected.id} è una forma ridisegnata invece di wine_bar`,
+      );
+    }
     /*
      * La posizione è quella del piano, alla percentuale esatta. Lo
      * scostamento, se c'è, è un altro paio di valori, scritti nel markup: la
@@ -6801,10 +6918,30 @@ test('i punti della Mappa fioriscono il proprio inchiostro, e la carta resta fer
     'il punto non respira',
   );
 
+  /*
+   * Il sigillo è più largo del punto semplice: il suo anello parte dal bordo
+   * del disco da 22 px, così fiorisce dal segno com'è. Lo scatto, il bersaglio
+   * da 44 px e il filo non cambiano; l'anello è lo stesso, non un secondo.
+   */
+  const sealRing = ruleBodyFor(motion, '.mappa__dot--seal .mappa__dot-mark::before');
+  assert.ok(sealRing, 'l’anello del sigillo non fiorisce');
+  assert.match(sealRing, /inline-size:\s*var\(--seal-size\)/, 'l’anello del sigillo non parte dal disco');
+  assert.match(sealRing, /block-size:\s*var\(--seal-size\)/, 'l’anello del sigillo non parte dal disco');
+  assert.match(sealRing, /--bloom-scale:\s*2\b/, 'l’anello del sigillo supera il bersaglio da 44 px');
+  assert.doesNotMatch(
+    sealRing,
+    /animation|border:|content:/,
+    'l’anello del sigillo è una seconda animazione invece della stessa',
+  );
+
   const keyframes = atRuleBlocks(css, '@keyframes\\s+ink-bloom\\s*\\{');
   assert.equal(keyframes.length, 1, 'manca la fioritura dei punti');
   const bloom = css.slice(keyframes[0].start, keyframes[0].end);
-  assert.match(bloom, /scale\(3\.2\)/, 'l’anello non si allarga');
+  assert.match(
+    bloom,
+    /scale\(var\(--bloom-scale,\s*3\.2\)\)/,
+    'l’anello non si allarga fino al bersaglio da 44 px',
+  );
   assert.doesNotMatch(
     bloom,
     /\b(?:color|background|border-color)\s*:/,
@@ -6913,6 +7050,45 @@ test('la Mappa non conta, non disegna un percorso e non nomina ciò che non è c
     1,
     'la piazza non compare una sola volta nel corpo visibile',
   );
+
+  /*
+   * Il sigillo è una regola, non un elenco: un punto è un sigillo se e solo
+   * se il suo pannello non nomina un provider e porta la promessa della lista
+   * dei vini. Oggi sono quattro, e la suite li nomina verbatim perché un
+   * edit di contenuto che ne cambi il numero si veda in revisione e non si
+   * scopra sulla pagina. Brunetto, che ha un provider ma nessun piatto, resta
+   * un punto semplice: il segno dice «solo vino», non «cibo».
+   */
+  const sealIds = [
+    'cantina-casianu',
+    'cantina-santuccella',
+    'cantina-macellaru',
+    'cantina-gabriele',
+  ];
+  assert.deepEqual(
+    [...section.querySelectorAll('button.mappa__dot--seal')].map((pin) =>
+      pin.getAttribute('data-dialog').replace(/-dialog$/, ''),
+    ),
+    sealIds,
+    'i sigilli del vino non sono i quattro punti che i pannelli confermano',
+  );
+  for (const entry of MAPPA_ENTRIES) {
+    const shouldSeal = panelIsWineOnly(document, entry.id);
+    assert.equal(
+      document
+        .querySelector(`button.mappa__dot[data-dialog="${entry.id}-dialog"]`)
+        .classList.contains('mappa__dot--seal'),
+      shouldSeal,
+      `il punto ${entry.id} non segue il suo pannello: il sigillo è del solo vino`,
+    );
+  }
+  assert.equal(
+    document
+      .querySelector('button.mappa__dot[data-dialog="cantina-brunetto-dialog"]')
+      .classList.contains('mappa__dot--seal'),
+    false,
+    'Quissi de Brunetto porta il sigillo del vino pur servendo gin e amari',
+  );
 });
 
 test('il piano della Mappa è un’immagine dichiarata, caricata con calma e descritta senza cifra', () => {
@@ -6987,11 +7163,14 @@ test('la Mappa non si scusa più per le posizioni: la cautela è uscita dal corp
  * px, sotto i 44. Il tetto è rispettato — nessun anello si sposta oltre 18 px —
  * e il criterio del pollice è raggiunto con l'area distinta degli anelli. Il
  * piazzale della chiesa cade nel punto più fitto della passeggiata, fra gli
- * anelli della piazza e la catena del sud: il suo anello, scostato in alto a
- * sinistra, lascia 28,33 px dal centro più vicino, Casianu, e i cerchi
- * visibili da 13 px restano a 15,33 px bordo a bordo, ancora separati. Le altre
- * coppie strette stanno poco sopra 41,38 px. Nessun scontro nuovo e il divario
- * cresce a ogni larghezza.
+ * anelli della piazza e la catena del sud: il suo anello lascia 28,73 px dal
+ * centro più vicino, l'ammazzatora. I segni non si toccano: i sigilli da 22 px
+ * e gli anelli da 13 px lasciano almeno 15,73 px bordo a bordo, l'ammazzatora
+ * e il piazzale, cioè quanto lasciavano prima dei sigilli. Il sigillo di
+ * Casianu, più largo dell'anello che era, si scosta di 12/−13 px — il passo
+ * più grande fra i sigilli — per non coprire il Bagno della chiesa senza
+ * schiacciare l'anello di Enzo: il suo bersaglio resta a 33,74 px dal più
+ * vicino. Nessun scontro nuovo e il divario cresce a ogni larghezza.
  */
 test('a 320 px i bersagli sono separati il più possibile e i divari crescono col disegno', () => {
   const document = loadSite();
@@ -7019,7 +7198,6 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
     [
       ['cantina-casianu', 'cantina-enzo'],
       ['cantina-enzo', 'cantina-gabriele'],
-      ['cantina-casianu', 'cantina-callaru'],
       ['cantina-santuccella', 'cantina-macellaru'],
       ['cantina-macellaru', 'cantina-brunetto'],
       ['cantina-brunetto', 'cantina-ammazzatora'],
@@ -7043,11 +7221,17 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
 
   const collidingAtNarrowest = [];
   let narrowest = Infinity;
+  let narrowestEdge = Infinity;
   for (let a = 0; a < centres.length; a += 1) {
     for (let b = a + 1; b < centres.length; b += 1) {
       const name = pairOf(a, b);
       const gap = distance(a, b, widths[0]);
       if (gap < narrowest) narrowest = gap;
+      const edge =
+        gap -
+        markRadius(document, MAPPA_ENTRIES[a]) -
+        markRadius(document, MAPPA_ENTRIES[b]);
+      if (edge < narrowestEdge) narrowestEdge = edge;
       if (gap < 44) collidingAtNarrowest.push(name);
       // Nessuno scontro nuovo: chi stava fuori dai 44 px ci resta fuori.
       if (!crowded.has(name)) {
@@ -7067,17 +7251,24 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
     }
   }
 
-  // (b) A 280 px il divario minimo fra due centri, misurato, è 28,33 px.
+  // (b) A 280 px il divario minimo fra due centri, misurato, è 28,73 px.
   assert.ok(
-    Math.abs(narrowest - 28.33) < 0.01,
-    `il divario minimo fra due centri a 280 px è ${narrowest.toFixed(2)} px, non 28,33`,
+    Math.abs(narrowest - 28.73) < 0.01,
+    `il divario minimo fra due centri a 280 px è ${narrowest.toFixed(2)} px, non 28,73`,
   );
 
-  // (c) Gli anelli da 13 px restano separati: fra i bordi resta almeno la
-  // larghezza di un anello.
+  /*
+   * (c) I segni non si toccano, sigilli compresi: fra i bordi del disco da
+   * 22 px e dell'anello da 13 px restano almeno 15,73 px, l'ammazzatora e il
+   * piazzale, cioè quanto restava prima dei sigilli.
+   */
   assert.ok(
-    narrowest - 13 >= 13,
-    `gli anelli da 13 px si avvicinano a ${(narrowest - 13).toFixed(2)} px bordo a bordo: meno di 13`,
+    Math.abs(narrowestEdge - 15.73) < 0.01,
+    `il divario minimo fra i bordi dei segni a 280 px è ${narrowestEdge.toFixed(2)} px, non 15,73`,
+  );
+  assert.ok(
+    narrowestEdge >= 13,
+    `i segni si avvicinano a ${narrowestEdge.toFixed(2)} px bordo a bordo: meno di 13`,
   );
 
   assert.deepEqual(
@@ -7087,11 +7278,31 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
   );
 
   /*
+   * Il sigillo di Casianu è più largo, e il suo scostamento non deve
+   * schiacciare la piazza: il suo bersaglio resta almeno a 33,74 px da quello
+   * più vicino, Enzo. I 44 px pieni sono impossibili qui; la misura tiene il
+   * sigillo al suo posto senza avvicinare i due comandi fino a sovrapporsi.
+   */
+  const casianu = MAPPA_ENTRIES.findIndex(
+    ({ id }) => id === 'cantina-casianu',
+  );
+  const casianuNearest = Math.min(
+    ...centres.map((_, index) =>
+      index === casianu ? Infinity : distance(casianu, index, widths[0]),
+    ),
+  );
+  assert.ok(
+    Math.abs(casianuNearest - 33.74) < 0.01,
+    `il sigillo di Casianu lascia ${casianuNearest.toFixed(2)} px dal bersaglio più vicino a 280 px, non 33,74`,
+  );
+
+  /*
    * La targa del Bagno alla chiesa sta sul punto vero, scostata di +17/−17 px
    * perché il punto cade dentro l'etichetta `la chiesa`, e un filo di bronzo
    * la riunisce al punto, come il filo delle voci scostate. A 280 px il
-   * cerchio da 22 px lascia 2,83 px di riquadro dall'anello più vicino,
-   * Casianu, e il divario cresce col disegno.
+   * cerchio da 22 px lascia 3,33 px di riquadro dal segno più vicino, il
+   * sigillo di Casianu: il sigillo si è scostato anche per questo, e il
+   * divario cresce col disegno.
    */
   const churchSign = MAPPA_BAGNI.find(
     ({ sign }) => sign.dx !== 0 || sign.dy !== 0,
@@ -7110,7 +7321,8 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
     const height = (width * 396) / 273;
     const x = (Number.parseFloat(entry.x) / 100) * width + entry.nudge.dx;
     const y = (Number.parseFloat(entry.y) / 100) * height + entry.nudge.dy;
-    return { x0: x - 6.5, x1: x + 6.5, y0: y - 6.5, y1: y + 6.5 };
+    const r = markRadius(document, entry);
+    return { x0: x - r, x1: x + r, y0: y - r, y1: y + r };
   };
   const boxGap = (a, b) =>
     Math.hypot(
@@ -7122,10 +7334,10 @@ test('a 320 px i bersagli sono separati il più possibile e i divari crescono co
       ...MAPPA_ENTRIES.map((entry) => boxGap(signBox(width), ringBox(entry, width))),
     );
 
-  // Il divario misurato a 280 px è 2,83 px.
+  // Il divario misurato a 280 px è 3,33 px.
   assert.ok(
-    Math.abs(ringClearance(280) - 2.83) < 0.01,
-    `la targa del Bagno lascia ${ringClearance(280).toFixed(2)} px dall’anello più vicino a 280 px, non 2,83`,
+    Math.abs(ringClearance(280) - 3.33) < 0.01,
+    `la targa del Bagno lascia ${ringClearance(280).toFixed(2)} px dal segno più vicino a 280 px, non 3,33`,
   );
 
   // Il divario non torna mai indietro quando il disegno si allarga.
@@ -7262,43 +7474,9 @@ test('i due Bagni sono targhe di bronzo che si nominano: span senza comandi, pic
     const icons = bagno.querySelectorAll('svg');
     assert.equal(icons.length, 1, 'un Bagno non ha un solo pictogramma');
     const [icon] = icons;
-    assert.equal(
-      icon.getAttribute('aria-hidden'),
-      'true',
-      'il pictogramma del Bagno non è nascosto a chi non vede',
-    );
-    assert.equal(
-      icon.getAttribute('focusable'),
-      'false',
-      'il pictogramma del Bagno prende il focus',
-    );
     // Il disegno è l'icona scaricata, riempita col colore della targa: nessuna
     // forma ridisegnata e nessun colore proprio.
-    assert.equal(
-      icon.getAttribute('viewBox'),
-      '0 0 24 24',
-      'il pictogramma del Bagno non è nel riquadro da ventiquattro unità',
-    );
-    assert.equal(
-      icon.getAttribute('fill'),
-      'currentColor',
-      'il pictogramma del Bagno non si riempie col colore della targa',
-    );
-    const paints = [...icon.querySelectorAll('[fill], [stroke]')].flatMap((node) =>
-      ['fill', 'stroke'].flatMap((attribute) => {
-        const value = node.getAttribute(attribute);
-        return value === null ? [] : [value];
-      }),
-    );
-    assert.ok(
-      paints.every((value) => value === 'currentColor' || value === 'none'),
-      'il pictogramma del Bagno ha un colore proprio invece di currentColor',
-    );
-    assert.equal(
-      icon.querySelector('text, image'),
-      null,
-      'il pictogramma del Bagno porta testo o un’immagine',
-    );
+    assertMaterialGlyph(icon, 'il pictogramma del Bagno');
     assert.equal(
       normalize(bagno.textContent),
       '',
@@ -7528,7 +7706,7 @@ test('le due Casse sono segni d’oro che si nominano: span senza comandi, un an
   );
 });
 
-test('il riquadro della Mappa ha il rapporto del piano, etichette con alone e punti da 44 px', () => {
+test('il riquadro della Mappa ha il rapporto del piano, etichette con alone, punti da 44 px e sigilli da 22 px', () => {
   const css = stripCssComments(servedStylesheet());
 
   const drawing = ruleBodyFor(css, '.mappa__drawing');
@@ -7597,6 +7775,70 @@ test('il riquadro della Mappa ha il rapporto del piano, etichette con alone e pu
     css,
     /\.mappa__dot:focus-visible\s*\{[^}]*outline/s,
     'il punto non prende l’indicatore di focus della pagina',
+  );
+
+  /*
+   * Il sigillo del vino: un disco bordeaux da 22 px col bicchiere di crema
+   * dentro, senza anello. Il punto semplice resta com'è. Il segno si distingue
+   * per riempimento e contrasto invertito, non per tinta: un Bagno è bronzo su
+   * crema, un sigillo è crema su bordeaux.
+   */
+  const sealTokens = ruleBodyFor(css, '.mappa__dot--seal');
+  assert.match(sealTokens, /--seal-size:\s*22px/, 'il disco del sigillo non è da 22 px');
+  assert.match(sealTokens, /--seal-glyph:\s*16px/, 'il bicchiere del sigillo non è da 16 px');
+
+  const seal = ruleBodyFor(css, '.mappa__dot--seal .mappa__dot-mark');
+  assert.ok(seal, 'manca il disco bordeaux del sigillo');
+  assert.match(seal, /inline-size:\s*var\(--seal-size\)/, 'il sigillo non è largo quanto il suo token');
+  assert.match(seal, /block-size:\s*var\(--seal-size\)/, 'il sigillo non è alto quanto il suo token');
+  assert.match(seal, /border-radius:\s*50%/, 'il sigillo non è tondo');
+  assert.match(
+    seal,
+    /background:\s*var\(--ink\)/,
+    'il sigillo non è riempito del bordeaux delle voci',
+  );
+  assert.doesNotMatch(
+    seal,
+    /(?:^|[;\s])color:\s*/,
+    'il sigillo cambia il colore del suo anello invece di vestire solo il disco',
+  );
+  assert.match(seal, /\bborder:\s*0/, 'il sigillo porta un anello invece di un disco');
+  assert.doesNotMatch(
+    seal,
+    /var\(--gold\)|var\(--link\)/,
+    'il sigillo prende una tinta che non è il suo inchiostro',
+  );
+
+  // Il punto interno del segno semplice non si disegna dentro il sigillo.
+  assert.match(
+    css,
+    /\.mappa__dot--seal\s+\.mappa__dot-mark::after\s*\{[^}]*content:\s*none/s,
+    'il sigillo porta ancora il punto interno del segno semplice',
+  );
+
+  // Il bicchiere è 16 px, la misura dei pictogrammi dei Bagni; currentColor lo
+  // lascia crema, sul disco bordeaux.
+  const glass = ruleBodyFor(css, '.mappa__dot--seal .mappa__dot-mark svg');
+  assert.ok(glass, 'il bicchiere del sigillo non ha una misura');
+  assert.match(glass, /inline-size:\s*var\(--seal-glyph\)/, 'il bicchiere del sigillo non è largo quanto il suo token');
+  assert.match(glass, /block-size:\s*var\(--seal-glyph\)/, 'il bicchiere del sigillo non è alto quanto il suo token');
+  assert.match(
+    glass,
+    /color:\s*var\(--surface\)/,
+    'il bicchiere del sigillo non è di crema',
+  );
+
+  // Passaggio e focus portano il riempimento al bronzo; il bicchiere resta
+  // crema. L'indicatore di focus sul bersaglio da 44 px non cambia.
+  assert.match(
+    css,
+    /\.mappa__dot--seal:hover\s+\.mappa__dot-mark[^{]*\{[^}]*background:\s*var\(--link-hover\)/s,
+    'il sigillo non risponde al passaggio del puntatore',
+  );
+  assert.match(
+    css,
+    /\.mappa__dot--seal:focus-visible\s+\.mappa__dot-mark[^{]*\{[^}]*background:\s*var\(--link-hover\)/s,
+    'il sigillo non risponde al focus',
   );
 
   for (const selector of ['.mappa', '.mappa__board', '.mappa__drawing']) {

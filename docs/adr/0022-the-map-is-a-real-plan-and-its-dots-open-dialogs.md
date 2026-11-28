@@ -15,7 +15,8 @@
   plan’s ten Cantine under their house titles, two Casse join them as gold
   marks, the dots take the plan’s positions and the `Posizione indicativa`
   caveat leaves the panels); ADR-0031 (the comune joins the plan’s place
-  labels)
+  labels); ADR-0032 (four dots become bordeaux seals with a wine glass; the
+  dots keep their role, target, leader and panel)
 - **Related:** ADR-0003, ADR-0010, ADR-0014, ADR-0019, `GLOSSARY.md` (*Mappa del
   Borgo*, *Cantina*), README (*Composition*, *Motion*, *Editor workflow*,
   *Search visibility*, *Content policy*, *Tests*), `index.html`,

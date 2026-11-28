@@ -1391,9 +1391,10 @@
   /*
    * The dots are the page's only filled marks and its controls that open the
    * Cantina's dialog. The button's browser face is reset, so only the ring
-   * and the dot show. The 44 px target is transparent and generous, so it
-   * stays usable on a phone while the ring and the dot stay small on the
-   * plan. The ring and the dot never take the pointer themselves.
+   * and the dot show; the four wine seals take the disc rule below instead.
+   * The 44 px target is transparent and generous, so it stays usable on a
+   * phone while the ring and the dot stay small on the plan. The ring and the
+   * dot never take the pointer themselves.
    *
    * --x and --y are the true point on the plan. --nudge-x and --nudge-y, in
    * pixels and written in the markup, step the whole 44 px target aside where
@@ -1490,6 +1491,50 @@
   .mappa__dot:hover .mappa__dot-mark,
   .mappa__dot:focus-visible .mappa__dot-mark {
     border-color: var(--link-hover);
+  }
+
+  /*
+   * Il sigillo del vino: i quattro punti il cui pannello non nomina un
+   * provider e porta la promessa della lista dei vini. Il segno è un disco
+   * bordeaux da 22 px col bicchiere Material `wine_bar` di crema dentro, senza
+   * l'anello del punto semplice. Si distingue dai Bagni — bronzo su crema, una
+   * targa — per riempimento e contrasto invertito, mai per la sola tinta. Il
+   * bicchiere è decorativo: non aggiunge una parola, un nome accessibile o un
+   * focus, e il bersaglio resta da 44 px.
+   */
+  .mappa__dot--seal {
+    --seal-size: 22px;
+    --seal-glyph: 16px;
+  }
+
+  .mappa__dot--seal .mappa__dot-mark {
+    display: grid;
+    place-items: center;
+    inline-size: var(--seal-size);
+    block-size: var(--seal-size);
+    border: 0;
+    border-radius: 50%;
+    background: var(--ink);
+  }
+
+  /* Il punto interno del segno semplice non si disegna dentro il sigillo. */
+  .mappa__dot--seal .mappa__dot-mark::after {
+    content: none;
+  }
+
+  /* Il bicchiere è di crema sul disco; l'anello che fiorisce resta l'inchiostro
+     del segno, perché il colore del sigillo non cambia. */
+  .mappa__dot--seal .mappa__dot-mark svg {
+    display: block;
+    inline-size: var(--seal-glyph);
+    block-size: var(--seal-glyph);
+    color: var(--surface);
+  }
+
+  /* Il bronzo del passaggio e del focus, col bicchiere che resta di crema. */
+  .mappa__dot--seal:hover .mappa__dot-mark,
+  .mappa__dot--seal:focus-visible .mappa__dot-mark {
+    background: var(--link-hover);
   }
 
   /*
@@ -2795,6 +2840,18 @@
       }
 
       /*
+       * Il sigillo è più largo del punto semplice: il suo anello parte dal
+       * bordo del disco da 22 px invece che da quello da 13 e si ferma sul
+       * bordo del bersaglio da 44 px, cioè a 2× e non a 3,2×. La fioritura, lo
+       * sfalsamento e il colore restano gli stessi.
+       */
+      .mappa__dot--seal .mappa__dot-mark::before {
+        --bloom-scale: 2;
+        inline-size: var(--seal-size);
+        block-size: var(--seal-size);
+      }
+
+      /*
        * A Cantina's panel is a second surface, not a descendant of the map
        * dialog; once the map opens, the drawing and its dots leave the chapter
        * for that dialog. So the pause answers to the page — any open Cantina
@@ -2936,7 +2993,7 @@
     }
     to {
       opacity: 0;
-      transform: translate(-50%, -50%) scale(3.2);
+      transform: translate(-50%, -50%) scale(var(--bloom-scale, 3.2));
     }
   }
 }

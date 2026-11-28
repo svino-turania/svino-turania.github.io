@@ -6,7 +6,8 @@
   no new UI")
 - **Amended by:** ADR-0025 (the dots are also the expanded map's hotspots; the
   chapter's expand control and the view's zoom controls join the page's
-  controls)
+  controls); ADR-0032 (the bloom's ring follows the mark's size, from 13 to
+  22 px)
 - **Related:** ADR-0003, ADR-0010, ADR-0014, ADR-0015, ADR-0022, ADR-0023,
   README (*Motion*, *Mappa del Borgo*, *Tests*), `assets/css/style.css`,
   `tests/site.test.mjs`
