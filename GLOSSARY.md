@@ -48,9 +48,12 @@ provider who serves there are different things: the host family is never
 named, and only the provider appears, on the panel's provider line — its own
 paragraph under the heading, never joined to the food — where the Comitato has
 confirmed it. Each confirmed Cantina is one dot on the plan and
-one panel opened from it; there is no separate list. The Mappa states no count
-of Cantine, no route order, no title the Comitato has not confirmed and no
-price. Do not infer a number, a menu, a vendor, a duration or a price from the
+one panel opened from it; there is no separate list. Where the panel names no
+provider and carries the wine-list sentence, the dot is a bordeaux seal with a
+wine glass; every other dot stays plain. The seal states what visitors find
+inside one place — not a kind of Cantina, and not a count. The Mappa states
+no count of Cantine, no route order, no title the Comitato has not confirmed and
+no price. Do not infer a number, a menu, a vendor, a duration or a price from the
 term: none of those is decided.
 
 ## Cassa
@@ -124,7 +127,11 @@ foot, where the Pro Loco serves arrosticini, panini con salsiccia and hot
 dog — are bordeaux dots, the page's only bordeaux marks, and each dot is a
 button that opens the place's panel, carrying its name (a Cantina's house
 title, or the piazzale's), the provider where one is confirmed, and a
-sentence on what visitors find inside. Two Casse are gold marks that name
+sentence on what visitors find inside. Four of those dots — the Cantine whose
+panel confirms only wine — are larger bordeaux seals with a cream wine glass
+knocked out of them; the other seven keep the plain ring and dot. A seal is
+still an entry: it opens the same panel, takes the same focus and blooms the
+same ring, and it prints no count. Two Casse are gold marks that name
 themselves and open nothing. Two Bagni are the Mappa's third class: bronze
 circles around the two-figure WC sign and the wheelchair, pictograms that name
 themselves to a screen reader, carry no visible word, open nothing and bloom no
